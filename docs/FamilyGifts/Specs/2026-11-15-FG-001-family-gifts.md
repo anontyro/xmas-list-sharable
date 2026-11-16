@@ -136,7 +136,7 @@ R3a–R3d do not depend on each other beyond R3b needing R3a, so they may be reo
 
 ### R1d · Owner lists and sharing
 
-> **R1d · task FG-104 · ~28 files: ~26 new, ~2 modified · packages P8–P13**
+> **R1d · task FG-104 · ~24 files: ~21 new, ~3 modified · packages P8–P13**
 >
 > Owners sign in, see their lists, and add, edit, prioritise and delete gifts. Anyone with a list link sees a read-only list, and the family dashboard shows every active list.
 > In code this adds the slug generator, item validation, the owner and public serializers and the first Playwright journey.
@@ -291,42 +291,43 @@ Waves:
 
 | Wave | Packages | Release | Note |
 |---|---|---|---|
-| 1 | P0 | R1a (FG-101) | |
-| 2 | P1, P2 | R1a (FG-101), R1b (FG-102) | parallel; P2 only needs P0 |
-| 3 | P3 | R1b (FG-102) | |
-| 4 | P4 | R1c (FG-103) | |
-| 5 | P5 | R1c (FG-103) | |
-| 6 | P6 | R1c (FG-103) | |
-| 7 | P7 | R1c (FG-103) | |
-| 8 | P8 | R1d (FG-104) | |
-| 9 | P9, P10 | R1d (FG-104) | parallel |
-| 10 | P11, P12 | R1d (FG-104) | parallel |
-| 11 | P13 | R1d (FG-104) | |
-| 12 | P14 | R2a (FG-201) | |
-| 13 | P15 | R2a (FG-201) | |
-| 14 | P16 | R2a (FG-201) | |
-| 15 | P17 | R2a (FG-201) | |
-| 16 | P18 | R2a (FG-201) | |
-| 17 | P19 | R2b (FG-202) | |
-| 18 | P20 | R2b (FG-202) | |
-| 19 | P21 | R2b (FG-202) | |
-| 20 | P22 | R3a (FG-301) | |
-| 21 | P23 | R3a (FG-301) | |
-| 22 | P24 | R3a (FG-301) | |
-| 23 | P25 | R3a (FG-301) | |
-| 24 | P26 | R3b (FG-302) | |
-| 25 | P27 | R3b (FG-302) | |
-| 26 | P28, P29 | R3c (FG-303) | parallel |
-| 27 | P30 | R3c (FG-303) | |
-| 28 | P31 | R3c (FG-303) | |
-| 29 | P32 | R3d (FG-304) | |
-| 30 | P33 | R3d (FG-304) | |
-| 31 | P34 | R3d (FG-304) | |
-| 32 | P35 | R4a (FG-401) | |
-| 33 | P36 | R4a (FG-401) | |
-| 34 | P37 | R4a (FG-401) | |
-| 35 | P38, P39 | R4b (FG-402) | parallel |
-| 36 | P40 | R4b (FG-402) | |
+| 1 | P0 | R1a (FG-101) |  |
+| 2 | P1, P2 | R1a (FG-101), R1b (FG-102) | parallel |
+| 3 | P3 | R1b (FG-102) |  |
+| 4 | P4 | R1c (FG-103) |  |
+| 5 | P5 | R1c (FG-103) |  |
+| 6 | P6 | R1c (FG-103) |  |
+| 7 | P7 | R1c (FG-103) |  |
+| 8 | P8 | R1d (FG-104) |  |
+| 9 | P10 | R1d (FG-104) |  |
+| 10 | P9 | R1d (FG-104) |  |
+| 11 | P11, P12 | R1d (FG-104) | parallel |
+| 12 | P13 | R1d (FG-104) |  |
+| 13 | P14 | R2a (FG-201) |  |
+| 14 | P15 | R2a (FG-201) |  |
+| 15 | P16 | R2a (FG-201) |  |
+| 16 | P17 | R2a (FG-201) |  |
+| 17 | P18 | R2a (FG-201) |  |
+| 18 | P19 | R2b (FG-202) |  |
+| 19 | P20 | R2b (FG-202) |  |
+| 20 | P21 | R2b (FG-202) |  |
+| 21 | P22 | R3a (FG-301) |  |
+| 22 | P23 | R3a (FG-301) |  |
+| 23 | P24 | R3a (FG-301) |  |
+| 24 | P25 | R3a (FG-301) |  |
+| 25 | P26 | R3b (FG-302) |  |
+| 26 | P27 | R3b (FG-302) |  |
+| 27 | P28, P29 | R3c (FG-303) | parallel |
+| 28 | P30 | R3c (FG-303) |  |
+| 29 | P31 | R3c (FG-303) |  |
+| 30 | P32 | R3d (FG-304) |  |
+| 31 | P33 | R3d (FG-304) |  |
+| 32 | P34 | R3d (FG-304) |  |
+| 33 | P35 | R4a (FG-401) |  |
+| 34 | P36 | R4a (FG-401) |  |
+| 35 | P37 | R4a (FG-401) |  |
+| 36 | P38, P39 | R4b (FG-402) | parallel |
+| 37 | P40 | R4b (FG-402) |  |
 
 Packages that share a wave share no files.
 
@@ -521,9 +522,10 @@ Shared acceptance for every package:
   2. Price `"19.99"` becomes 1999; `"1e3"` and `"-5"` are rejected.
   3. Exported types `OwnerItemInput` and `ItemFields` are inferred from the schema, not hand-written.
 
-### P9 · server: owner item services (R1d · FG-104, wave 9)
+### P9 · server: owner item services (R1d · FG-104, wave 10)
 - Lane: `server`
 - ownedFiles:
+  - `src/lib/result.ts`
   - `src/features/wishlists/owner-queries.ts` (new)
   - `src/features/wishlists/owner-actions.ts` (new)
   - `tests/integration/owner-items.test.ts` (new)
@@ -533,6 +535,7 @@ Shared acceptance for every package:
   3. Editing or adding on an archived list is refused with `LIST_ARCHIVED`.
   4. New items get a `sort_order` 10 above the highest in their priority group; the first item in a group gets 10.
   5. `OwnerWishlistView` results contain no key matching `claim|interest|guest|planner`.
+  6. Invalid input returns `{ ok: false, error: { code: "INVALID", fields } }` with one message per field (`Result` gains an optional `fields` map), and changing an item's priority puts it last in the new group.
 
 ### P10 · server: public views and queries (R1d · FG-104, wave 9)
 - Lane: `server`
@@ -546,7 +549,7 @@ Shared acceptance for every package:
   3. Deleted items never appear in the guest view; items are in priority order (most wanted, would love, nice to have) then `sort_order`.
   4. The guest view has no claim, interest, owner PIN or session fields; a test asserts the exact key set of one serialized item.
 
-### P11 · ui: owner dashboard and item editor (R1d · FG-104, wave 10)
+### P11 · ui: owner dashboard and item editor (R1d · FG-104, wave 11)
 - Lane: `ui`
 - ownedFiles:
   - `src/app/(owner)/owner/page.tsx` (new)
@@ -561,7 +564,7 @@ Shared acceptance for every package:
   4. Opening another member's list id shows the not-found page.
   5. The owner pages import nothing from `src/features/reservations` or `src/features/planner` (checked by `pnpm lint` from R2a on and by grep now).
 
-### P12 · ui: family dashboard and public list page (R1d · FG-104, wave 10)
+### P12 · ui: family dashboard and public list page (R1d · FG-104, wave 11)
 - Lane: `ui`
 - ownedFiles:
   - `src/app/(public)/page.tsx`
@@ -576,7 +579,7 @@ Shared acceptance for every package:
   4. The page uses the shared `CopyLinkButton` from `src/components/ui`; it copies the absolute list URL, shows "Copied", and works by keyboard.
   5. `/robots.txt` disallows all.
 
-### P13 · e2e: owner journey and decisions (R1d · FG-104, wave 11)
+### P13 · e2e: owner journey and decisions (R1d · FG-104, wave 12)
 - Lane: `e2e`
 - ownedFiles:
   - `tests/e2e/helpers.ts`
@@ -585,13 +588,13 @@ Shared acceptance for every package:
   - `Docs/FamilyGifts/Decisions/0006-role-scoped-views.md` (new)
   - `Docs/FamilyGifts/Decisions/0007-soft-delete.md` (new)
 - Acceptance criteria:
-  1. `helpers.ts` gains whatever the owner journey needs (for example creating a list), reusing the R1c helpers.
+  1. `helpers.ts` gains `createList` for seeding lists directly, reusing the R1c helpers.
   2. `owner-list.spec.ts`: admin creates a member and list, the owner signs in, adds a gift, and a fresh browser context opens `/l/<slug>` and sees it with no edit controls.
   3. The same spec checks the owner can delete the gift and it disappears from the public page.
   4. The spec runs at both viewports configured in R1c.
   5. Decisions 0005, 0006 and 0007 exist with `Status: Agreed`.
 
-### P14 · server: guest identity (R2a · FG-201, wave 12)
+### P14 · server: guest identity (R2a · FG-201, wave 13)
 - Lane: `server`
 - ownedFiles:
   - `src/features/authentication/guest-actions.ts` (new)
@@ -604,7 +607,7 @@ Shared acceptance for every package:
   4. Names are trimmed; empty and 41-character names are rejected.
   5. Presenting an owner or admin cookie to a guest-only action returns unauthorized.
 
-### P15 · server: interest and claim service (R2a · FG-201, wave 13)
+### P15 · server: interest and claim service (R2a · FG-201, wave 14)
 - Lane: `server`
 - ownedFiles:
   - `src/features/reservations/claims.ts` (new)
@@ -621,7 +624,7 @@ Shared acceptance for every package:
   5. Reserving a soft-deleted item or an item on an archived list returns `ITEM_UNAVAILABLE`.
   6. Every result includes the refreshed `GuestItemState` for the item.
 
-### P16 · server: guest claim view and isolation guard (R2a · FG-201, wave 14)
+### P16 · server: guest claim view and isolation guard (R2a · FG-201, wave 15)
 - Lane: `server`
 - ownedFiles:
   - `src/features/wishlists/views.ts`
@@ -637,7 +640,7 @@ Shared acceptance for every package:
   4. `pnpm lint` fails when a file under `src/app/(owner)` imports from `@/features/reservations/*` and passes on the repo as written (D29).
   5. The R1d guest view tests still pass unchanged.
 
-### P17 · ui: guest welcome and claim controls (R2a · FG-201, wave 15)
+### P17 · ui: guest welcome and claim controls (R2a · FG-201, wave 16)
 - Lane: `ui`
 - ownedFiles:
   - `src/features/reservations/components/GuestWelcome.tsx` (new)
@@ -653,7 +656,7 @@ Shared acceptance for every package:
   5. On `CLAIM_CONFLICT` the card shows "Someone else just reserved this" and refreshes to the new state.
   6. All controls have 44 px targets and work by keyboard at 375 px.
 
-### P18 · e2e: claims journey and decisions (R2a · FG-201, wave 16)
+### P18 · e2e: claims journey and decisions (R2a · FG-201, wave 17)
 - Lane: `e2e`
 - ownedFiles:
   - `tests/e2e/claims.spec.ts` (new)
@@ -666,7 +669,7 @@ Shared acceptance for every package:
   4. A release by the winner makes the item available to the other guest again.
   5. Decisions 0008 and 0009 exist with `Status: Agreed`.
 
-### P19 · server: reorder service and sort-filter functions (R2b · FG-202, wave 17)
+### P19 · server: reorder service and sort-filter functions (R2b · FG-202, wave 18)
 - Lane: `server`
 - ownedFiles:
   - `src/features/wishlists/reorder.ts` (new)
@@ -677,11 +680,12 @@ Shared acceptance for every package:
 - Acceptance criteria:
   1. `reorder.test.ts`: `moveItem(up)` on the second item of a group swaps with the first; on the first item it changes nothing; the order persists after reload; items in other priority groups are untouched.
   2. Ten concurrent `moveItem` calls on one group leave `sort_order` values unique within the group.
+  Two items that already share a `sort_order` (two near-simultaneous adds in R1d can produce this) are renumbered 10, 20, … by the next move, so the swap never gets stuck.
   3. Changing an item's priority places it last in the new group.
   4. An owner session for another member cannot move items.
   5. `sort-filter.test.ts`: `price_asc` and `price_desc` both put unpriced items last; `newest` orders by `created_at` descending; default sort is priority then `sort_order`; the price range filter is inclusive; `avail` removes items whose state is `*_by_other`.
 
-### P20 · ui: reorder buttons and guest sort/filter bar (R2b · FG-202, wave 18)
+### P20 · ui: reorder buttons and guest sort/filter bar (R2b · FG-202, wave 19)
 - Lane: `ui`
 - ownedFiles:
   - `src/features/wishlists/components/ReorderControls.tsx` (new)
@@ -695,7 +699,7 @@ Shared acceptance for every package:
   4. The owner page has no claim-state filter or sort.
   5. The bar is usable at 375 px without horizontal scroll.
 
-### P21 · e2e: ordering and decision 0010 (R2b · FG-202, wave 19)
+### P21 · e2e: ordering and decision 0010 (R2b · FG-202, wave 20)
 - Lane: `e2e`
 - ownedFiles:
   - `tests/e2e/ordering.spec.ts` (new)
@@ -706,7 +710,7 @@ Shared acceptance for every package:
   3. Keyboard-only use of Move up works.
   4. Decision 0010 exists with `Status: Agreed`.
 
-### P22 · server: accounting function (R3a · FG-301, wave 20)
+### P22 · server: accounting function (R3a · FG-301, wave 21)
 - Lane: `server`
 - ownedFiles:
   - `src/features/planner/accounting.ts` (new)
@@ -718,7 +722,7 @@ Shared acceptance for every package:
   4. Moving one entry through interested → reserved → purchased never counts it twice in planned or spent.
   5. All arithmetic is on integers; a test asserts `Number.isInteger` on every output.
 
-### P23 · server: planner queries and actions (R3a · FG-301, wave 21)
+### P23 · server: planner queries and actions (R3a · FG-301, wave 22)
 - Lane: `server`
 - ownedFiles:
   - `src/features/planner/schemas.ts` (new)
@@ -733,7 +737,7 @@ Shared acceptance for every package:
   5. A claimed item the owner later deletes still appears with the saved title and a `removed` flag; its price counts in totals.
   6. Removing an interested item clears interest; removing a reserved or purchased item returns `CLAIM_ACTIVE` until the claim is released.
 
-### P24 · ui: planner page (R3a · FG-301, wave 22)
+### P24 · ui: planner page (R3a · FG-301, wave 23)
 - Lane: `ui`
 - ownedFiles:
   - `src/app/(public)/planner/page.tsx` (new)
@@ -749,7 +753,7 @@ Shared acceptance for every package:
   4. The budget sheet saves a total and per-recipient budgets; notes and actual price save per entry and are shown only on this page.
   5. `AppShell` shows a My Planner link only when a guest session exists; items on the list page link to the planner when held by the guest.
 
-### P25 · e2e: planner journey and decision 0011 (R3a · FG-301, wave 23)
+### P25 · e2e: planner journey and decision 0011 (R3a · FG-301, wave 24)
 - Lane: `e2e`
 - ownedFiles:
   - `tests/e2e/planner.spec.ts` (new)
@@ -760,7 +764,7 @@ Shared acceptance for every package:
   3. The planner works after reload and shows the same data in a second context that shares the guest cookie.
   4. Decision 0011 exists with `Status: Agreed`.
 
-### P26 · server: export formatters (R3b · FG-302, wave 24)
+### P26 · server: export formatters (R3b · FG-302, wave 25)
 - Lane: `server`
 - ownedFiles:
   - `src/features/planner/export/text.ts` (new)
@@ -774,7 +778,7 @@ Shared acceptance for every package:
   4. Notes appear only when `includeNotes` is true; recovery or session data cannot be passed in because the entry type has no such field.
   5. Every entry with a URL has it in all three formats; entries without a URL still render.
 
-### P27 · ui: export menu and decision 0012 (R3b · FG-302, wave 25)
+### P27 · ui: export menu and decision 0012 (R3b · FG-302, wave 26)
 - Lane: `ui`
 - ownedFiles:
   - `src/features/planner/components/ExportMenu.tsx` (new)
@@ -788,7 +792,7 @@ Shared acceptance for every package:
   4. The e2e spec checks the copied text and a downloaded CSV for a selected subset and that unselected entries are absent.
   5. Decision 0012 exists with `Status: Agreed`.
 
-### P28 · server: SSRF-safe fetch (R3c · FG-303, wave 26)
+### P28 · server: SSRF-safe fetch (R3c · FG-303, wave 27)
 - Lane: `server`
 - ownedFiles:
   - `src/lib/security/ssrf.ts` (new)
@@ -801,7 +805,7 @@ Shared acceptance for every package:
   3. A hostname that resolves to a public address on the first check and a private address on a second lookup is still blocked (the checked IP is the one connected to).
   4. A normal public-style HTML response returns its text.
 
-### P29 · server: metadata extraction and duplicates (R3c · FG-303, wave 26)
+### P29 · server: metadata extraction and duplicates (R3c · FG-303, wave 27)
 - Lane: `server`
 - ownedFiles:
   - `src/features/imports/types.ts` (new)
@@ -818,7 +822,7 @@ Shared acceptance for every package:
   4. `normalizeUrl("HTTPS://Shop.example/p/1/?utm_source=x#top")` equals `normalizeUrl("https://shop.example/p/1")`, and `findDuplicate` returns the matching item id from a list of existing URLs.
   5. `ImportDraft` is defined once in `types.ts` and reused by R3d.
 
-### P30 · server and ui: URL preview action and panel (R3c · FG-303, wave 27)
+### P30 · server and ui: URL preview action and panel (R3c · FG-303, wave 28)
 - Lane: `server`
 - ownedFiles:
   - `src/features/imports/url-actions.ts` (new)
@@ -832,7 +836,7 @@ Shared acceptance for every package:
   4. A duplicate URL in the same list shows a warning above the Save button and still allows saving.
   5. The form works unchanged when the import panel is unused.
 
-### P31 · e2e: URL import and decision 0013 (R3c · FG-303, wave 28)
+### P31 · e2e: URL import and decision 0013 (R3c · FG-303, wave 29)
 - Lane: `e2e`
 - ownedFiles:
   - `tests/e2e/url-import.spec.ts` (new)
@@ -844,7 +848,7 @@ Shared acceptance for every package:
   3. `tests/integration/safe-fetch.test.ts` gains a case proving `FG_ALLOW_TEST_HOSTS=1` is ignored when `NODE_ENV=production` (a loopback URL is still blocked).
   4. Decision 0013 exists with `Status: Agreed`.
 
-### P32 · server: Amazon parser and fixtures (R3d · FG-304, wave 29)
+### P32 · server: Amazon parser and fixtures (R3d · FG-304, wave 30)
 - Lane: `server`
 - ownedFiles:
   - `src/features/imports/amazon/parse-html.ts` (new)
@@ -861,7 +865,7 @@ Shared acceptance for every package:
   4. Fixture HTML containing `<script>alert(1)</script>` and `<img onerror>` yields text fields with no markup executed or retained as HTML.
   5. Drafts use the shared `ImportDraft` type from R3c.
 
-### P33 · server and ui: bulk preview and commit (R3d · FG-304, wave 30)
+### P33 · server and ui: bulk preview and commit (R3d · FG-304, wave 31)
 - Lane: `ui`
 - ownedFiles:
   - `src/features/imports/bulk-actions.ts` (new)
@@ -875,7 +879,7 @@ Shared acceptance for every package:
   4. A failed parse shows the manual-entry message and leaves the item form usable.
   5. Committed items append to the end of the `would_love` group in preview order.
 
-### P34 · e2e: Amazon import and decision 0014 (R3d · FG-304, wave 31)
+### P34 · e2e: Amazon import and decision 0014 (R3d · FG-304, wave 32)
 - Lane: `e2e`
 - ownedFiles:
   - `tests/e2e/amazon-import.spec.ts` (new)
@@ -885,7 +889,7 @@ Shared acceptance for every package:
   2. Pasting unparseable text shows the fallback and the owner adds an item by hand.
   3. Decision 0014 exists with `Status: Agreed`.
 
-### P35 · server: recovery token service and exchange route (R4a · FG-401, wave 32)
+### P35 · server: recovery token service and exchange route (R4a · FG-401, wave 33)
 - Lane: `server`
 - ownedFiles:
   - `src/features/authentication/recovery.ts` (new)
@@ -899,7 +903,7 @@ Shared acceptance for every package:
   4. Only a guest session can create or revoke a link, and only for itself.
   5. The 11th exchange attempt in 15 minutes from one IP is throttled; responses carry `Cache-Control: no-store` and `Referrer-Policy: no-referrer`.
 
-### P36 · ui: Save Access dialog and recover page (R4a · FG-401, wave 33)
+### P36 · ui: Save Access dialog and recover page (R4a · FG-401, wave 34)
 - Lane: `ui`
 - ownedFiles:
   - `src/app/(public)/recover/page.tsx` (new)
@@ -911,7 +915,7 @@ Shared acceptance for every package:
   3. A missing or invalid token shows a clear failure message and a link to the family page.
   4. The raw token appears in no request URL, no server-rendered HTML and no `console` output.
 
-### P37 · e2e: recovery journey and decision 0015 (R4a · FG-401, wave 34)
+### P37 · e2e: recovery journey and decision 0015 (R4a · FG-401, wave 35)
 - Lane: `e2e`
 - ownedFiles:
   - `tests/e2e/recovery.spec.ts` (new)
@@ -923,7 +927,7 @@ Shared acceptance for every package:
   4. The test asserts the address bar shows `/recover` with no fragment after load.
   5. Decision 0015 exists with `Status: Agreed`.
 
-### P38 · server: security headers and payload sweep (R4b · FG-402, wave 35)
+### P38 · server: security headers and payload sweep (R4b · FG-402, wave 36)
 - Lane: `server`
 - ownedFiles:
   - `next.config.ts`
@@ -935,7 +939,7 @@ Shared acceptance for every package:
   3. The same test confirms no `ADMIN_SECRET`, `SESSION_SECRET` or `DATABASE_URL` value appears in any HTML or JS bundle served.
   4. Both files run in CI.
 
-### P39 · repo: backup, restore and runbook (R4b · FG-402, wave 35)
+### P39 · repo: backup, restore and runbook (R4b · FG-402, wave 36)
 - Lane: `repo`
 - ownedFiles:
   - `scripts/backup.sh` (new)
@@ -948,7 +952,7 @@ Shared acceptance for every package:
   3. The Runbook covers environment variables, Vercel deploy, running migrations as a deliberate step, seeding the household, the Supabase pause and free-tier check, and what to do if a recovery link is lost.
   4. The README links the Runbook and lists the `pnpm` scripts from D2.
 
-### P40 · e2e: mobile and accessibility pass (R4b · FG-402, wave 36)
+### P40 · e2e: mobile and accessibility pass (R4b · FG-402, wave 37)
 - Lane: `e2e`
 - ownedFiles:
   - `tests/e2e/mobile-a11y.spec.ts` (new)

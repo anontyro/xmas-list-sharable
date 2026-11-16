@@ -1,7 +1,12 @@
-export type Result<T> = { ok: true; data: T } | { ok: false; error: { code: string; message: string } };
+export type Result<T> =
+  | { ok: true; data: T }
+  | { ok: false; error: { code: string; message: string; fields?: Record<string, string> } };
 
 export const ok = <T>(data: T): Result<T> => ({ ok: true, data });
-export const fail = (code: string, message: string): Result<never> => ({ ok: false, error: { code, message } });
+export const fail = (code: string, message: string, fields?: Record<string, string>): Result<never> => ({
+  ok: false,
+  error: { code, message, ...(fields && { fields }) },
+});
 
 export class UnauthorizedError extends Error {
   constructor() {
