@@ -20,7 +20,7 @@ export default async function OwnerListPage({ params }: { params: Promise<{ list
   if (!list) notFound();
   return (
     <Container maxWidth="sm" sx={{ py: 4 }}>
-      <AppLink href="/owner" underline="hover">← My lists</AppLink>
+      <AppLink href="/owner">← My lists</AppLink>
       <Typography variant="h4" component="h1" sx={{ my: 2 }}>{list.title}</Typography>
       <Stack direction="row" spacing={1} sx={{ alignItems: "center", mb: 3 }}>
         <Typography color="text.secondary">Share this list:</Typography>

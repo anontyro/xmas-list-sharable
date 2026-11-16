@@ -27,7 +27,7 @@ export default async function MemberPage({ params }: { params: Promise<{ memberI
 
   return (
     <Container maxWidth="sm" sx={{ py: 4 }}>
-      <AppLink href="/admin" underline="hover">← All members</AppLink>
+      <AppLink href="/admin">← All members</AppLink>
       <Stack direction="row" spacing={1} sx={{ alignItems: "center", my: 2 }}>
         <Typography variant="h4" component="h1">{member.displayName}</Typography>
         {!member.active && <Chip label="Inactive" />}

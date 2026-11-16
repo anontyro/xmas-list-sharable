@@ -269,12 +269,12 @@ Check response headers and page source on `/`, a list, `/owner/login` and `/reco
 - No secret from the environment appears in any page or script.
 
 ### 26. Backup and restore
-Run `scripts/backup.sh`, restore into a scratch database with `scripts/restore.sh`, and compare table row counts.
-- Counts match; restoring into a non-empty database is refused. The result is recorded in the Runbook.
+Follow the restore test in `docs/FamilyGifts/Runbook.md`: run `scripts/backup.sh`, restore into a scratch database with `scripts/restore.sh <dump> <url>`, and compare `scripts/row-counts.sh` output for both.
+- Counts match; restoring into a non-empty database is refused. The result is recorded in the Runbook. Repeat it once against the real Supabase project.
 
 ### 27. Phone and accessibility
 On a real phone run: admin setup, owner adds a gift, guest reserves, planner, recovery.
-- No horizontal scroll, buttons easy to tap, text readable, status never relies on colour alone.
+- No horizontal scroll, buttons easy to tap, text readable, status never relies on colour alone, links are underlined.
 - With the system's reduced-motion setting on there is no animation.
 
 ### 28. Toggles

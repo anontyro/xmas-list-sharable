@@ -17,6 +17,16 @@ If your Docker volume predates `docker/init-test-db.sql`, create the test databa
 
 ## Scripts
 
-`dev` `build` `start` `lint` `typecheck` `test` `test:integration` `test:e2e` `db:up` `db:down` `db:generate` `db:migrate` `db:seed`
+| Script | What it does |
+|---|---|
+| `pnpm dev` / `build` / `start` | Run the app in development, build it, serve the build |
+| `pnpm lint` / `typecheck` | ESLint and TypeScript checks |
+| `pnpm test` | Unit tests |
+| `pnpm test:integration` | Database tests (need `pnpm db:up` and `TEST_DATABASE_URL`) |
+| `pnpm test:e2e` | Browser tests at 375 px and 1280 px (builds the app first) |
+| `pnpm db:up` / `db:down` | Start or stop local Postgres in Docker |
+| `pnpm db:generate` / `db:migrate` | Create or apply schema migrations |
+| `pnpm db:seed` | Create the household (`--demo` adds sample members and lists) |
+| `scripts/backup.sh`, `restore.sh`, `row-counts.sh` | Back up, restore and compare the database (see the runbook) |
 
-The `db:*`, integration and e2e scripts need the database and migrations added in later releases.
+Running, deploying, backing up and restoring: `docs/FamilyGifts/Runbook.md`.

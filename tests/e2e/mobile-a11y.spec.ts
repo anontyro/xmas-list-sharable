@@ -1,0 +1,120 @@
+import AxeBuilder from "@axe-core/playwright";
+import { expect, test, type Locator, type Page } from "@playwright/test";
+import { ADMIN_SECRET, createItem, createList, createMemberWithPin, guestPage, ownerSignIn, resetAndSeed } from "./helpers";
+
+let slug: string;
+let listId: string;
+let alex: string;
+test.beforeEach(async () => {
+  const household = await resetAndSeed();
+  alex = await createMemberWithPin(household, "Alex", "123456");
+  const list = await createList(alex);
+  slug = list.slug;
+  listId = list.id;
+  await createItem(list.id, "Headphones", 12999);
+  await createItem(list.id, "Novel", 1499);
+});
+
+const noSideScroll = async (page: Page, where: string) =>
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), `horizontal scroll on ${where}`).toBe(true);
+
+async function serious(page: Page, where: string) {
+  const { violations } = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
+  const bad = violations.filter((v) => v.impact === "serious" || v.impact === "critical");
+  expect(bad.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).slice(0, 3).join(" | ")}`), `axe on ${where}`).toEqual([]);
+}
+
+async function adminSignIn(page: Page) {
+  await page.goto("/admin/login");
+  await page.getByLabel("Admin secret").fill(ADMIN_SECRET);
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page.getByRole("heading", { name: "Family admin" })).toBeVisible();
+}
+
+// Reduced motion keeps dialogs from being scanned halfway through their fade-in.
+test.describe("pages", () => {
+test.use({ reducedMotion: "reduce" });
+test("every page fits the screen and has no serious accessibility violations", async ({ browser, page }) => {
+  await adminSignIn(page);
+  for (const path of ["/admin", `/admin/members/${alex}`]) {
+    await page.goto(path);
+    await noSideScroll(page, path);
+    await serious(page, path);
+  }
+  await page.context().clearCookies();
+
+  await ownerSignIn(page);
+  await page.goto(`/owner/lists/${listId}`);
+  await noSideScroll(page, "owner list");
+  await serious(page, "owner list");
+  await page.getByRole("button", { name: "Import from an Amazon wishlist" }).click();
+  await noSideScroll(page, "import dialog");
+  await serious(page, "import dialog");
+  await page.context().clearCookies();
+
+  const { context, page: guest } = await guestPage(browser, slug, "Ann", { reducedMotion: "reduce" });
+  await guest.getByRole("button", { name: /^Reserve: Headphones/ }).click();
+  await expect(guest.getByText("Reserved by you")).toBeVisible();
+  const visited: [string, string][] = [["/", "family page"], [`/l/${slug}`, "list"], ["/planner", "planner"]];
+  for (const [path, name] of visited) {
+    await guest.goto(path);
+    await noSideScroll(guest, name);
+    await serious(guest, name);
+  }
+  const menu = guest.getByRole("button", { name: "Open menu" });
+  if (await menu.isVisible()) await menu.click();
+  await guest.getByRole("button", { name: "Save access" }).or(guest.getByRole("menuitem", { name: "Save access" })).click();
+  await guest.getByRole("button", { name: "Make a link" }).click();
+  await expect(guest.getByLabel("Your private link")).toBeVisible();
+  await noSideScroll(guest, "save access dialog");
+  await serious(guest, "save access dialog");
+  await context.close();
+
+  await page.goto("/recover");
+  await noSideScroll(page, "recover");
+  await serious(page, "recover");
+});
+});
+
+/** Presses Tab until `target` has focus (at most `max` times). */
+async function tabTo(page: Page, target: Locator, max = 80) {
+  for (let i = 0; i < max; i++) {
+    await page.keyboard.press("Tab");
+    if (await target.evaluate((el) => el === document.activeElement)) return;
+  }
+  throw new Error("never reached the control by keyboard");
+}
+
+test("reserve, mark purchased and add a gift all work from the keyboard alone", async ({ browser, page }) => {
+  const { context, page: guest } = await guestPage(browser, slug, "Ann");
+  await tabTo(guest, guest.getByRole("button", { name: /^Reserve: Headphones/ }));
+  await guest.keyboard.press("Enter");
+  await expect(guest.getByText("Reserved by you")).toBeVisible();
+  await tabTo(guest, guest.getByRole("button", { name: /^Mark purchased: Headphones/ }));
+  await guest.keyboard.press("Enter");
+  await expect(guest.getByText("Purchased by you")).toBeVisible();
+  await context.close();
+
+  await ownerSignIn(page);
+  await page.goto(`/owner/lists/${listId}`);
+  await tabTo(page, page.getByRole("textbox", { name: /^Gift/ }));
+  await page.keyboard.type("Keyboard gift");
+  await page.keyboard.press("Enter"); // submits the form
+  await expect(page.getByText("Keyboard gift")).toBeVisible();
+});
+
+test("with reduced motion on, nothing on the page transitions or animates", async ({ browser }) => {
+  const { context, page } = await guestPage(browser, slug, "Ann", { reducedMotion: "reduce" });
+  await page.getByRole("button", { name: /^Reserve: Headphones/ }).click();
+  const moving = await page.evaluate(() =>
+    [...document.querySelectorAll("button, a, input, [role=button]")]
+      .filter((el) => {
+        const s = getComputedStyle(el);
+        const zero = (v: string) => v.split(",").every((d) => parseFloat(d) === 0);
+        return !zero(s.transitionDuration) || !zero(s.animationDuration);
+      })
+      .map((el) => el.outerHTML.slice(0, 80)),
+  );
+  expect(moving).toEqual([]);
+  await context.close();
+});

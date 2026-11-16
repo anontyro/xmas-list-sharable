@@ -258,13 +258,13 @@ R3a–R3d do not depend on each other beyond R3b needing R3a, so they may be reo
 
 ### R4b · Hardening
 
-> **R4b · task FG-402 · ~10 files: ~8 new, ~2 modified · packages P38–P40**
+> **R4b · task FG-402 · ~21 files: ~12 new, ~9 modified · packages P38–P40**
 >
 > No new features. Security headers, a payload-isolation sweep, a backup and restore runbook with scripts, and a 375 px and accessibility pass on the critical flows.
 > This is the Christmas release gate.
 
 - **D44 · Headers.** `next.config.ts` sets `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin` (and `no-referrer` on `/recover` and `/api/recovery/*`). A CSP is a follow-up.
-- **D45 · Backup.** `scripts/backup.sh` runs `pg_dump --format=custom` against `DATABASE_URL`; `scripts/restore.sh` restores into an empty database named by its argument. `Docs/FamilyGifts/Runbook.md` documents deploy, migrate, backup, restore test,
+- **D45 · Backup.** `scripts/backup.sh` runs `pg_dump --format=custom` against `DATABASE_URL`; `scripts/restore.sh <dump> <target-url>` restores into an empty database and refuses one that has tables. `Docs/FamilyGifts/Runbook.md` documents deploy, migrate, backup, restore test,
   and the Supabase free-tier pause risk to check before launch.
 
 ## Non-goals
@@ -962,37 +962,47 @@ Shared acceptance for every package:
 - Lane: `server`
 - ownedFiles:
   - `next.config.ts`
-  - `tests/security/headers.test.ts` (new)
-  - `tests/security/payload-isolation.test.ts` (new)
+  - `tests/e2e/security.spec.ts` (new)
+  - `tests/e2e/helpers.ts`
+  - `.github/workflows/ci.yml`
 - Acceptance criteria:
-  1. `headers.test.ts` against the running app asserts the D44 headers on `/`, `/l/<slug>`, `/owner/login`, and `no-referrer` on `/recover` and `/api/recovery/exchange`.
-  2. `payload-isolation.test.ts` walks every owner and admin page and action result for a world with claims, interests, notes, budgets and recovery tokens, and finds no forbidden key and none of the seeded secret strings (note text, actual price, raw token).
+  1. `security.spec.ts` (a Playwright spec, so it runs against the built app and in CI with the e2e job) asserts the D44 headers on `/`, `/l/<slug>`, `/owner/login`, and `no-referrer` on `/recover` and `/api/recovery/exchange`.
+  2. The same spec fetches every owner and admin page (plus the public pages) for a world with claims, interests, notes, budgets and recovery tokens, and finds no forbidden key and none of the seeded secret strings (note text, actual price, raw token).
   3. The same test confirms no `ADMIN_SECRET`, `SESSION_SECRET` or `DATABASE_URL` value appears in any HTML or JS bundle served.
-  4. Both files run in CI.
+  4. It runs in CI, and `ci.yml` runs on push to `main`, on pull requests and manually again.
 
 ### P39 · repo: backup, restore and runbook (R4b · FG-402, wave 36)
 - Lane: `repo`
 - ownedFiles:
   - `scripts/backup.sh` (new)
   - `scripts/restore.sh` (new)
-  - `Docs/FamilyGifts/Runbook.md` (new)
+  - `scripts/row-counts.sh` (new)
+  - `scripts/_env.sh` (new)
+  - `tests/integration/restore-script.test.ts` (new)
+  - `docs/FamilyGifts/Runbook.md` (new)
   - `README.md`
 - Acceptance criteria:
-  1. `scripts/backup.sh` writes a timestamped custom-format dump; `scripts/restore.sh <db>` restores it into an empty database and refuses a non-empty one.
+  1. `scripts/backup.sh` writes a timestamped custom-format dump; `scripts/restore.sh <dump> <target-url>` restores it into an empty database and refuses a non-empty one.
   2. A documented restore test (backup, restore to a scratch database, compare row counts for every table) has been run and its result is pasted in the Runbook.
   3. The Runbook covers environment variables, Vercel deploy, running migrations as a deliberate step, seeding the household, the Supabase pause and free-tier check, and what to do if a recovery link is lost.
   4. The README links the Runbook and lists the `pnpm` scripts from D2.
+  5. An integration test proves `restore.sh` refuses a database with tables and leaves its data alone, and that `backup.sh` dumps the `DATABASE_URL` it is given even when `.env` exists.
 
 ### P40 · e2e: mobile and accessibility pass (R4b · FG-402, wave 37)
 - Lane: `e2e`
 - ownedFiles:
   - `tests/e2e/mobile-a11y.spec.ts` (new)
-  - `src/theme/theme.ts`
+  - `src/app/(public)/page.tsx`
+  - `src/app/(public)/planner/page.tsx`
+  - `src/app/(owner)/owner/page.tsx`
+  - `src/app/(owner)/owner/lists/[listId]/page.tsx`
+  - `src/app/(admin)/admin/page.tsx`
+  - `src/app/(admin)/admin/members/[memberId]/page.tsx`
 - Acceptance criteria:
   1. At 375 px the spec runs admin setup, owner add item, guest reserve, planner and recovery without horizontal scroll (document width ≤ viewport width) on each page.
   2. `@axe-core/playwright` reports no serious or critical violations on `/`, `/l/<slug>`, `/planner`, `/owner/lists/<id>` and `/admin`.
   3. The critical flows (reserve, mark purchased, add item) complete by keyboard alone.
-  4. Any theme change needed to pass contrast is made in `src/theme/theme.ts` only, and status text remains readable at the new colours.
+  4. Fixes the scan found are made where they arise: links beside text are always underlined (they were underlined only on hover), and the selected planner period is bold instead of underlined. No theme change was needed.
   5. With `prefers-reduced-motion: reduce` no transition or animation runs on interactive elements.
 
 ## Follow-ups

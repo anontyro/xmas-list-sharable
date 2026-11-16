@@ -27,7 +27,7 @@ export default async function HomePage() {
               <Stack component="ul" sx={{ listStyle: "none", p: 0, m: 0 }} spacing={0.5}>
                 {m.lists.map((l) => (
                   <li key={l.slug}>
-                    <AppLink href={`/l/${l.slug}`} underline="hover">{l.title}</AppLink>{" "}
+                    <AppLink href={`/l/${l.slug}`}>{l.title}</AppLink>{" "}
                     <Typography component="span" color="text.secondary">({l.occasion} {l.year})</Typography>
                   </li>
                 ))}

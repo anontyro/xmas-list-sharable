@@ -60,3 +60,16 @@ export async function guestPage(browser: Browser, slug: string, name: string, op
   await expect(page.getByText("Shopping as")).toContainText(name);
   return { context, page };
 }
+
+export const PRIVATE = { guest: "Zelda-Claimant", note: "secret-note-123", price: "77.77", token: "recovery-token-hash-abc" };
+
+/** A guest who has an interest, a purchase, budgets, a private note and a recovery token on `itemId`. */
+export async function seedGuestActivity(householdId: string, itemId: string) {
+  const [g] = await db.insert(schema.guest).values({ householdId, displayName: PRIVATE.guest }).returning();
+  await db.insert(schema.itemInterest).values({ guestId: g.id, itemId });
+  await db.insert(schema.itemClaim).values({ itemId, guestId: g.id, status: "purchased" });
+  const [p] = await db.insert(schema.guestPlanner).values({ guestId: g.id, occasion: "Christmas", year: 2026, budgetMinor: 7777 }).returning();
+  await db.insert(schema.plannerItem).values({ plannerId: p.id, itemId, privateNote: PRIVATE.note, actualPriceMinor: 7777 });
+  await db.insert(schema.recoveryToken).values({ guestId: g.id, tokenHash: PRIVATE.token });
+  return g.id;
+}

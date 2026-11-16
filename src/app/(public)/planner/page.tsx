@@ -37,7 +37,7 @@ export default async function PlannerPage({ searchParams }: { searchParams: Prom
       {plan.periods.length > 1 && (
         <Stack direction="row" spacing={2} useFlexGap sx={{ mb: 2, flexWrap: "wrap" }} component="nav" aria-label="Occasion">
           {plan.periods.map((p) => (
-            <AppLink key={`${p.occasion}${p.year}`} href={`/planner?occasion=${encodeURIComponent(p.occasion)}&year=${p.year}`} underline={p === plan.selected ? "always" : "hover"} aria-current={p.occasion === plan.selected.occasion && p.year === plan.selected.year ? "page" : undefined}>
+            <AppLink key={`${p.occasion}${p.year}`} href={`/planner?occasion=${encodeURIComponent(p.occasion)}&year=${p.year}`} sx={{ fontWeight: p === plan.selected ? 700 : 400 }} aria-current={p.occasion === plan.selected.occasion && p.year === plan.selected.year ? "page" : undefined}>
               {p.occasion} {p.year}
             </AppLink>
           ))}

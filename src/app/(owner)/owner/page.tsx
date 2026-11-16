@@ -26,7 +26,7 @@ export default async function OwnerHome() {
         {lists.map((l) => (
           <Paper key={l.id} sx={{ p: 2 }}>
             <Stack direction="row" spacing={1} useFlexGap sx={{ alignItems: "center", flexWrap: "wrap" }}>
-              <AppLink href={`/owner/lists/${l.id}`} variant="subtitle1" underline="hover">{l.title}</AppLink>
+              <AppLink href={`/owner/lists/${l.id}`} variant="subtitle1">{l.title}</AppLink>
               <Typography color="text.secondary">{l.occasion} {l.year}</Typography>
               {l.archived && <Chip label="Archived" size="small" />}
             </Stack>
