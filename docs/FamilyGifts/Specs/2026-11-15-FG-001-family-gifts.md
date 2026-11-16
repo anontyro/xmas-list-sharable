@@ -95,7 +95,7 @@ R3a–R3d do not depend on each other beyond R3b needing R3a, so they may be reo
 
 ### R1b · Database
 
-> **R1b · task FG-102 · ~15 files: ~15 new · packages P2–P3**
+> **R1b · task FG-102 · ~19 files: ~16 new, ~3 modified · packages P2–P3**
 >
 > The full PRD §7 schema is defined in Drizzle and applied as one checked-in migration, with a local Postgres, a seed script, and an integration-test harness.
 > No user-facing change.
@@ -408,6 +408,10 @@ Shared acceptance for every package:
   - `src/db/migrations/meta/**/*.json` (new, generated)
   - `src/db/seed.ts` (new)
   - `vitest.integration.config.ts` (new)
+  - `docker-compose.yml`
+  - `docker/init-test-db.sql` (new)
+  - `.github/workflows/ci.yml`
+  - `tests/integration/global-setup.ts` (new)
   - `tests/integration/db-harness.ts` (new)
   - `tests/integration/schema.test.ts` (new)
   - `Docs/FamilyGifts/Decisions/0002-money-and-schema.md` (new)

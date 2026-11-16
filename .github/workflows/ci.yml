@@ -5,6 +5,20 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: family
+          POSTGRES_PASSWORD: family
+          POSTGRES_DB: family_gifts_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U family"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -16,6 +30,9 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
+      - run: pnpm test:integration
+        env:
+          TEST_DATABASE_URL: postgres://family:family@localhost:5432/family_gifts_test
       - run: pnpm build
         env:
           DATABASE_URL: postgres://x:x@localhost:5432/x

@@ -8,8 +8,12 @@ Requirements: `docs/family-gifts-prd-v1.md`. Build plan: `docs/FamilyGifts/Specs
 ```sh
 pnpm install
 cp .env.example .env   # then fill in ADMIN_SECRET and SESSION_SECRET (see comments)
+pnpm db:up && pnpm db:migrate && pnpm db:seed --demo   # local Postgres in Docker
 pnpm dev
 ```
+
+If your Docker volume predates `docker/init-test-db.sql`, create the test database once:
+`docker compose exec db psql -U family -d family_gifts -c "create database family_gifts_test"`.
 
 ## Scripts
 
