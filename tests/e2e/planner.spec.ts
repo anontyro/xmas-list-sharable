@@ -86,7 +86,7 @@ test("notes and prices paid are private: not to another guest, the owner, or a v
   await ann.page.getByRole("button", { name: /Notes and price paid/ }).click();
   await ann.page.getByLabel("Private note", { exact: true }).fill("topsecretnote");
   await ann.page.getByLabel("Price you paid (£)").fill("17.77");
-  await ann.page.getByRole("button", { name: "Save" }).click();
+  await ann.page.getByRole("button", { name: "Save", exact: true }).click();
   await expect(ann.page.getByText("Saved")).toBeVisible();
   expect(await ann.page.content()).toContain("topsecretnote"); // the data is there for Ann
 

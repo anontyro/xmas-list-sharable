@@ -247,7 +247,7 @@ R3a–R3d do not depend on each other beyond R3b needing R3a, so they may be reo
 
 ### R4a · Recovery links
 
-> **R4a · task FG-401 · ~9 files: ~8 new, ~1 modified · packages P35–P37**
+> **R4a · task FG-401 · ~13 files: ~10 new, ~3 modified · packages P35–P37**
 >
 > A guest can create a private link, open it on another device and get their planner and claims back, and can revoke it.
 > In code this adds the token service, a fragment-based exchange page and API route, and the Save Access dialog.
@@ -938,9 +938,11 @@ Shared acceptance for every package:
   - `src/app/(public)/recover/page.tsx` (new)
   - `src/features/authentication/components/SaveAccessDialog.tsx` (new)
   - `src/components/layout/AppShell.tsx`
+  - `src/features/authentication/components/RecoverExchange.tsx` (new)
+  - `src/app/layout.tsx`
 - Acceptance criteria:
-  1. `AppShell` shows a Save access entry for guests; the dialog creates a link, shows it with Copy and Revoke, and shows the warning from D43.
-  2. `/recover` reads `#t=…`, replaces the history entry with `/recover` before any network call, posts the token, and on success redirects to `/planner`.
+  1. `AppShell` shows a Save access entry only when the layout reports a guest session; the dialog creates a link, shows it with Copy and Revoke, and shows the warning from D43.
+  2. `/recover` (through `RecoverExchange`) reads `#t=…`, replaces the history entry with `/recover` before any network call, posts the token, and on success redirects to `/planner`.
   3. A missing or invalid token shows a clear failure message and a link to the family page.
   4. The raw token appears in no request URL, no server-rendered HTML and no `console` output.
 

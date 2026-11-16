@@ -10,12 +10,13 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // My Planner is shown only to a browser that has a guest session.
-  const links = (await currentGuest()) ? [{ label: "My Planner", href: "/planner" }] : [];
+  const guest = Boolean(await currentGuest());
+  const links = guest ? [{ label: "My Planner", href: "/planner" }] : [];
   return (
     <html lang="en">
       <body>
         <ThemeRegistry>
-          <AppShell links={links}>{children}</AppShell>
+          <AppShell links={links} guest={guest}>{children}</AppShell>
         </ThemeRegistry>
       </body>
     </html>
