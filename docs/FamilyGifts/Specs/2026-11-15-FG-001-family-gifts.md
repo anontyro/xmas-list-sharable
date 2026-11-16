@@ -113,10 +113,11 @@ R3a–R3d do not depend on each other beyond R3b needing R3a, so they may be reo
 
 ### R1c · Auth and admin
 
-> **R1c · task FG-103 · ~26 files: ~26 new · packages P4–P7**
+> **R1c · task FG-103 · ~46 files: ~43 new, ~3 modified · packages P4–P7**
 >
 > The admin signs in with the environment secret, creates members and their owner PINs, and creates, archives and restores lists. Owners can sign in with their PIN.
 > In code this adds the password, token and throttle primitives, the session layer and the permission checks every later feature calls first.
+> This release is over the 30-file guide because the sign-in screens and the Playwright setup land with it. Commit it in two steps: P4–P6 (server) then P7 (screens and e2e).
 
 - **D12 · Sessions.** `session` rows hold `token_hash` = sha256 hex of a 32-byte random token (base64url in the cookie). Three cookies, one per role, so contexts never inherit each other:
   `fg_admin` (8 h), `fg_owner` (12 h), `fg_guest` (180 days). All `HttpOnly`, `SameSite=Lax`, `Path=/`, `Secure` when `NODE_ENV=production`. Admin sessions use the household id as `principal_id`.
@@ -129,7 +130,8 @@ R3a–R3d do not depend on each other beyond R3b needing R3a, so they may be reo
   "Incorrect details or too many attempts. Try again later." The IP is the first `x-forwarded-for` hop, else `unknown`.
 - **D16 · Permissions and results.** `src/lib/permissions/index.ts` is a pure `can(principal, action)` decision function that mirrors the PRD §3.1 matrix. `src/lib/auth/require.ts` exports
   `requireAdmin()`, `requireOwner(memberId)` and `requireGuest()`, and every server action calls one as its first statement. Actions return `Result<T> = {ok:true,data:T} | {ok:false,error:{code:string,message:string}}`
-  from `src/lib/result.ts`. Validation uses zod at the action boundary.
+  from `src/lib/result.ts`. Validation uses zod at the action boundary. Integration tests run real actions by mocking `next/headers` with `tests/integration/request-context.ts`.
+  A `"use server"` file exports only the actions themselves; shared helpers live in files without that directive.
 - **D17 · Admin scope.** Admin code may read and write `household`, `member`, `wishlist` and `session`. Admin code never imports or queries `item_interest`, `item_claim`, `guest_planner`, `recipient_budget`, `planner_item` or `recovery_token`.
 
 ### R1d · Owner lists and sharing
@@ -429,6 +431,8 @@ Shared acceptance for every package:
   - `src/lib/security/password.ts` (new)
   - `src/lib/security/token.ts` (new)
   - `src/lib/security/rate-limit.ts` (new)
+  - `src/lib/security/client-ip.ts` (new)
+  - `vitest.integration.config.ts`
   - `tests/unit/security/password.test.ts` (new)
   - `tests/unit/security/token.test.ts` (new)
   - `tests/integration/rate-limit.test.ts` (new)
@@ -447,7 +451,9 @@ Shared acceptance for every package:
   - `src/lib/auth/require.ts` (new)
   - `src/lib/permissions/index.ts` (new)
   - `tests/unit/permissions.test.ts` (new)
+  - `tests/integration/request-context.ts` (new)
   - `tests/integration/session.test.ts` (new)
+  - `tests/integration/require.test.ts` (new)
 - Acceptance criteria:
   1. `permissions.test.ts` encodes every row of PRD §3.1 (admin, owner, guest × each operation) and passes; an owner session cannot act on another member's list.
   2. `session.test.ts`: `getSession` returns nothing for an expired, revoked or unknown token, and for a token presented under the wrong cookie role.
@@ -455,9 +461,11 @@ Shared acceptance for every package:
   4. Cookies are created with `HttpOnly`, `SameSite=Lax`, `Path=/`, the TTLs from D12, and `Secure` only when `NODE_ENV=production`.
   5. `requireOwner(memberId)` throws a typed unauthorized error when the session is a guest or admin session.
 
-### P6 · server: admin and owner login, family services (R1c · FG-103, wave 6)
+### P6 · server: admin and owner login, slugs, family services (R1c · FG-103, wave 6)
 - Lane: `server`
 - ownedFiles:
+  - `src/features/wishlists/slug.ts` (new)
+  - `tests/unit/wishlists/slug.test.ts` (new)
   - `src/features/authentication/admin-login.ts` (new)
   - `src/features/authentication/owner-login.ts` (new)
   - `src/features/family/schemas.ts` (new)
@@ -470,9 +478,10 @@ Shared acceptance for every package:
   2. A correct PIN for an inactive member is refused with the same generic message.
   3. `family.test.ts`: without an admin session, `createMember`, `setOwnerPin`, `createList`, `archiveList` and `restoreList` all return unauthorized and change nothing.
   4. `setOwnerPin` stores an Argon2id hash and revokes the member's existing owner sessions; member queries return no `pin_hash` field.
-  5. Member names are unique among active members; `deactivateMember` hides the member from the dashboard query; `archiveList` sets `archived_at` and `restoreList` clears it; list creation stores a D18 slug.
+  5. Member names are unique among active members; `deactivateMember` hides the member from the sign-in picker and ends their sessions; `archiveList` sets `archived_at` and `restoreList` clears it; list creation stores a D18 slug.
+  6. `generateSlug()` returns 10 base62 characters, 10,000 calls produce no duplicates, and every character of the alphabet is used about equally (D18).
 
-### P7 · ui: admin and owner sign-in screens (R1c · FG-103, wave 7)
+### P7 · ui and e2e: admin and owner sign-in screens, Playwright setup (R1c · FG-103, wave 7)
 - Lane: `ui`
 - ownedFiles:
   - `src/app/(admin)/admin/login/page.tsx` (new)
@@ -482,6 +491,14 @@ Shared acceptance for every package:
   - `src/features/family/components/MemberForm.tsx` (new)
   - `src/features/family/components/ListForm.tsx` (new)
   - `src/features/family/components/PinResetForm.tsx` (new)
+  - `src/features/authentication/components/LoginForms.tsx` (new)
+  - `src/components/ui/ActionButton.tsx` (new)
+  - `src/components/ui/CopyLinkButton.tsx` (new)
+  - `src/components/ui/AppLink.tsx` (new)
+  - `playwright.config.ts` (new)
+  - `.github/workflows/ci.yml`
+  - `tests/e2e/global-setup.ts` (new)
+  - `tests/e2e/helpers.ts` (new)
   - `tests/e2e/admin-setup.spec.ts` (new)
   - `Docs/FamilyGifts/Decisions/0003-session-model.md` (new)
   - `Docs/FamilyGifts/Decisions/0004-pin-and-throttling.md` (new)
@@ -491,19 +508,18 @@ Shared acceptance for every package:
   3. The member page can rename, deactivate, reset PIN, archive and restore, with archived lists labelled "Archived" in words.
   4. `/owner/login` lets a member be chosen and a PIN entered; a wrong PIN shows the D15 message. The PIN field is `type="password"` with `inputMode="numeric"` and autocomplete off.
   5. Decisions 0003 and 0004 exist with `Status: Agreed`.
+  6. `pnpm test:e2e` builds and starts the app on port 3217 against `TEST_DATABASE_URL` (refusing to run if it equals `DATABASE_URL`), runs headless Chromium at 375 px and 1280 px, and CI runs it.
+  7. `ActionButton`, `CopyLinkButton` and `AppLink` are the shared client helpers: later pages reuse them rather than adding their own (server pages cannot pass `component={NextLink}` to MUI).
 
-### P8 · server: slugs and item schemas (R1d · FG-104, wave 8)
+### P8 · server: item schemas (R1d · FG-104, wave 8)
 - Lane: `server`
 - ownedFiles:
-  - `src/features/wishlists/slug.ts` (new)
   - `src/features/wishlists/schemas.ts` (new)
-  - `tests/unit/wishlists/slug.test.ts` (new)
   - `tests/unit/wishlists/schemas.test.ts` (new)
 - Acceptance criteria:
-  1. `generateSlug()` returns 10 base62 characters; 10,000 calls produce no duplicates and no character outside `[0-9A-Za-z]`.
-  2. The item schema rejects an empty title, a 121-character title, `javascript:alert(1)` and `ftp://x` as URLs, and accepts a missing price; priority defaults to `would_love`.
-  3. Price `"19.99"` becomes 1999; `"1e3"` and `"-5"` are rejected.
-  4. Exported types `OwnerItemInput` and `ItemFields` are inferred from the schema, not hand-written.
+  1. The item schema rejects an empty title, a 121-character title, `javascript:alert(1)` and `ftp://x` as URLs, and accepts a missing price; priority defaults to `would_love`.
+  2. Price `"19.99"` becomes 1999; `"1e3"` and `"-5"` are rejected.
+  3. Exported types `OwnerItemInput` and `ItemFields` are inferred from the schema, not hand-written.
 
 ### P9 · server: owner item services (R1d · FG-104, wave 9)
 - Lane: `server`
@@ -538,9 +554,8 @@ Shared acceptance for every package:
   - `src/features/wishlists/components/ItemForm.tsx` (new)
   - `src/features/wishlists/components/OwnerItemList.tsx` (new)
   - `src/features/wishlists/components/PriorityChip.tsx` (new)
-  - `src/features/wishlists/components/SignOutButton.tsx` (new)
 - Acceptance criteria:
-  1. `/owner` without an owner session redirects to `/owner/login`; with one it lists only that member's lists and a sign-out button that ends the session.
+  1. `/owner` without an owner session redirects to `/owner/login`; with one it lists only that member's lists and a sign-out button (the shared `ActionButton` with `ownerLogout`) that ends the session.
   2. The item form has fields for title, link, notes, image link, price and priority (Most Wanted, Would Love, Nice to Have, default Would Love) and shows field-level errors from the zod messages.
   3. Items show grouped by priority with words and an icon, not colour alone; delete asks for confirmation with the generic text from D22.
   4. Opening another member's list id shows the not-found page.
@@ -553,29 +568,27 @@ Shared acceptance for every package:
   - `src/app/(public)/l/[slug]/page.tsx` (new)
   - `src/app/(public)/l/[slug]/not-found.tsx` (new)
   - `src/features/wishlists/components/PublicItemCard.tsx` (new)
-  - `src/features/wishlists/components/CopyLinkButton.tsx` (new)
   - `src/app/robots.ts` (new)
 - Acceptance criteria:
   1. `/` shows a card per member with their active list titles linking to `/l/<slug>`, and a friendly empty state when there are none.
   2. `/l/<slug>` shows items in priority order with image (alt text = item title, fallback icon when missing), price, link and notes; it has `robots: noindex`.
   3. An archived list shows an "Archived" banner and the items; an unknown slug shows the safe not-found page with no member or list names.
-  4. Copy Link copies the absolute list URL and shows a visible "Copied" confirmation; it works by keyboard.
+  4. The page uses the shared `CopyLinkButton` from `src/components/ui`; it copies the absolute list URL, shows "Copied", and works by keyboard.
   5. `/robots.txt` disallows all.
 
 ### P13 · e2e: owner journey and decisions (R1d · FG-104, wave 11)
 - Lane: `e2e`
 - ownedFiles:
-  - `playwright.config.ts` (new)
-  - `tests/e2e/helpers.ts` (new)
+  - `tests/e2e/helpers.ts`
   - `tests/e2e/owner-list.spec.ts` (new)
   - `Docs/FamilyGifts/Decisions/0005-slugs-and-archive.md` (new)
   - `Docs/FamilyGifts/Decisions/0006-role-scoped-views.md` (new)
   - `Docs/FamilyGifts/Decisions/0007-soft-delete.md` (new)
 - Acceptance criteria:
-  1. `pnpm test:e2e` starts the built app against the test database, seeds a household and runs headless Chromium at 375 px and 1280 px.
+  1. `helpers.ts` gains whatever the owner journey needs (for example creating a list), reusing the R1c helpers.
   2. `owner-list.spec.ts`: admin creates a member and list, the owner signs in, adds a gift, and a fresh browser context opens `/l/<slug>` and sees it with no edit controls.
   3. The same spec checks the owner can delete the gift and it disappears from the public page.
-  4. The CI workflow runs the e2e job.
+  4. The spec runs at both viewports configured in R1c.
   5. Decisions 0005, 0006 and 0007 exist with `Status: Agreed`.
 
 ### P14 · server: guest identity (R2a · FG-201, wave 12)

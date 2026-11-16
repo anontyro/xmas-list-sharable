@@ -14,6 +14,10 @@ export default defineConfig({
     globalSetup: ["tests/integration/global-setup.ts"],
     fileParallelism: false, // every file shares one database
     // Code under test reads DATABASE_URL; point it at the test database.
-    env: { DATABASE_URL: process.env.TEST_DATABASE_URL ?? "" },
+    env: {
+      DATABASE_URL: process.env.TEST_DATABASE_URL ?? "",
+      ADMIN_SECRET: process.env.ADMIN_SECRET ?? "test-admin-secret",
+      SESSION_SECRET: process.env.SESSION_SECRET ?? "test-session-secret-0123456789abcdef",
+    },
   },
 });

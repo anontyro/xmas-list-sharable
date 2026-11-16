@@ -117,7 +117,7 @@ Go to `/admin` signed out, then sign in with a wrong secret, then the right one.
 - The right secret opens the admin page; the session ends when you clear cookies.
 
 ### 4. Admin setup
-Add members Alex and Sarah with PINs, create a Christmas 2026 list for each, rename one, deactivate and reactivate-by-adding a test member, archive and restore a list.
+Add members Alex and Sarah with PINs, create a Christmas 2026 list for each, rename one, deactivate a spare test member, archive and restore a list.
 - Each list shows a `/l/<10 characters>` link with a working Copy button.
 - Archived lists are labelled "Archived" in words and cannot be edited until restored.
 - A deactivated member's lists disappear from the family page.
