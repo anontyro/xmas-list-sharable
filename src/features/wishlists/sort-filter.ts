@@ -1,4 +1,4 @@
-import { parsePoundsToMinor } from "@/lib/money";
+import { minorToPounds, parsePoundsToMinor } from "@/lib/money";
 import { PRIORITIES, type Priority } from "./schemas";
 
 // Guest-side view of a list. Pure functions: nothing here touches the database or the owner's stored order.
@@ -69,8 +69,8 @@ export function toSearchParams(sort: SortKey, f: Filters): URLSearchParams {
   const q = new URLSearchParams();
   if (sort !== "priority") q.set("sort", sort);
   if (f.priorities.length) q.set("priority", f.priorities.join(","));
-  if (f.minMinor !== null) q.set("min", (f.minMinor / 100).toFixed(2));
-  if (f.maxMinor !== null) q.set("max", (f.maxMinor / 100).toFixed(2));
+  if (f.minMinor !== null) q.set("min", minorToPounds(f.minMinor));
+  if (f.maxMinor !== null) q.set("max", minorToPounds(f.maxMinor));
   if (f.availableOnly) q.set("avail", "1");
   return q;
 }

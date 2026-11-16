@@ -1,4 +1,4 @@
-import { expect, type Page } from "@playwright/test";
+import { expect, type Browser, type Page } from "@playwright/test";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { eq, getTableName, isTable, sql } from "drizzle-orm";
 import postgres from "postgres";
@@ -48,4 +48,15 @@ export async function ownerSignIn(page: Page, pin = "123456") {
   await page.getByLabel("PIN").fill(pin);
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page).toHaveURL(/\/owner$/);
+}
+
+/** A fresh browser context that has opened a list and picked a display name. */
+export async function guestPage(browser: Browser, slug: string, name: string) {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.goto(`/l/${slug}`);
+  await page.getByLabel("Your name").fill(name);
+  await page.getByRole("button", { name: "Continue" }).click();
+  await expect(page.getByText("Shopping as")).toContainText(name);
+  return { context, page };
 }

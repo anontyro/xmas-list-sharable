@@ -10,6 +10,7 @@ import TextField from "@mui/material/TextField";
 import { createItem, updateItem } from "@/features/wishlists/owner-actions";
 import { PRIORITIES, PRIORITY_LABELS, type OwnerItemInput } from "@/features/wishlists/schemas";
 import type { OwnerItem } from "@/features/wishlists/views";
+import { minorToPounds } from "@/lib/money";
 
 const empty = { title: "", productUrl: "", description: "", imageUrl: "", price: "", priority: "would_love" } as const;
 
@@ -20,7 +21,7 @@ function initial(item?: OwnerItem) {
     productUrl: item.productUrl ?? "",
     description: item.description ?? "",
     imageUrl: item.imageUrl ?? "",
-    price: item.priceMinor === null ? "" : (item.priceMinor / 100).toFixed(2),
+    price: minorToPounds(item.priceMinor),
     priority: item.priority,
   };
 }

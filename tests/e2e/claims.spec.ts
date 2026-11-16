@@ -1,5 +1,5 @@
-import { expect, test, type Browser, type Page } from "@playwright/test";
-import { archiveList, createItem, createList, createMemberWithPin, ownerSignIn, resetAndSeed } from "./helpers";
+import { expect, test, type Page } from "@playwright/test";
+import { archiveList, createItem, createList, createMemberWithPin, guestPage, ownerSignIn, resetAndSeed } from "./helpers";
 
 let slug: string;
 let listId: string;
@@ -11,16 +11,6 @@ test.beforeEach(async () => {
   slug = list.slug;
   await createItem(list.id, "Headphones", 12999);
 });
-
-async function guestPage(browser: Browser, name: string) {
-  const context = await browser.newContext();
-  const page = await context.newPage();
-  await page.goto(`/l/${slug}`);
-  await page.getByLabel("Your name").fill(name);
-  await page.getByRole("button", { name: "Continue" }).click();
-  await expect(page.getByText(`Shopping as`)).toContainText(name);
-  return { context, page };
-}
 
 const youHave = (page: Page, status: RegExp) => page.getByText(status).count();
 
@@ -40,8 +30,8 @@ test("a visitor must pick a name before any action, and is remembered", async ({
 });
 
 test("two guests reserve at once: exactly one wins and the other is told", async ({ browser }) => {
-  const a = await guestPage(browser, "Ann");
-  const b = await guestPage(browser, "Bob");
+  const a = await guestPage(browser, slug, "Ann");
+  const b = await guestPage(browser, slug, "Bob");
   await Promise.all([
     a.page.getByRole("button", { name: /Reserve: Headphones/ }).click(),
     b.page.getByRole("button", { name: /Reserve: Headphones/ }).click(),
@@ -64,8 +54,8 @@ test("two guests reserve at once: exactly one wins and the other is told", async
 });
 
 test("undoing a purchase asks first, then frees the gift for others", async ({ browser }) => {
-  const a = await guestPage(browser, "Ann");
-  const b = await guestPage(browser, "Bob");
+  const a = await guestPage(browser, slug, "Ann");
+  const b = await guestPage(browser, slug, "Bob");
   await a.page.getByRole("button", { name: /Reserve: Headphones/ }).click();
   await a.page.getByRole("button", { name: /Mark purchased: Headphones/ }).click();
   await a.page.getByRole("button", { name: /Undo purchase: Headphones/ }).click();
@@ -83,7 +73,7 @@ test("undoing a purchase asks first, then frees the gift for others", async ({ b
 });
 
 test("owner never sees reservations, interest or buyer names", async ({ browser, page }) => {
-  const a = await guestPage(browser, "Ann");
+  const a = await guestPage(browser, slug, "Ann");
   await a.page.getByRole("button", { name: /Interested: Headphones/ }).click();
   await a.page.getByRole("button", { name: /Reserve: Headphones/ }).click();
   await expect(a.page.getByText("Reserved by you")).toBeVisible();
@@ -99,7 +89,7 @@ test("owner never sees reservations, interest or buyer names", async ({ browser,
 });
 
 test("an archived list still shows claims but offers no buttons", async ({ browser }) => {
-  const a = await guestPage(browser, "Ann");
+  const a = await guestPage(browser, slug, "Ann");
   await a.page.getByRole("button", { name: /Reserve: Headphones/ }).click();
   await expect(a.page.getByText("Reserved by you")).toBeVisible();
   await archiveList(listId);

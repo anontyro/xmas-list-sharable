@@ -191,7 +191,7 @@ R3a–R3d do not depend on each other beyond R3b needing R3a, so they may be reo
 
 ### R3a · Planner
 
-> **R3a · task FG-301 · ~14 files: ~11 new, ~3 modified · packages P22–P25**
+> **R3a · task FG-301 · ~22 files: ~12 new, ~10 modified · packages P22–P25**
 >
 > Guests get My Planner: everything they are interested in or have claimed, grouped by recipient, with a total budget, optional recipient budgets, private notes and actual prices, and clear planned, spent and remaining numbers.
 > In code this adds the accounting function, planner queries and actions that only ever read the session guest's rows, and the planner page.
@@ -719,12 +719,18 @@ Shared acceptance for every package:
 - ownedFiles:
   - `src/features/planner/accounting.ts` (new)
   - `tests/unit/planner/accounting.test.ts` (new)
+  - `src/lib/money.ts`
+  - `tests/unit/money.test.ts`
+  - `src/features/wishlists/sort-filter.ts`
+  - `src/features/wishlists/components/ItemForm.tsx`
+  - `src/features/wishlists/components/SortFilterBar.tsx`
 - Acceptance criteria:
   1. The Appendix B example (reserved £129.99, interested £14.99, purchased £24.99 paid £19.50, budget £250) gives planned 14949, spent 1950, potential 1499, remaining 10051.
   2. A zero budget gives remaining equal to minus planned; a null budget gives `remainingMinor` null; overspend gives a negative remaining.
   3. Entries with no price add nothing and are counted in `unpricedCount`; an `included = false` entry is ignored entirely.
   4. Moving one entry through interested → reserved → purchased never counts it twice in planned or spent.
   5. All arithmetic is on integers; a test asserts `Number.isInteger` on every output.
+  6. `minorToPounds` in `src/lib/money.ts` is the one pence-to-input-text helper; the item form, sort bar, URL builder and planner forms use it instead of their own copies, and it round-trips with `parsePoundsToMinor`.
 
 ### P23 · server: planner queries and actions (R3a · FG-301, wave 22)
 - Lane: `server`
@@ -736,10 +742,10 @@ Shared acceptance for every package:
 - Acceptance criteria:
   1. `getPlanner()` returns the session guest's interests and active claims grouped by recipient and occasion with item title, URL, listed price and state; another guest's rows never appear.
   2. Without a guest session every planner query and action returns unauthorized; an owner or admin cookie does not satisfy the guard.
-  3. Setting the total budget, a recipient budget, a note (≤ 500) and an actual price persists, and a second guest cannot read or change any of them even when passing the first guest's planner id.
+  3. `saveBudgets` (total and recipient budgets together) and `setEntryDetails` (note ≤ 500, actual price, include flag) persist, and a second guest cannot read or change any of them: no action takes a planner id, and a gift that is not in the caller's own planner returns `NOT_FOUND`.
   4. Setting an actual price leaves `wishlist_item.price_minor` unchanged.
   5. A claimed item the owner later deletes still appears with the saved title and a `removed` flag; its price counts in totals.
-  6. Removing an interested item clears interest; removing a reserved or purchased item returns `CLAIM_ACTIVE` until the claim is released.
+  6. Removing needs no separate action: withdrawing interest and releasing or undoing a claim (the R2a actions, used from the planner) already do it, so a held gift cannot be dropped without being released.
 
 ### P24 · ui: planner page (R3a · FG-301, wave 23)
 - Lane: `ui`
@@ -749,23 +755,26 @@ Shared acceptance for every package:
   - `src/features/planner/components/TotalsPanel.tsx` (new)
   - `src/features/planner/components/BudgetSheet.tsx` (new)
   - `src/features/planner/components/EntryNotes.tsx` (new)
-  - `src/components/layout/AppShell.tsx`
+  - `src/app/layout.tsx`
+  - `src/features/wishlists/components/PublicItemCard.tsx`
 - Acceptance criteria:
   1. `/planner` without a guest session shows a friendly "Pick a name first" prompt linking to the family page.
   2. Entries are grouped by recipient, each with title, link, listed price (or "No price"), status in words and the buttons from D35.
   3. `TotalsPanel` shows Planned, Spent, Potential, Remaining and "N items without a price", using `computePlan` only (no arithmetic in the component); negative remaining is shown in words as "over budget".
-  4. The budget sheet saves a total and per-recipient budgets; notes and actual price save per entry and are shown only on this page.
-  5. `AppShell` shows a My Planner link only when a guest session exists; items on the list page link to the planner when held by the guest.
+  4. The budget sheet saves a total and per-recipient budgets in one action; notes and actual price save per entry and are shown only on this page.
+  5. The root layout passes a My Planner link to `AppShell` only when a guest session exists; a gift on a list page that the guest holds or is interested in links to the planner.
 
 ### P25 · e2e: planner journey and decision 0011 (R3a · FG-301, wave 24)
 - Lane: `e2e`
 - ownedFiles:
   - `tests/e2e/planner.spec.ts` (new)
+  - `tests/e2e/helpers.ts`
+  - `tests/e2e/claims.spec.ts`
   - `Docs/FamilyGifts/Decisions/0011-planner-accounting.md` (new)
 - Acceptance criteria:
   1. A guest reserves items on two members' lists, sets a £250 budget, marks one purchased with an actual price and a note, and the planner shows the expected planned, spent and remaining.
   2. A second guest, the owner and the admin cannot see the note or actual price anywhere, including in page source and network responses.
-  3. The planner works after reload and shows the same data in a second context that shares the guest cookie.
+  3. The planner works after reload and shows the same data in a second context that shares the guest cookie. `guestPage` moves into `helpers.ts` so claims and planner specs share it.
   4. Decision 0011 exists with `Status: Agreed`.
 
 ### P26 · server: export formatters (R3b · FG-302, wave 25)

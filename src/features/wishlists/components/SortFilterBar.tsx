@@ -12,7 +12,7 @@ import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { parsePoundsToMinor } from "@/lib/money";
+import { minorToPounds, parsePoundsToMinor } from "@/lib/money";
 import { PRIORITIES, PRIORITY_LABELS, type Priority } from "../schemas";
 import { NO_FILTERS, toSearchParams, type Filters, type SortKey } from "../sort-filter";
 
@@ -23,14 +23,12 @@ const SORT_LABELS: Record<SortKey, string> = {
   newest: "Recently added",
 };
 
-const pounds = (minor: number | null) => (minor === null ? "" : (minor / 100).toFixed(2));
-
 /** Sort and filter controls. The view lives in the URL, so a copied link shows the same list; nothing is saved. */
 export default function SortFilterBar({ sort, filters }: { sort: SortKey; filters: Filters }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [min, setMin] = useState(pounds(filters.minMinor));
-  const [max, setMax] = useState(pounds(filters.maxMinor));
+  const [min, setMin] = useState(minorToPounds(filters.minMinor));
+  const [max, setMax] = useState(minorToPounds(filters.maxMinor));
   const active = sort !== "priority" || JSON.stringify(filters) !== JSON.stringify(NO_FILTERS);
 
   const go = (nextSort: SortKey, next: Filters) => {

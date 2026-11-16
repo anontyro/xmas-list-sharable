@@ -3,6 +3,7 @@ import CardContent from "@mui/material/CardContent";
 import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import AppLink from "@/components/ui/AppLink";
 import Icon from "@/components/ui/Icon";
 import { formatGBP } from "@/lib/money";
 import ClaimControls from "@/features/reservations/components/ClaimControls";
@@ -35,6 +36,7 @@ export default function PublicItemCard({ item, canAct }: { item: ClaimedGuestIte
             )}
             <StatusChip state={item.state} />
             {canAct && <ClaimControls itemId={item.id} itemTitle={item.title} state={item.state.state} />}
+            {canAct && item.state.state !== "available" && !item.state.state.endsWith("_by_other") && <AppLink href="/planner">See it in My Planner</AppLink>}
           </Stack>
         </Stack>
       </CardContent>
