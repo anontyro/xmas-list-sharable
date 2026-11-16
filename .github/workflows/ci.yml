@@ -1,7 +1,7 @@
 name: CI
+# Manual only while the app is being built. Re-add push and pull_request triggers when releases start.
 on:
-  push:
-  pull_request:
+  workflow_dispatch:
 jobs:
   check:
     runs-on: ubuntu-latest
