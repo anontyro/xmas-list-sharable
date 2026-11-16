@@ -91,7 +91,7 @@ R3a–R3d do not depend on each other beyond R3b needing R3a, so they may be reo
   wraps `next/image`; `name` is a string-literal union of the 36 files; `alt` defaults to `""` (decorative) and must be set when the icon is the only label.
 - **D6 · Environment.** `src/lib/env.ts` validates `DATABASE_URL`, `ADMIN_SECRET` (min 12), `SESSION_SECRET` (min 32), `TEST_DATABASE_URL` (tests only) with zod and throws at first use.
   `.env.example` lists all four; the two secrets are left empty so the app will not start with a guessable value. Local tooling reads `.env` (scripts use `tsx --env-file=.env`). Nothing from `env.ts` is imported by a client component.
-- **D7 · CI.** `.github/workflows/ci.yml` runs install, lint, typecheck, unit tests and build on push and pull request. Integration and e2e jobs are added by P3 and P13.
+- **D7 · CI.** `.github/workflows/ci.yml` runs install, lint, typecheck, unit tests and build. It is `workflow_dispatch` (manual) only while the app is being built; add `push` and `pull_request` triggers when releases start (R4b). Integration and e2e jobs are added by P3 and P13.
 
 ### R1b · Database
 
@@ -156,24 +156,24 @@ R3a–R3d do not depend on each other beyond R3b needing R3a, so they may be reo
 
 ### R2a · Guests and claims
 
-> **R2a · task FG-201 · ~21 files: ~15 new, ~6 modified · packages P14–P18**
+> **R2a · task FG-201 · ~25 files: ~19 new, ~6 modified · packages P14–P18**
 >
 > Guests give a name once, then mark interest and reserve, buy or release gifts. Exactly one guest can win a reservation, and owners and admin never see any of it.
 > In code this adds the guest session, the claim service on the partial unique index, the guest claim view and a lint rule and test that keep owner code away from claim data.
 
 - **D25 · Guest identity.** First visit to a list shows `GuestWelcome` asking for a display name (1–40 chars, trimmed). `createGuest` inserts a `guest` row, creates a `fg_guest` session and returns. Names are not unique;
-  the guest UUID is the identity. `renameGuest` updates `display_name` only. An owner or admin session never counts as a guest session.
+  the guest UUID is the identity. `renameGuest` updates `display_name` only. An owner or admin session never counts as a guest session. One address (throttle key `guest:<ip>`) can create at most 20 guests per 15 minutes.
 - **D26 · Claim operations.** In `src/features/reservations/` all state changes are single statements or short transactions:
   `setInterest` / `clearInterest` (insert or delete on unique `(guest_id, item_id)`); `reserve` inserts an active `item_claim` with status `reserved` (a unique violation maps to `CLAIM_CONFLICT`);
   `markPurchased` updates status to `purchased` where `guest_id` is the caller and `released_at is null`; `release` sets `released_at = now()`.
   Releasing a purchased claim requires `confirm: true`. Error codes: `CLAIM_CONFLICT`, `NOT_CLAIMANT`, `ITEM_UNAVAILABLE` (deleted item or archived list), `CONFIRM_REQUIRED`.
-  Every result carries the refreshed `GuestItemState` for that item.
-- **D27 · Guest item state.** `GuestItemState` is one of `available`, `interested`, `reserved_by_you`, `reserved_by_other`, `purchased_by_you`, `purchased_by_other`. Active claim wins over interest.
+  A successful result carries the refreshed `GuestItemState` for that item; after any result (including a conflict) the page refetches.
+- **D27 · Guest item state.** `GuestItemState` is `{ state, claimedBy? }` where `state` is one of `available`, `interested`, `reserved_by_you`, `reserved_by_other`, `purchased_by_you`, `purchased_by_other`. Active claim wins over interest.
   Guests see only their own interest; interest counts for other guests are not exposed.
 - **D28 · Buyer names.** Claims by other guests show the claimant's current `display_name` (PRD §15.2 default). Dropping the name later only requires removing it from the guest view mapper.
 - **D29 · Isolation guard.** `eslint.config.mjs` gets a `no-restricted-imports` rule forbidding `@/features/reservations/*` and `@/features/planner/*` from `src/app/(owner)`, `src/app/(admin)`,
   `src/features/family` and the owner modules in `src/features/wishlists`. `tests/integration/projection-isolation.test.ts` serialises every owner and admin query result
-  and asserts no key matches `claim|interest|guest|planner|recovery|token|hash|pin`.
+  and asserts no key matches `claim|interest|guest|planner|recovery|token|hash|reserved|purchased` and none of the seeded secrets appear.
 - **D30 · Refresh.** Actions call `revalidatePath` for the list. No realtime. A conflict result tells the UI to show "Someone else just reserved this" and re-render.
 
 ### R2b · Ordering and sorting
@@ -304,8 +304,8 @@ Waves:
 | 11 | P11, P12 | R1d (FG-104) | parallel |
 | 12 | P13 | R1d (FG-104) |  |
 | 13 | P14 | R2a (FG-201) |  |
-| 14 | P15 | R2a (FG-201) |  |
-| 15 | P16 | R2a (FG-201) |  |
+| 14 | P16 | R2a (FG-201) |  |
+| 15 | P15 | R2a (FG-201) |  |
 | 16 | P17 | R2a (FG-201) |  |
 | 17 | P18 | R2a (FG-201) |  |
 | 18 | P19 | R2b (FG-202) |  |
@@ -605,9 +605,10 @@ Shared acceptance for every package:
   2. A request with the `fg_guest` cookie resolves to the same guest id on later calls; an expired or revoked token resolves to none.
   3. `renameGuest` changes `display_name` and leaves claims pointing at the same guest id.
   4. Names are trimmed; empty and 41-character names are rejected.
+  6. The 21st new guest from one address inside 15 minutes gets `RATE_LIMITED` and no row is created.
   5. Presenting an owner or admin cookie to a guest-only action returns unauthorized.
 
-### P15 · server: interest and claim service (R2a · FG-201, wave 14)
+### P15 · server: interest and claim service (R2a · FG-201, wave 15)
 - Lane: `server`
 - ownedFiles:
   - `src/features/reservations/claims.ts` (new)
@@ -620,25 +621,26 @@ Shared acceptance for every package:
   1. `claims-concurrency.test.ts`: 20 parallel `reserve` calls from 20 guests for one item produce exactly one success and 19 `CLAIM_CONFLICT`, and exactly one active `item_claim` row.
   2. `claims.test.ts`: reserve → markPurchased → release (with `confirm: true`) works for the claimant; the same calls from another guest return `NOT_CLAIMANT`; releasing a purchased claim without `confirm` returns `CONFIRM_REQUIRED`.
   3. After release, a different guest can reserve the item and the first guest's row keeps its `released_at`.
+  4a. Reserving an item you already hold (a double click) returns your state, not `CLAIM_CONFLICT`; another guest still gets the conflict.
   4. Interest is idempotent (twice gives one row), can be cleared, and does not block another guest from reserving.
   5. Reserving a soft-deleted item or an item on an archived list returns `ITEM_UNAVAILABLE`.
   6. Every result includes the refreshed `GuestItemState` for the item.
 
-### P16 · server: guest claim view and isolation guard (R2a · FG-201, wave 15)
+### P16 · server: guest claim view and isolation guard (R2a · FG-201, wave 14)
 - Lane: `server`
 - ownedFiles:
-  - `src/features/wishlists/views.ts`
   - `src/features/wishlists/public-queries.ts`
   - `src/features/reservations/guest-claim-view.ts` (new)
   - `eslint.config.mjs`
   - `tests/integration/guest-view.test.ts` (new)
   - `tests/integration/projection-isolation.test.ts` (new)
+  - `tests/unit/eslint-isolation.test.ts` (new)
 - Acceptance criteria:
   1. `guest-view.test.ts`: the same list loaded as guest A, guest B and an anonymous visitor shows each item with the right `GuestItemState` (D27), and the other guest's `display_name` as claimant for `*_by_other`.
   2. Anonymous visitors see `available` for unclaimed items and `reserved_by_other` or `purchased_by_other` for claimed items without a claimant name.
   3. `projection-isolation.test.ts` serialises every owner query, admin query and the owner list page data after claims and interests exist, and finds no key matching `claim|interest|guest|planner|recovery|token|hash|pin`.
-  4. `pnpm lint` fails when a file under `src/app/(owner)` imports from `@/features/reservations/*` and passes on the repo as written (D29).
-  5. The R1d guest view tests still pass unchanged.
+  4. `pnpm lint` fails when a file under `src/app/(owner)` imports from `@/features/reservations/*` and passes on the repo as written (D29); `eslint-isolation.test.ts` proves the rule fires for owner, admin, family and owner-wishlist files and not for the public side.
+  5. `getListForViewer(slug, viewerId)` adds the state to each item; `getListBySlug` and its R1d tests are unchanged.
 
 ### P17 · ui: guest welcome and claim controls (R2a · FG-201, wave 16)
 - Lane: `ui`
@@ -660,6 +662,8 @@ Shared acceptance for every package:
 - Lane: `e2e`
 - ownedFiles:
   - `tests/e2e/claims.spec.ts` (new)
+  - `tests/e2e/helpers.ts`
+  - `tests/e2e/owner-list.spec.ts`
   - `Docs/FamilyGifts/Decisions/0008-exclusive-claim.md` (new)
   - `Docs/FamilyGifts/Decisions/0009-buyer-names.md` (new)
 - Acceptance criteria:

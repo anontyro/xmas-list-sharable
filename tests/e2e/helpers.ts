@@ -1,5 +1,6 @@
+import { expect, type Page } from "@playwright/test";
 import { drizzle } from "drizzle-orm/postgres-js";
-import { getTableName, isTable, sql } from "drizzle-orm";
+import { eq, getTableName, isTable, sql } from "drizzle-orm";
 import postgres from "postgres";
 import * as schema from "../../src/db/schema";
 import { generateSlug } from "../../src/features/wishlists/slug";
@@ -30,4 +31,21 @@ export async function createList(memberId: string, title = "Christmas 2026", arc
     .values({ memberId, title, occasion: "Christmas", year: 2026, slug, archivedAt: archived ? new Date() : null })
     .returning();
   return { id: l.id, slug };
+}
+
+export async function archiveList(listId: string) {
+  await db.update(schema.wishlist).set({ archivedAt: new Date() }).where(eq(schema.wishlist.id, listId));
+}
+
+export async function createItem(listId: string, title: string, priceMinor: number | null = null) {
+  const [i] = await db.insert(schema.wishlistItem).values({ wishlistId: listId, title, priceMinor }).returning();
+  return i.id;
+}
+
+/** Signs in through the owner form (the first member in the picker, so create that member first). */
+export async function ownerSignIn(page: Page, pin = "123456") {
+  await page.goto("/owner/login");
+  await page.getByLabel("PIN").fill(pin);
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page).toHaveURL(/\/owner$/);
 }

@@ -1,6 +1,7 @@
 import { and, asc, eq, isNull } from "drizzle-orm";
 import { getDb } from "@/db/client";
 import { member, wishlist, wishlistItem } from "@/db/schema";
+import { getItemStates, type ClaimedGuestItem } from "@/features/reservations/guest-claim-view";
 import { itemOrderBy, toGuestItem, type FamilyDashboardView, type GuestWishlistView } from "./views";
 
 /** The shared list page. Null for an unknown slug or a deactivated member's list. */
@@ -61,4 +62,12 @@ export async function getFamilyDashboard(): Promise<FamilyDashboardView> {
     byMember.set(r.memberId, m);
   }
   return { members: [...byMember.values()] };
+}
+
+/** The list as one viewer sees it: every item carries its claim state (null viewer = no name given yet). */
+export async function getListForViewer(slug: string, viewerId: string | null): Promise<(Omit<GuestWishlistView, "items"> & { items: ClaimedGuestItem[] }) | null> {
+  const list = await getListBySlug(slug);
+  if (!list) return null;
+  const states = await getItemStates(viewerId, list.items.map((i) => i.id));
+  return { ...list, items: list.items.map((i) => ({ ...i, state: states.get(i.id)! })) };
 }
