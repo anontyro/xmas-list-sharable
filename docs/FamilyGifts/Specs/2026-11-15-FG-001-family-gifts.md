@@ -687,7 +687,7 @@ Shared acceptance for every package:
   Two items that already share a `sort_order` (two near-simultaneous adds in R1d can produce this) are renumbered 10, 20, … by the next move, so the swap never gets stuck.
   3. Changing an item's priority places it last in the new group.
   4. An owner session for another member cannot move items.
-  5. `sort-filter.test.ts`: `price_asc` and `price_desc` both put unpriced items last; `newest` orders by `created_at` descending; default sort is priority then `sort_order`; the price range filter is inclusive; `avail` removes items whose state is `*_by_other`.
+  5. `sort-filter.test.ts`: `price_asc` and `price_desc` both put unpriced items last; `newest` orders by `created_at` descending; default sort is priority then `sort_order`; the price range filter is inclusive; `avail` removes items whose state is `*_by_other`. Ties on `sort_order` break by created time then id, exactly as the server query does. `parseViewParams` ignores invalid values and `toSearchParams` round-trips with it, leaving a default view's URL empty.
 
 ### P20 · ui: reorder buttons and guest sort/filter bar (R2b · FG-202, wave 19)
 - Lane: `ui`
@@ -711,7 +711,7 @@ Shared acceptance for every package:
 - Acceptance criteria:
   1. The spec moves an item up as the owner and a guest sees the new order; the guest then sorts by price descending and the unpriced item is last.
   2. After the guest sorts, a fresh visit without params shows the owner's priority order.
-  3. Keyboard-only use of Move up works.
+  3. Keyboard-only use of Move up works. A copied link with `min`/`max` params shows the same filtered list, and Clear filters restores the full list.
   4. Decision 0010 exists with `Status: Agreed`.
 
 ### P22 · server: accounting function (R3a · FG-301, wave 21)
