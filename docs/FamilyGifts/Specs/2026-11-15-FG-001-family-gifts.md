@@ -20,7 +20,7 @@ Work item: FG-001 (the PRD, `docs/family-gifts-prd-v1.md`). Each release below s
 Branch: `feature/FG-001-family-gifts` (or one branch per release, `feature/FG-1xx-…`; each release must merge on its own).
 Toggle: none (D1). The repo is greenfield and nothing is live until it is deployed.
 Design: icon pack at `docs/family_gifts_christmas_icon_pack/`; PRD §10 for palette and rules.
-Status: **draft 2026-11-15**. No open questions. Awaiting approval.
+Status: **approved 2026-11-16**. No open questions.
 Manual testing: `Docs/FamilyGifts/Testing/MANUAL-TESTING-FG-001-family-gifts.md`
 Decisions: `Docs/FamilyGifts/Decisions/` (README lists every planned record and the package that writes it).
 

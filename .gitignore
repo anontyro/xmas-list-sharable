@@ -1,0 +1,44 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Next.js
+.next/
+out/
+next-env.d.ts
+
+# Build and test output
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
+
+# Environment (keep the example)
+.env
+.env.*
+!.env.example
+
+# Database dumps from scripts/backup.sh
+*.dump
+backups/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Editors
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Vercel
+.vercel/
