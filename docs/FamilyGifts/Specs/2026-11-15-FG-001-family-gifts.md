@@ -73,15 +73,15 @@ R3a–R3d do not depend on each other beyond R3b needing R3a, so they may be reo
 
 ### R1a · Scaffold, plus decisions shared by every release
 
-> **R1a · task FG-101 · ~19 files: ~18 new, ~1 modified (plus 36 icon assets) · packages P0–P1**
+> **R1a · task FG-101 · ~22 files: ~21 new, ~1 modified (plus 36 icon assets) · packages P0–P1**
 >
 > The repo becomes a running Next.js app with a festive MUI theme, the icon pack wired in as a typed component, and an app shell with navigation.
 > Every dependency the whole project needs is installed here so later packages never edit `package.json`.
 
 - **D1 · No feature flag.** Releases are not toggled. A release that is merged but unfinished is not deployed. Shared acceptance "nothing new runs with the toggle off" does not apply.
-- **D2 · Stack.** Next.js App Router, TypeScript `strict`, pnpm, MUI v7 with `@mui/material-nextjs` (`AppRouterCacheProvider`), no Tailwind or shadcn.
+- **D2 · Stack.** Next.js App Router, TypeScript `strict`, pnpm, MUI (v9 at install time) with `@mui/material-nextjs` (`AppRouterCacheProvider`), no Tailwind or shadcn.
   P0 installs every library: `@mui/material @mui/icons-material @emotion/react @emotion/styled @mui/material-nextjs drizzle-orm postgres drizzle-kit zod @node-rs/argon2 cheerio vitest @playwright/test @axe-core/playwright tsx`.
-  `engines.node >= 22`. Scripts: `dev build start lint typecheck test test:integration test:e2e db:up db:down db:generate db:migrate db:seed`.
+  `engines.node >= 22`. TypeScript is pinned to 5.x (`typescript-eslint` rejects 7.0) and `package.json` has `"type": "module"`. Scripts: `dev build start lint typecheck test test:integration test:e2e db:up db:down db:generate db:migrate db:seed`.
 - **D3 · Layout.** Follow PRD Appendix A under `src/`. Route groups `(public)`, `(owner)`, `(admin)`.
   URLs: `/` family dashboard, `/l/[slug]` list, `/planner`, `/recover`, `/owner/*`, `/admin/*`. Server logic lives in `src/features/<area>/` and `src/lib/`, never in components.
 - **D4 · Theme.** `src/theme/theme.ts` holds the PRD §10 tokens: pine `#24764F` (primary navigation), holly `#D8494F` (primary action), gold `#F3C65D` (priority accent),
@@ -90,7 +90,7 @@ R3a–R3d do not depend on each other beyond R3b needing R3a, so they may be reo
 - **D5 · Icons.** Copy the 36 transparent PNGs to `public/icons/<group>/<name>.png`. `<Icon name="christmas/holly" size={48} alt="" />` in `src/components/ui/Icon.tsx`
   wraps `next/image`; `name` is a string-literal union of the 36 files; `alt` defaults to `""` (decorative) and must be set when the icon is the only label.
 - **D6 · Environment.** `src/lib/env.ts` validates `DATABASE_URL`, `ADMIN_SECRET` (min 12), `SESSION_SECRET` (min 32), `TEST_DATABASE_URL` (tests only) with zod and throws at first use.
-  `.env.example` lists all four. Nothing from `env.ts` is imported by a client component.
+  `.env.example` lists all four; the two secrets are left empty so the app will not start with a guessable value. Local tooling reads `.env` (scripts use `tsx --env-file=.env`). Nothing from `env.ts` is imported by a client component.
 - **D7 · CI.** `.github/workflows/ci.yml` runs install, lint, typecheck, unit tests and build on push and pull request. Integration and e2e jobs are added by P3 and P13.
 
 ### R1b · Database
@@ -349,6 +349,7 @@ Shared acceptance for every package:
   - `.env.example` (new)
   - `vitest.config.ts` (new)
   - `docker-compose.yml` (new)
+  - `pnpm-workspace.yaml` (new)
   - `.github/workflows/ci.yml` (new)
   - `README.md` (new)
   - `src/lib/env.ts` (new)
@@ -362,13 +363,15 @@ Shared acceptance for every package:
   2. `package.json` lists every dependency named in D2 and the scripts named in D2; `engines.node` is `>=22`.
   3. `tests/unit/env.test.ts` fails when `SESSION_SECRET` is shorter than 32 characters and passes with a valid set.
   4. `pnpm dev` serves `/` with MUI styles server-rendered (no flash of unstyled content) and the cream background from D4.
-  5. `.env.example` lists `DATABASE_URL`, `ADMIN_SECRET`, `SESSION_SECRET`, `TEST_DATABASE_URL`; `.gitignore` excludes `.env*` except `.env.example`.
+  5. `.env.example` lists `DATABASE_URL`, `ADMIN_SECRET`, `SESSION_SECRET`, `TEST_DATABASE_URL`; `.gitignore` (already added before the build) excludes `.env*` except `.env.example`.
 
 ### P1 · ui: icons and app shell (R1a · FG-101, wave 2)
 - Lane: `ui`
 - ownedFiles:
   - `public/icons/**/*.png` (new, copied from the icon pack per D5)
   - `src/components/ui/Icon.tsx` (new)
+  - `src/components/ui/icon-names.ts` (new)
+  - `tests/unit/icon.test.ts` (new)
   - `src/components/layout/AppShell.tsx` (new)
   - `src/app/layout.tsx`
   - `Docs/FamilyGifts/Decisions/0001-stack-and-layout.md` (new)
@@ -413,7 +416,7 @@ Shared acceptance for every package:
   2. `schema.test.ts` inserts two active `item_claim` rows for one item and the second fails with a unique violation; a claim with `released_at` set does not block a new active claim.
   3. `schema.test.ts` rejects an `item_claim.status` of `"bogus"` and a `wishlist_item.priority` of `"urgent"`, and a duplicate `wishlist.slug`.
   4. `pnpm db:seed` creates exactly one `household` row and is safe to run twice; `--demo` adds two members and one list.
-  5. `pnpm test:integration` runs against `TEST_DATABASE_URL` with tables truncated between tests; the CI workflow gains a Postgres service and an integration step.
+  5. `pnpm db:seed` and `pnpm test:integration` read `.env`; `pnpm test:integration` runs against `TEST_DATABASE_URL` with tables truncated between tests; the CI workflow gains a Postgres service and an integration step.
   6. Decision 0002 exists with `Status: Agreed`.
 
 ### P4 · server: password, token and throttle primitives (R1c · FG-103, wave 4)
