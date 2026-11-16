@@ -1,0 +1,182 @@
+[
+  {
+    "name": "candy_cane",
+    "group": "christmas",
+    "path": "christmas/candy_cane.png"
+  },
+  {
+    "name": "christmas_stocking",
+    "group": "christmas",
+    "path": "christmas/christmas_stocking.png"
+  },
+  {
+    "name": "christmas_tree",
+    "group": "christmas",
+    "path": "christmas/christmas_tree.png"
+  },
+  {
+    "name": "gift_tag",
+    "group": "christmas",
+    "path": "christmas/gift_tag.png"
+  },
+  {
+    "name": "gingerbread",
+    "group": "christmas",
+    "path": "christmas/gingerbread.png"
+  },
+  {
+    "name": "gold_star",
+    "group": "christmas",
+    "path": "christmas/gold_star.png"
+  },
+  {
+    "name": "holly",
+    "group": "christmas",
+    "path": "christmas/holly.png"
+  },
+  {
+    "name": "reindeer",
+    "group": "christmas",
+    "path": "christmas/reindeer.png"
+  },
+  {
+    "name": "santa_hat",
+    "group": "christmas",
+    "path": "christmas/santa_hat.png"
+  },
+  {
+    "name": "snow_globe",
+    "group": "christmas",
+    "path": "christmas/snow_globe.png"
+  },
+  {
+    "name": "snowflake",
+    "group": "christmas",
+    "path": "christmas/snowflake.png"
+  },
+  {
+    "name": "wrapped_present_red",
+    "group": "christmas",
+    "path": "christmas/wrapped_present_red.png"
+  },
+  {
+    "name": "checklist",
+    "group": "shopping",
+    "path": "shopping/checklist.png"
+  },
+  {
+    "name": "heart_badge",
+    "group": "shopping",
+    "path": "shopping/heart_badge.png"
+  },
+  {
+    "name": "heart_wishlist",
+    "group": "shopping",
+    "path": "shopping/heart_wishlist.png"
+  },
+  {
+    "name": "priority_bookmark",
+    "group": "shopping",
+    "path": "shopping/priority_bookmark.png"
+  },
+  {
+    "name": "sale_tag",
+    "group": "shopping",
+    "path": "shopping/sale_tag.png"
+  },
+  {
+    "name": "shipping_box",
+    "group": "shopping",
+    "path": "shopping/shipping_box.png"
+  },
+  {
+    "name": "shopping_bag",
+    "group": "shopping",
+    "path": "shopping/shopping_bag.png"
+  },
+  {
+    "name": "shopping_basket",
+    "group": "shopping",
+    "path": "shopping/shopping_basket.png"
+  },
+  {
+    "name": "sparkles",
+    "group": "shopping",
+    "path": "shopping/sparkles.png"
+  },
+  {
+    "name": "wrapped_parcel",
+    "group": "shopping",
+    "path": "shopping/wrapped_parcel.png"
+  },
+  {
+    "name": "wrapped_present_gold",
+    "group": "shopping",
+    "path": "shopping/wrapped_present_gold.png"
+  },
+  {
+    "name": "wrapped_present_green",
+    "group": "shopping",
+    "path": "shopping/wrapped_present_green.png"
+  },
+  {
+    "name": "adult_avatar",
+    "group": "interface",
+    "path": "interface/adult_avatar.png"
+  },
+  {
+    "name": "budget_chart",
+    "group": "interface",
+    "path": "interface/budget_chart.png"
+  },
+  {
+    "name": "child_avatar",
+    "group": "interface",
+    "path": "interface/child_avatar.png"
+  },
+  {
+    "name": "coins",
+    "group": "interface",
+    "path": "interface/coins.png"
+  },
+  {
+    "name": "completed_badge",
+    "group": "interface",
+    "path": "interface/completed_badge.png"
+  },
+  {
+    "name": "download",
+    "group": "interface",
+    "path": "interface/download.png"
+  },
+  {
+    "name": "edit_pencil",
+    "group": "interface",
+    "path": "interface/edit_pencil.png"
+  },
+  {
+    "name": "family_group",
+    "group": "interface",
+    "path": "interface/family_group.png"
+  },
+  {
+    "name": "occasion_calendar",
+    "group": "interface",
+    "path": "interface/occasion_calendar.png"
+  },
+  {
+    "name": "reminder_clock",
+    "group": "interface",
+    "path": "interface/reminder_clock.png"
+  },
+  {
+    "name": "share",
+    "group": "interface",
+    "path": "interface/share.png"
+  },
+  {
+    "name": "wallet",
+    "group": "interface",
+    "path": "interface/wallet.png"
+  }
+]
