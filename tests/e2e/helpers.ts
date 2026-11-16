@@ -51,8 +51,8 @@ export async function ownerSignIn(page: Page, pin = "123456") {
 }
 
 /** A fresh browser context that has opened a list and picked a display name. */
-export async function guestPage(browser: Browser, slug: string, name: string) {
-  const context = await browser.newContext();
+export async function guestPage(browser: Browser, slug: string, name: string, options: Parameters<Browser["newContext"]>[0] = {}) {
+  const context = await browser.newContext(options);
   const page = await context.newPage();
   await page.goto(`/l/${slug}`);
   await page.getByLabel("Your name").fill(name);

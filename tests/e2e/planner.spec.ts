@@ -57,7 +57,7 @@ test("a guest plans across two recipients, sets a budget, and the totals add up"
 
   const cookbook = page.locator(".MuiPaper-root").filter({ has: page.getByRole("heading", { name: "Cookbook" }) }).first();
   await cookbook.getByRole("button", { name: /Notes and price paid/ }).click();
-  await cookbook.getByLabel("Private note").fill("gift wrap please");
+  await cookbook.getByLabel("Private note", { exact: true }).fill("gift wrap please");
   await cookbook.getByLabel("Price you paid (£)").fill("19.50");
   await cookbook.getByRole("button", { name: "Save", exact: true }).click();
   await expect(cookbook.getByText("Saved")).toBeVisible();
@@ -84,7 +84,7 @@ test("notes and prices paid are private: not to another guest, the owner, or a v
   await press(ann.page, /^Reserve: Cookbook/);
   await openPlanner(ann.page);
   await ann.page.getByRole("button", { name: /Notes and price paid/ }).click();
-  await ann.page.getByLabel("Private note").fill("topsecretnote");
+  await ann.page.getByLabel("Private note", { exact: true }).fill("topsecretnote");
   await ann.page.getByLabel("Price you paid (£)").fill("17.77");
   await ann.page.getByRole("button", { name: "Save" }).click();
   await expect(ann.page.getByText("Saved")).toBeVisible();

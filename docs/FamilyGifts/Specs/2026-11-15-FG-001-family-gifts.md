@@ -208,7 +208,7 @@ R3a–R3d do not depend on each other beyond R3b needing R3a, so they may be reo
 
 ### R3b · Exports
 
-> **R3b · task FG-302 · ~8 files: ~6 new, ~2 modified · packages P26–P27**
+> **R3b · task FG-302 · ~13 files: ~10 new, ~3 modified · packages P26–P27**
 >
 > Guests select planner entries and copy them as a readable shopping list or download Markdown or CSV.
 > In code this adds three pure formatters and an export menu that works from the planner payload already on the page.
@@ -783,6 +783,8 @@ Shared acceptance for every package:
   - `src/features/planner/export/text.ts` (new)
   - `src/features/planner/export/markdown.ts` (new)
   - `src/features/planner/export/csv.ts` (new)
+  - `src/features/planner/export/types.ts` (new)
+  - `src/features/planner/export/build.ts` (new)
   - `tests/unit/planner/export.test.ts` (new)
 - Acceptance criteria:
   1. `text.ts` reproduces the PRD Appendix B output byte for byte for its sample data, including paid price and the totals lines.
@@ -790,12 +792,16 @@ Shared acceptance for every package:
   3. CSV: a title `=HYPERLINK("x")`, `+1`, `-1`, `@a` and a tab-prefixed value each come out prefixed with `'`.
   4. Notes appear only when `includeNotes` is true; recovery or session data cannot be passed in because the entry type has no such field.
   5. Every entry with a URL has it in all three formats; entries without a URL still render.
+  6. A URL containing parentheses or spaces cannot end the Markdown link early; `buildExport` computes totals over the selected entries only.
 
 ### P27 · ui: export menu and decision 0012 (R3b · FG-302, wave 26)
 - Lane: `ui`
 - ownedFiles:
   - `src/features/planner/components/ExportMenu.tsx` (new)
+  - `src/features/planner/components/SelectionContext.tsx` (new)
   - `src/features/planner/components/PlannerGroup.tsx`
+  - `src/app/(public)/planner/page.tsx`
+  - `tests/e2e/helpers.ts`
   - `tests/e2e/planner-export.spec.ts` (new)
   - `Docs/FamilyGifts/Decisions/0012-export-escaping.md` (new)
 - Acceptance criteria:

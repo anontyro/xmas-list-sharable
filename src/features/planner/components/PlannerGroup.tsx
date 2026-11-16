@@ -9,6 +9,7 @@ import type { GuestItemState } from "@/features/reservations/guest-claim-view";
 import { formatGBP } from "@/lib/money";
 import type { PlannerEntry, PlannerGroup as Group } from "../queries";
 import EntryNotes from "./EntryNotes";
+import { EntrySelect } from "./SelectionContext";
 import TotalsPanel from "./TotalsPanel";
 
 const asGuestState = (e: PlannerEntry): GuestItemState => ({ state: e.state === "interested" ? "interested" : `${e.state}_by_you` });
@@ -35,6 +36,7 @@ export default function PlannerGroup({ group }: { group: Group }) {
                 {e.actualPriceMinor !== null && ` · you paid ${formatGBP(e.actualPriceMinor)}`}
               </Typography>
               {e.productUrl && !e.removed && <Link href={e.productUrl} target="_blank" rel="noopener noreferrer nofollow">View product</Link>}
+              <EntrySelect itemId={e.itemId} title={e.title} />
               <ClaimControls itemId={e.itemId} itemTitle={e.title} state={state.state} />
               <EntryNotes itemId={e.itemId} title={e.title} note={e.note} actualPriceMinor={e.actualPriceMinor} included={e.included} canEnterPrice={e.state !== "interested"} />
             </Stack>

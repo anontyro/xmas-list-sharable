@@ -4,6 +4,8 @@ import Typography from "@mui/material/Typography";
 import AppLink from "@/components/ui/AppLink";
 import { getGuestIdentity } from "@/features/authentication/guest-session";
 import BudgetSheet from "@/features/planner/components/BudgetSheet";
+import ExportMenu from "@/features/planner/components/ExportMenu";
+import { SelectionProvider } from "@/features/planner/components/SelectionContext";
 import PlannerGroup from "@/features/planner/components/PlannerGroup";
 import TotalsPanel from "@/features/planner/components/TotalsPanel";
 import { getPlanner } from "@/features/planner/queries";
@@ -41,22 +43,25 @@ export default async function PlannerPage({ searchParams }: { searchParams: Prom
           ))}
         </Stack>
       )}
-      <Stack spacing={3}>
-        <TotalsPanel title={`My ${title} plan`} totals={plan.totals} budgetMinor={plan.budgetMinor} />
-        <div>
-          <BudgetSheet
-            key={`${title}-${plan.budgetMinor}-${plan.groups.map((g) => g.budgetMinor).join(",")}`}
-            occasion={plan.selected.occasion}
-            year={plan.selected.year}
-            budgetMinor={plan.budgetMinor}
-            recipients={plan.groups.map((g) => ({ memberId: g.memberId, name: g.memberName, budgetMinor: g.budgetMinor }))}
-          />
-        </div>
-        {plan.groups.length === 0 && <Typography>Nothing in your planner yet. Open a family list and tap Interested or Reserve on a gift.</Typography>}
-        {plan.groups.map((g) => (
-          <PlannerGroup key={g.memberId} group={g} />
-        ))}
-      </Stack>
+      <SelectionProvider>
+        <Stack spacing={3}>
+          <TotalsPanel title={`My ${title} plan`} totals={plan.totals} budgetMinor={plan.budgetMinor} />
+          <div>
+            <BudgetSheet
+              key={`${title}-${plan.budgetMinor}-${plan.groups.map((g) => g.budgetMinor).join(",")}`}
+              occasion={plan.selected.occasion}
+              year={plan.selected.year}
+              budgetMinor={plan.budgetMinor}
+              recipients={plan.groups.map((g) => ({ memberId: g.memberId, name: g.memberName, budgetMinor: g.budgetMinor }))}
+            />
+          </div>
+          <ExportMenu plan={plan} />
+          {plan.groups.length === 0 && <Typography>Nothing in your planner yet. Open a family list and tap Interested or Reserve on a gift.</Typography>}
+          {plan.groups.map((g) => (
+            <PlannerGroup key={g.memberId} group={g} />
+          ))}
+        </Stack>
+      </SelectionProvider>
     </Container>
   );
 }
