@@ -235,15 +235,15 @@ R3a–R3d do not depend on each other beyond R3b needing R3a, so they may be reo
 
 ### R3d · Amazon import
 
-> **R3d · task FG-304 · ~13 files: ~11 new, ~2 modified · packages P32–P34**
+> **R3d · task FG-304 · ~19 files: ~15 new, ~4 modified · packages P32–P34**
 >
 > Owners paste an Amazon wishlist page or copied text, review a table of drafts, and add the ones they want in one go.
 > In code this adds an isolated parser with fixtures and a bulk preview and commit. It must never block manual entry, and can be dropped without affecting any other release.
 
-- **D41 · Parser.** `src/features/imports/amazon/` exports `parseAmazonHtml(html)` and `parseAmazonText(text)`, both returning `ImportDraft[]` with an `uncertain: boolean` per draft. Input over 500 KB returns `INPUT_TOO_LARGE`.
+- **D41 · Parser.** `src/features/imports/amazon/` exports `parseAmazonHtml(html)` and `parseAmazonText(text)`, both returning `AmazonDraft[]` (an `ImportDraft` plus `uncertain: boolean`), and `parseAmazon(input)`, which picks one, caps at 100 drafts and returns a `Result`. Input over 500 KB returns `INPUT_TOO_LARGE`.
   HTML is parsed with cheerio as data and never rendered. ASINs found in `/dp/`, `/gp/product/` or `data-asin` map to `https://www.amazon.co.uk/dp/<ASIN>`. Text mode pairs each Amazon URL with the nearest preceding non-empty line as title.
   Zero results returns an empty list and a message pointing to manual entry. Fixtures under `tests/fixtures/amazon/` are the contract when Amazon markup changes.
-- **D42 · Bulk commit.** `commitBulkImport(listId, drafts)` inserts all confirmed rows in one transaction with priority `would_love`, skipping blank titles, re-validating every field with the D21 schemas. Duplicate URLs warn in the preview and do not block.
+- **D42 · Bulk commit.** `commitBulkImport(listId, drafts)` inserts all confirmed rows in one transaction with priority `would_love`, skipping blank titles, re-validating every field with the D21 schemas. Duplicate URLs, or the same ASIN under a different query string, warn in the preview and do not block.
 
 ### R4a · Recovery links
 
@@ -875,8 +875,13 @@ Shared acceptance for every package:
   - `src/features/imports/amazon/parse-html.ts` (new)
   - `src/features/imports/amazon/parse-text.ts` (new)
   - `src/features/imports/amazon/index.ts` (new)
+  - `src/features/imports/amazon/asin.ts` (new)
+  - `src/features/imports/amazon/shared.ts` (new)
+  - `src/features/imports/types.ts`
+  - `src/features/imports/extract-metadata.ts`
   - `tests/fixtures/amazon/wishlist-basic.html` (new)
   - `tests/fixtures/amazon/wishlist-partial.html` (new)
+  - `tests/fixtures/amazon/wishlist-hostile.html` (new)
   - `tests/fixtures/amazon/wishlist-copied.txt` (new)
   - `tests/unit/imports/amazon.test.ts` (new)
 - Acceptance criteria:
@@ -885,11 +890,14 @@ Shared acceptance for every package:
   3. Input over 500 KB returns `INPUT_TOO_LARGE`; empty input, plain prose and malformed HTML return an empty list with the manual-entry message and never throw.
   4. Fixture HTML containing `<script>alert(1)</script>` and `<img onerror>` yields text fields with no markup executed or retained as HTML.
   5. Drafts use the shared `ImportDraft` type from R3c.
+  6. The text parser also picks up a price line between the title and the link, and each ASIN appears once.
+  7. The dialog refuses a paste over 500 KB itself, before it is sent.
 
 ### P33 · server and ui: bulk preview and commit (R3d · FG-304, wave 31)
 - Lane: `ui`
 - ownedFiles:
   - `src/features/imports/bulk-actions.ts` (new)
+  - `src/features/wishlists/owner-queries.ts`
   - `src/features/imports/components/BulkImportDialog.tsx` (new)
   - `src/app/(owner)/owner/lists/[listId]/page.tsx`
   - `tests/integration/bulk-import.test.ts` (new)

@@ -10,3 +10,6 @@ export type ImportDraft = {
   /** Things the owner should look at: missing or doubtful fields. */
   warnings: string[];
 };
+
+/** A draft from the Amazon importer. `uncertain` means a field is missing or doubtful, so the owner should look at it. */
+export type AmazonDraft = ImportDraft & { uncertain: boolean };

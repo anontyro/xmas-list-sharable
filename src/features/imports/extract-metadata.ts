@@ -7,8 +7,8 @@ import type { ImportDraft } from "./types";
 const TITLE_MAX = 120;
 const DESCRIPTION_MAX = 1000;
 
-const clip = (s: string, max: number) => (s.length > max ? `${s.slice(0, max - 1).trimEnd()}…` : s);
-const clean = (v: unknown): string | null => (typeof v === "string" && v.trim() ? v.replace(/\s+/g, " ").trim() : null);
+export const clip = (s: string, max: number) => (s.length > max ? `${s.slice(0, max - 1).trimEnd()}…` : s);
+export const clean = (v: unknown): string | null => (typeof v === "string" && v.trim() ? v.replace(/\s+/g, " ").trim() : null);
 
 /** Turns "129.99", "1,299.00", "12,50" or 129.99 into pence. Null when it can't be read or is out of range. */
 export function parsePriceString(raw: string | number): number | null {

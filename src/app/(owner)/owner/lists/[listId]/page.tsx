@@ -6,6 +6,7 @@ import Typography from "@mui/material/Typography";
 import { notFound, redirect } from "next/navigation";
 import AppLink from "@/components/ui/AppLink";
 import CopyLinkButton from "@/components/ui/CopyLinkButton";
+import BulkImportDialog from "@/features/imports/components/BulkImportDialog";
 import ItemForm from "@/features/wishlists/components/ItemForm";
 import OwnerItemList from "@/features/wishlists/components/OwnerItemList";
 import { getOwnList } from "@/features/wishlists/owner-queries";
@@ -31,6 +32,9 @@ export default async function OwnerListPage({ params }: { params: Promise<{ list
         <Paper sx={{ p: 2, mb: 3 }}>
           <Typography variant="h6" component="h2" gutterBottom>Add a gift</Typography>
           <ItemForm listId={list.id} />
+          <Stack sx={{ mt: 3, alignItems: "flex-start" }}>
+            <BulkImportDialog listId={list.id} />
+          </Stack>
         </Paper>
       )}
       <OwnerItemList listId={list.id} items={list.items} readOnly={list.archived} />
