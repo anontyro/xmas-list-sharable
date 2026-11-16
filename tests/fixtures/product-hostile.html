@@ -1,0 +1,11 @@
+<!doctype html>
+<html>
+<head>
+  <meta property="og:title" content="&lt;script&gt;alert(1)&lt;/script&gt; Cheap &lt;img src=x onerror=alert(2)&gt;">
+  <meta property="og:description" content="&lt;b onmouseover=alert(3)&gt;bold&lt;/b&gt;">
+  <meta property="og:image" content="javascript:alert(4)">
+  <meta property="og:url" content="data:text/html,hi">
+  <script>window.pwned = true; document.title = "executed";</script>
+</head>
+<body onload="window.pwned = true"><img src="x" onerror="window.pwned = true"></body>
+</html>

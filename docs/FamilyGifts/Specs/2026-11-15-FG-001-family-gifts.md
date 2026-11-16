@@ -219,7 +219,7 @@ R3a–R3d do not depend on each other beyond R3b needing R3a, so they may be reo
 
 ### R3c · URL import
 
-> **R3c · task FG-303 · ~17 files: ~14 new, ~3 modified · packages P28–P31**
+> **R3c · task FG-303 · ~18 files: ~17 new, ~1 modified · packages P28–P31**
 >
 > Owners paste a product link and get an editable draft, or a clear fallback to manual entry.
 > In code this adds an SSRF-safe fetch, a metadata extractor and a duplicate check, wired into the existing item form.
@@ -227,7 +227,7 @@ R3a–R3d do not depend on each other beyond R3b needing R3a, so they may be reo
 - **D38 · Safe fetch.** `src/lib/security/safe-fetch.ts`: only `http:` and `https:`, ports 80 and 443 only, DNS resolved with `dns.lookup(all)`, every address checked against a `net.BlockList`
   (loopback, private, link-local incl. 169.254.169.254, CGNAT, multicast, unspecified, IPv6 ULA and link-local, IPv4-mapped IPv6). The connection uses the checked IP (pinned via a custom `lookup`) so DNS rebinding cannot swap it.
   Max 3 redirects, each hop re-validated. 5 s timeout, 1 MB body cap, `text/html` only, User-Agent `FamilyGiftsBot/1.0`. Failures return typed codes (`BLOCKED_ADDRESS`, `TIMEOUT`, `TOO_LARGE`, `NOT_HTML`, `HTTP_ERROR`, `INVALID_URL`).
-  Tests may reach a local server only when `FG_ALLOW_TEST_HOSTS=1` and `NODE_ENV=test`; the flag is ignored in any other environment.
+  Tests may reach a local server only when `FG_ALLOW_TEST_HOSTS=1` and `NODE_ENV=test`, and then only loopback addresses on any port (private, link-local and the rest stay blocked); the flag is ignored in any other environment, and a built app always reports production.
 - **D39 · Extraction.** `extractMetadata(html, sourceUrl)` uses cheerio (never executes scripts) in the order JSON-LD `Product` (`offers.price`, `priceCurrency`) → Open Graph and `product:price:*` → `<title>` and meta description.
   Output `ImportDraft = { title, description, imageUrl, priceMinor, currency, canonicalUrl, sourceUrl, warnings: string[] }`. Prices parse from strings with `parsePoundsToMinor`; non-GBP currency is kept as a warning and the price is dropped.
 - **D40 · Confirmation and duplicates.** `previewUrlImport(listId, url)` is owner-only, throttled with `import:<memberId>` at 20 per 15 minutes, and returns a draft or a typed failure; it never writes an item.
@@ -819,9 +819,9 @@ Shared acceptance for every package:
   - `tests/unit/security/ssrf.test.ts` (new)
   - `tests/integration/safe-fetch.test.ts` (new)
 - Acceptance criteria:
-  1. `ssrf.test.ts` rejects `127.0.0.1`, `10.0.0.1`, `172.16.0.1`, `192.168.1.1`, `169.254.169.254`, `100.64.0.1`, `0.0.0.0`, `::1`, `fd00::1`, `fe80::1` and `::ffff:127.0.0.1`, and accepts `93.184.216.34`.
-  2. `safe-fetch.test.ts` against a local test server: a redirect to a private address, a hostname resolving to a private address, a 5-hop redirect chain, a port other than 80/443, a `file:` URL, a body over 1 MB, a non-HTML response and a response slower than 5 s each fail with their typed code from D38.
-  3. A hostname that resolves to a public address on the first check and a private address on a second lookup is still blocked (the checked IP is the one connected to).
+  1. `ssrf.test.ts` rejects `127.0.0.1`, `10.0.0.1`, `172.16.0.1`, `192.168.1.1`, `169.254.169.254`, `100.64.0.1`, `0.0.0.0`, `::1`, `fd00::1`, `fe80::1` and `::ffff:127.0.0.1`, and accepts `93.184.216.34`. It also refuses IPv4-compatible (`::127.0.0.1`), Teredo, site-local and discard-only IPv6 ranges, and `safe-fetch.test.ts` shows that loopback written as `2130706433`, `0x7f000001`, `127.1`, `0177.0.0.1`, `[::ffff:7f00:1]`, `[::127.0.0.1]`, `[::1]` and `localhost` is refused.
+  2. `safe-fetch.test.ts` against a local test server (with DNS faked where needed): a redirect to a private or metadata address, a hostname resolving to a private address (also when only one of several answers is private), a 5-hop redirect chain, a port other than 80/443, a `file:` URL, a login in the address, a body over 1 MB, a non-HTML response, a compressed response and a response slower than the timeout each fail with their typed code from D38; a chain of 3 redirects succeeds.
+  3. A hostname whose first answer was checked and whose later answers would be private is still fetched from the first answer only (the checked IP is the one connected to), proven by what the local server receives; `FG_ALLOW_TEST_HOSTS=1` is ignored when `NODE_ENV` is `production`.
   4. A normal public-style HTML response returns its text.
 
 ### P29 · server: metadata extraction and duplicates (R3c · FG-303, wave 27)
@@ -834,12 +834,14 @@ Shared acceptance for every package:
   - `tests/fixtures/product-jsonld.html` (new)
   - `tests/fixtures/product-opengraph.html` (new)
   - `tests/fixtures/product-bare.html` (new)
+  - `tests/fixtures/product-hostile.html` (new)
 - Acceptance criteria:
   1. The JSON-LD fixture yields title, description, image, `priceMinor`, currency `GBP` and canonical URL; the Open Graph fixture yields title, image and price from `product:price:*`; the bare fixture yields at least a title from `<title>`.
   2. A fixture containing `<script>` and `onerror` attributes produces text fields with the markup left as inert text and nothing executed.
   3. A USD price produces no `priceMinor` and a warning naming the currency.
   4. `normalizeUrl("HTTPS://Shop.example/p/1/?utm_source=x#top")` equals `normalizeUrl("https://shop.example/p/1")`, and `findDuplicate` returns the matching item id from a list of existing URLs.
   5. `ImportDraft` is defined once in `types.ts` and reused by R3d.
+  6. `parsePriceString` reads `129.99`, `1,299.00`, `1.299,00`, `12,50` and numbers, and rejects `free`, empty and out-of-range values; titles and descriptions are capped at the item limits; a missing title and an unreadable price each add a warning.
 
 ### P30 · server and ui: URL preview action and panel (R3c · FG-303, wave 28)
 - Lane: `server`
@@ -859,13 +861,13 @@ Shared acceptance for every package:
 - Lane: `e2e`
 - ownedFiles:
   - `tests/e2e/url-import.spec.ts` (new)
-  - `tests/integration/safe-fetch.test.ts`
   - `Docs/FamilyGifts/Decisions/0013-url-import-ssrf.md` (new)
 - Acceptance criteria:
-  1. The spec serves the JSON-LD fixture from a local test server (allowed only when `FG_ALLOW_TEST_HOSTS=1` and `NODE_ENV=test`) and the owner gets a pre-filled editable draft.
-  2. A URL pointing at a blocked or failing target shows the fallback message and the manual form still saves an item.
-  3. `tests/integration/safe-fetch.test.ts` gains a case proving `FG_ALLOW_TEST_HOSTS=1` is ignored when `NODE_ENV=production` (a loopback URL is still blocked).
-  4. Decision 0013 exists with `Status: Agreed`.
+  1. A link the server refuses (a local address, the metadata address, an `ftp:` link) shows a message ending "You can still add it by hand.", and nothing is saved by the failed lookups.
+  2. After failed lookups the owner can still add a gift by hand and it appears with its price; the item form also works without ever touching the link box.
+  3. The 21st lookup inside the window shows the throttle message.
+  4. The live success path (a page whose details fill the form) cannot run here because the built app correctly refuses local addresses; it is covered by `url-import.test.ts` against a local server and by the manual test document.
+  5. Decision 0013 exists with `Status: Agreed`.
 
 ### P32 · server: Amazon parser and fixtures (R3d · FG-304, wave 30)
 - Lane: `server`
