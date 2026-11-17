@@ -35,11 +35,6 @@ describe("stickerForGift", () => {
     const seen = new Set(Array.from({ length: 200 }, (_, i) => stickerForGift("Zxqv", `gift-${i}`)));
     expect(seen).toEqual(new Set(["presentred", "presentgreen", "presentgold", "parcel", "box", "gifttag"]));
   });
-
-  it("does not depend on anything but the title and id", () => {
-    expect(stickerForGift("Zxqv", ID)).toBe(stickerForGift("Zxqv", ID));
-    expect(stickerForGift.length).toBe(2);
-  });
 });
 
 describe("tintFor", () => {

@@ -24,6 +24,15 @@ export const shadows = {
   ribbon: `2px 2px 0 ${tokens.ink}`,
 } as const;
 
+/** The sticker look: a white outline on all four sides plus a soft drop shadow, as a CSS filter (the design's `.stk`). */
+export const stickerOutline = [
+  `drop-shadow(2px 0 0 ${tokens.white})`,
+  `drop-shadow(-2px 0 0 ${tokens.white})`,
+  `drop-shadow(0 2px 0 ${tokens.white})`,
+  `drop-shadow(0 -2px 0 ${tokens.white})`,
+  "drop-shadow(2px 3px 0 rgba(31,42,68,.35))",
+].join(" ");
+
 /** The faint dot grid on the cream page. */
 export const dotGrid = {
   backgroundColor: tokens.cream,

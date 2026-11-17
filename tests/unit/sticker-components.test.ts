@@ -115,9 +115,10 @@ describe("layout pieces", () => {
 });
 
 describe("theme tokens only", () => {
-  it("no component in src/components/sticker writes a raw colour", () => {
-    for (const file of readdirSync("src/components/sticker")) {
-      const src = readFileSync(`src/components/sticker/${file}`, "utf8").replace(/\/\/.*$/gm, "");
+  it("no source file outside tokens.ts writes a raw colour", () => {
+    const walk = (dir: string): string[] => readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(`${dir}/${e.name}`) : [`${dir}/${e.name}`]));
+    for (const file of walk("src").filter((f) => /\.tsx?$/.test(f) && !f.endsWith("src/theme/tokens.ts"))) {
+      const src = readFileSync(file, "utf8").replace(/\/\/.*$/gm, "");
       expect(src.match(/#[0-9a-fA-F]{3,8}\b|rgba?\(/g), file).toBeNull();
     }
   });

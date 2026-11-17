@@ -64,6 +64,15 @@ diff a.txt b.txt && echo "counts match"
 The link is shown once and only a hash is stored, so it cannot be looked up. If the guest still has a browser that is signed in, they open **Save access** and make a new link (this turns the old one off). If they have no signed-in browser left, their plans can't be recovered: they pick their name again as a new guest and the owner's lists are unaffected.
 If a link was shared by mistake, **Save access → Turn off link** stops it working.
 
+## Housekeeping
+
+Sessions, revoked recovery links and throttle counters are only ever added to. `scripts/cleanup.sh` removes the ones that are finished with (sessions that expired or were revoked over 30 days ago, old revoked links, and throttle counters whose window has passed) and touches nothing in use. Run it with the session-pooler `DATABASE_URL` every few months, or from a Supabase scheduled job.
+It needs `psql` (Postgres client tools).
+
+## Hosting and the visitor's address
+
+The login, naming and recovery throttles count attempts per address. The app reads the address from `x-real-ip`, else the **last** `x-forwarded-for` entry. Vercel sets both itself, so that is safe there. Behind any other proxy, make sure it overwrites those headers; otherwise a caller who invents their own would get a fresh throttle on every try and could guess PINs without limit.
+
 ## Other things that go wrong
 
 - **Admin can't sign in:** too many tries blocks the address for 15 minutes. Wait, or clear the `auth_limit` row for `admin:<ip>`.

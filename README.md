@@ -12,8 +12,9 @@ pnpm db:up && pnpm db:migrate && pnpm db:seed --demo   # local Postgres in Docke
 pnpm dev
 ```
 
-If your Docker volume predates `docker/init-test-db.sql`, create the test database once:
-`docker compose exec db psql -U family -d family_gifts -c "create database family_gifts_test"`.
+If your Docker volume predates `docker/init-test-db.sql`, create the test databases once:
+`docker compose exec db psql -U family -d family_gifts -c "create database family_gifts_test" -c "create database family_gifts_e2e"`.
+Integration tests use `TEST_DATABASE_URL` and e2e tests use `E2E_DATABASE_URL`; both empty their database before every test, so never point them at the same one if you run them at the same time.
 
 ## Scripts
 

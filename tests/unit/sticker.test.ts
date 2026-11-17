@@ -19,7 +19,7 @@ describe("Sticker", () => {
   });
 
   it("draws the white outline and soft shadow as a filter", () => {
-    expect(renderToStaticMarkup(createElement(Sticker, { name: "star" }))).toContain("drop-shadow(2px 0 0 #fff)");
+    expect(renderToStaticMarkup(createElement(Sticker, { name: "star" }))).toContain("drop-shadow(2px 0 0 #FFFFFF)");
   });
 
   it("only accepts names in the pack", () => {

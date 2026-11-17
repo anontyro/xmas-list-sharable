@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { getDb } from "@/db/client";
 import { member } from "@/db/schema";
 import Pill from "@/components/sticker/Pill";
-import { listOwnLists } from "@/features/wishlists/owner-queries";
+import { listOwnLists, newestOpenList } from "@/features/wishlists/owner-queries";
 import { currentOwner } from "@/lib/auth/require";
 import AccountMenu from "./AccountMenu";
 import ShellFrame from "./ShellFrame";
@@ -14,7 +14,7 @@ export default async function OwnerShell({ children }: { children: React.ReactNo
   if (!owner) return <ShellFrame brandHref="/" items={[]}>{children}</ShellFrame>;
 
   const [row] = await getDb().select({ displayName: member.displayName }).from(member).where(eq(member.id, owner.memberId));
-  const primary = (await listOwnLists()).find((l) => !l.archived);
+  const primary = newestOpenList(await listOwnLists());
   const myList = primary ? `/owner/lists/${primary.id}` : "/owner";
   const items: NavItem[] = [{ label: "My list", href: myList, sticker: "heartlist", match: ["/owner/lists"] }];
   return (

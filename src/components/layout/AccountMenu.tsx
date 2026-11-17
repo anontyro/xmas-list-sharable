@@ -77,7 +77,7 @@ export default function AccountMenu({ kind, id, name, myListHref = "/owner" }: P
         sx={{ display: "inline-flex", alignItems: "center", gap: 1, minHeight: 40, pl: "6px", pr: "12px", border: `3px solid ${tokens.ink}`, borderRadius: "22px", backgroundColor: tokens.cream, color: tokens.ink, fontFamily: "inherit", fontWeight: 800, fontSize: 14, ...(anchor ? { boxShadow: `0 3px 0 ${tokens.ink}` } : {}) }}
       >
         <Box component="span" aria-hidden="true" sx={{ width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", border: `2px solid ${tokens.ink}`, borderRadius: "50%", fontFamily: "var(--font-display), sans-serif", fontSize: 14, backgroundColor: TINT_COLOR[tintFor(id)] }}>{initial}</Box>
-        {name}
+        <Box component="span" title={name} sx={{ maxWidth: { xs: 110, md: 220 }, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</Box>
         <span aria-hidden="true">{anchor ? "▴" : "▾"}</span>
       </ButtonBase>
 

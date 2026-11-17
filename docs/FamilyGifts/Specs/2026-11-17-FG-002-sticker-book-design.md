@@ -854,6 +854,12 @@ Shared acceptance for every package:
   2. The README links the design pack and the new decisions folder entries; the Runbook's first-deploy check mentions the new `/welcome` flow and `fg_last_list` cookie.
   3. Decisions 0016 to 0024 are listed in the decisions README with their statuses.
 
+## Audit fixes after R5c
+
+The branch review and the whole-repo audit after R5c found small defects, fixed outside any package: the sticker outline colours moved into `tokens.ts` and the colour guard test now covers all of `src/`; "My list" picks the newest open list (`newestOpenList`);
+a long name is truncated in the account chip; the session and guest lookups are cached per request (`src/lib/auth/require.ts`, `guest-session.ts`); budgets save in one transaction; marking a gift purchased is refused on an archived list;
+`clientIp` prefers `x-real-ip` and otherwise the last `x-forwarded-for` entry; e2e tests use their own database (`E2E_DATABASE_URL`); and `scripts/cleanup.sh` removes finished sessions and throttle rows.
+
 ## Follow-ups
 
 - Owner-chosen stickers per gift, member pictures beyond the eight stickers, a CSP, dark mode, translations.

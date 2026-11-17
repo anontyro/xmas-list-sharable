@@ -13,11 +13,16 @@ export async function listOwnLists() {
   const owner = await currentOwner();
   if (!owner) return [];
   const rows = await getDb()
-    .select({ id: wishlist.id, title: wishlist.title, occasion: wishlist.occasion, year: wishlist.year, archivedAt: wishlist.archivedAt })
+    .select({ id: wishlist.id, title: wishlist.title, occasion: wishlist.occasion, year: wishlist.year, archivedAt: wishlist.archivedAt, createdAt: wishlist.createdAt })
     .from(wishlist)
     .where(eq(wishlist.memberId, owner.memberId))
     .orderBy(desc(wishlist.year), wishlist.title);
   return rows.map(({ archivedAt, ...l }) => ({ ...l, archived: archivedAt !== null }));
+}
+
+/** The list "My list" opens: the newest one that is not archived (latest year, then most recently created). Null when there is none. */
+export function newestOpenList<T extends { archived: boolean; year: number; createdAt: Date }>(lists: T[]): T | null {
+  return lists.filter((l) => !l.archived).sort((a, b) => b.year - a.year || b.createdAt.getTime() - a.createdAt.getTime())[0] ?? null;
 }
 
 /** One of the owner's own lists with its items. Null if it is not theirs, so the page can show not-found. */

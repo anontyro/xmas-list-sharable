@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { cookieJar, resetRequest } from "./request-context";
 import { db } from "./db-harness";
-import { guest, household, itemClaim, itemInterest, member, plannerItem, wishlist, wishlistItem } from "@/db/schema";
+import { guest, household, itemClaim, itemInterest, member, plannerItem, recipientBudget, wishlist, wishlistItem } from "@/db/schema";
 import { saveBudgets, setEntryDetails } from "@/features/planner/actions";
 import { getPlanner } from "@/features/planner/queries";
 import { COOKIE_NAMES } from "@/lib/auth/cookies";
@@ -102,6 +102,24 @@ describe("getPlanner", () => {
 });
 
 describe("planner actions", () => {
+  it("saves nothing when one of the people is unknown: the total and the other budgets are left as they were", async () => {
+    const { sarah, ann, signIn } = await world();
+    await signIn(ann);
+    expect((await saveBudgets({ occasion: "Christmas", year: 2026, total: "100", recipients: [{ memberId: sarah.id, budget: "10" }] })).ok).toBe(true);
+
+    const r = await saveBudgets({
+      occasion: "Christmas",
+      year: 2026,
+      total: "999",
+      recipients: [{ memberId: sarah.id, budget: "77" }, { memberId: "00000000-0000-4000-8000-000000000000", budget: "5" }],
+    });
+
+    expect(r).toMatchObject({ ok: false, error: { code: "NOT_FOUND" } });
+    const p = await getPlanner();
+    expect(p.budgetMinor).toBe(10000);
+    expect((await db.select().from(recipientBudget)).map((b) => b.budgetMinor)).toEqual([1000]);
+  });
+
   it("saves budgets, notes, actual prices and exclusions, and they show up in the totals", async () => {
     const { sarah, la, ls, mk, ann, signIn } = await world();
     const a = await mk(la.id, "Headphones", 12999);

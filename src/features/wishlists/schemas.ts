@@ -44,7 +44,6 @@ export const itemInput = z
   }));
 
 export type OwnerItemInput = z.input<typeof itemInput>;
-export type ItemFields = z.output<typeof itemInput>;
 
 /** First message per field, for showing errors next to the inputs. */
 export function fieldErrors(error: z.ZodError): Record<string, string> {

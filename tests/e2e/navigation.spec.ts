@@ -61,7 +61,7 @@ test("the Wishlist link goes back to the last list opened, and ignores a doctore
   await page.getByRole("link", { name: "Wishlist" }).click();
   await expect(page.getByText("Cookbook")).toBeVisible();
 
-  await context.addCookies([{ name: "fg_last_list", value: "/admin", url: "http://localhost:3217" }]);
+  await context.addCookies([{ name: "fg_last_list", value: "/admin", url: new URL(page.url()).origin }]);
   await page.goto("/");
   await expect(page.getByRole("link", { name: "Wishlist" })).toHaveAttribute("href", "/");
   await context.close();

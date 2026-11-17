@@ -28,15 +28,17 @@ export async function saveBudgets(input: BudgetsInput) {
     const parsed = budgetsInput.safeParse(input);
     if (!parsed.success) return fail("INVALID", parsed.error.issues[0].message);
     const { occasion, year, total, recipients } = parsed.data;
-    const db = getDb();
     const plannerId = await ensurePlanner(guestId, occasion, year);
-    await db.update(guestPlanner).set({ budgetMinor: toMinor(total) }).where(eq(guestPlanner.id, plannerId));
     try {
-      for (const r of recipients) {
-        const budget = toMinor(r.budget);
-        if (budget === null) await db.delete(recipientBudget).where(and(eq(recipientBudget.plannerId, plannerId), eq(recipientBudget.memberId, r.memberId)));
-        else await db.insert(recipientBudget).values({ plannerId, memberId: r.memberId, budgetMinor: budget }).onConflictDoUpdate({ target: [recipientBudget.plannerId, recipientBudget.memberId], set: { budgetMinor: budget } });
-      }
+      // All or nothing: an unknown person must not leave the total and the other budgets half saved.
+      await getDb().transaction(async (tx) => {
+        await tx.update(guestPlanner).set({ budgetMinor: toMinor(total) }).where(eq(guestPlanner.id, plannerId));
+        for (const r of recipients) {
+          const budget = toMinor(r.budget);
+          if (budget === null) await tx.delete(recipientBudget).where(and(eq(recipientBudget.plannerId, plannerId), eq(recipientBudget.memberId, r.memberId)));
+          else await tx.insert(recipientBudget).values({ plannerId, memberId: r.memberId, budgetMinor: budget }).onConflictDoUpdate({ target: [recipientBudget.plannerId, recipientBudget.memberId], set: { budgetMinor: budget } });
+        }
+      });
     } catch (e) {
       const err = e as { code?: string; cause?: { code?: string } };
       if ((err.cause?.code ?? err.code) === "23503") return fail("NOT_FOUND", "One of those people no longer exists"); // a member id that is not real
