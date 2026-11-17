@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Budget and notes - Family Gifts</title>
+<link rel="stylesheet" href="../styles/sticker.css">
+</head>
+<body>
+
+
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+
+<div class="pg">
+  <header class="bar">
+    <button class="brand"><img class="stk" src="../icons/tree.png" alt="">Family Gifts</button>
+    <nav class="links" aria-label="Main">
+      <button class="lnk">Family</button>
+      <button class="lnk">Wishlist</button>
+      <button class="lnk on">My planner</button>
+    </nav>
+    <div class="who"><button class="chip" aria-haspopup="menu" aria-expanded="false"><span class="av2 bgy">S</span>Sam <span aria-hidden="true">▾</span></button></div>
+  </header>
+
+  <section class="hero pnk">
+    <div class="hero-in">
+      <div>
+        <button class="back">&lt; My planner</button>
+        <h1 class="h1">Budget &amp; notes</h1>
+        <p class="sub">Christmas 2026 · only you can see this</p>
+      </div>
+      <img class="stk" src="../icons/wallet.png" alt="" style="width:86px;height:66px;transform:rotate(6deg);flex:none">
+    </div>
+  </section>
+
+  <main class="wrap">
+    <div class="two">
+      <div class="main">
+        <section class="card pad c" style="gap:14px">
+          <h2 class="h3d">Your budget</h2>
+          <div class="f2">
+            <div>
+              <label class="lbl" for="tb">Total budget</label>
+              <input id="tb" class="inp" type="text" inputmode="decimal" value="£250.00">
+            </div>
+            <div>
+              <label class="lbl" for="oc">Occasion</label>
+              <select id="oc" class="inp"><option>Christmas 2026</option></select>
+            </div>
+          </div>
+          <div>
+            <p class="lbl">Budget per person (optional)</p>
+            <div class="c" style="gap:8px">
+              <div class="r"><label class="g ttl" for="ba" style="font-size:16px">Alex</label><input id="ba" class="inp" type="text" inputmode="decimal" value="£150.00" style="width:140px"></div>
+              <div class="r"><label class="g ttl" for="bs" style="font-size:16px">Sarah</label><input id="bs" class="inp" type="text" inputmode="decimal" value="£100.00" style="width:140px"></div>
+              <button class="btn gho sm" style="align-self:flex-start">+ Add a person</button>
+            </div>
+          </div>
+          <div class="note mnt">
+            <img class="stk" src="../icons/badge.png" alt="">
+            <p>Per-person budgets add up to £250.00, your whole budget.</p>
+          </div>
+        </section>
+      </div>
+
+      <aside class="side o1">
+        <section class="card pad c" style="gap:14px">
+          <h2 class="h3d">Gift details</h2>
+          <div class="r">
+            <div class="th bgm"><img class="stk" src="../icons/parcel.png" alt=""></div>
+            <div class="g"><p class="ttl">Nordic Winters cookbook</p><p class="mut" style="font-weight:800;font-size:13px">For Sarah · <span class="pill mnt">✓ Purchased</span></p></div>
+          </div>
+          <div>
+            <label class="lbl" for="ap">What you paid</label>
+            <input id="ap" class="inp" type="text" inputmode="decimal" value="£19.50">
+            <p class="help">Sarah's list shows £24.99. What you enter here never changes her list.</p>
+          </div>
+          <div>
+            <label class="lbl" for="pn">Private note</label>
+            <textarea id="pn" class="ta" style="min-height:90px">Used the bookshop voucher.</textarea>
+          </div>
+          <p class="help" style="margin:0">Only you can see notes and prices. Not the family, not the list owner, not the admin.</p>
+        </section>
+      </aside>
+    </div>
+
+    <div class="r fw" style="gap:10px">
+      <button class="btn red xl" style="flex:1 1 200px">Save changes</button>
+      <button class="btn gho xl" style="flex:0 1 140px">Cancel</button>
+    </div>
+  </main>
+
+  <nav class="tabs" aria-label="Main">
+    <button class="tab"><img src="../icons/tree.png" alt="">Family</button>
+    <button class="tab"><img src="../icons/heartlist.png" alt="">Wishlist</button>
+    <button class="tab on"><img src="../icons/wallet.png" alt="">Planner</button>
+  </nav>
+</div>
+
+</body>
+</html>

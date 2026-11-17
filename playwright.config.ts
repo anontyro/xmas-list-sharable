@@ -27,7 +27,7 @@ export default defineConfig({
   webServer: {
     command: `pnpm build && pnpm start -p ${PORT}`,
     url: `http://localhost:${PORT}`,
-    timeout: 180_000,
+    timeout: 300_000,
     reuseExistingServer: false,
   },
   projects: [

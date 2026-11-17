@@ -3,7 +3,7 @@
 The rules Family Gifts is built on, one per file. Each file says what the code does and why. For how it does it, read
 the code.
 
-**Spec:** `Docs/FamilyGifts/Specs/2026-11-15-FG-001-family-gifts.md` · **Manual testing:** `../Testing/MANUAL-TESTING-FG-001-family-gifts.md` · **Work item:** FG-001
+**Specs:** `Docs/FamilyGifts/Specs/2026-11-15-FG-001-family-gifts.md` (0001–0015) and `Docs/FamilyGifts/Specs/2026-11-17-FG-002-sticker-book-design.md` (0016–0024) · **Manual testing:** `../Testing/MANUAL-TESTING-FG-001-family-gifts.md`, `../Testing/MANUAL-TESTING-FG-002-sticker-book-design.md` · **Work items:** FG-001, FG-002
 
 ## How to use this folder
 
@@ -88,6 +88,60 @@ the code.
 | # | Decision |
 |---|---|
 | [0015](0015-recovery-links.md) | Recovery tokens travel in the URL fragment and are stored only as a hash |
+
+## R5a · Theme (FG-501)
+
+| # | Decision |
+|---|---|
+| [0016](0016-sticker-theme-on-mui.md) | The Sticker Book look is an MUI theme built from design tokens, with an ink focus ring that passes contrast |
+
+## R5b · Stickers and components (FG-502)
+
+| # | Decision |
+|---|---|
+| [0017](0017-stickers-and-gift-pictures.md) | Gifts show their product picture or an automatically chosen sticker; people get a stable colour |
+
+## R5c · Shells and navigation (FG-503)
+
+| # | Decision |
+|---|---|
+| [0018](0018-role-shells-and-navigation.md) | Each role has its own shell, a guest can sign out of a device without losing their data, and the last list is remembered |
+
+## R5d · Welcome and sign-in (FG-504)
+
+| # | Decision |
+|---|---|
+| [0019](0019-guest-entry-and-welcome.md) | New visitors enter a name on a welcome screen, return paths are validated, and a pasted recovery link signs a browser in |
+
+## R5e · Family and wishlist (FG-505)
+
+| # | Decision |
+|---|---|
+| [0020](0020-family-dashboard-and-countdown.md) | The family page shows counts, a countdown, the guest's planner and earlier years from data that carries no claim information |
+
+## R5f · Planner and access (FG-506)
+
+| # | Decision |
+|---|---|
+| [0021](0021-planner-budget-and-access-pages.md) | Budgets and notes have their own page, and the recovery link is shown once because only a hash is stored |
+
+## R6a · Owner editor and gift form (FG-601)
+
+| # | Decision |
+|---|---|
+| [0022](0022-owner-pages.md) | Owners edit on one page and add or change a gift on another, and owner pages still never touch claim or planner code |
+
+## R6b · Amazon import and owner account (FG-602)
+
+| # | Decision |
+|---|---|
+| [0023](0023-bulk-import-selection.md) | Imported gifts are ticked, given a priority and a price on a page, and added all or nothing |
+
+## R6c · Admin (FG-603)
+
+| # | Decision |
+|---|---|
+| [0024](0024-admin-one-screen-and-avatars.md) | The admin manages members and lists on one screen, and a member's optional picture is validated in code |
 
 ## Open questions
 

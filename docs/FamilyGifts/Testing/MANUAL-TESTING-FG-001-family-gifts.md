@@ -130,6 +130,14 @@ At `/owner/login` pick Alex and try five wrong PINs, then the right PIN.
 - Resetting the PIN in admin signs out an existing owner session for that member.
 - A PIN shorter than 6 digits is refused when set.
 
+### 5a. Sign-in links and changing a PIN
+In admin open a member, set a PIN and copy the sign-in link, then open it in a private window. Sign in, then use Change my PIN on the My lists page. Then reset the PIN again from admin.
+- The member page shows a name-only link, and after saving a PIN a second link that includes it.
+- Opening a link fills in the name (and the PIN) but does not sign in; the address bar shows plain `/owner/login` afterwards.
+- A wrong current PIN, mismatched new PINs and a PIN that is not 6 to 12 digits are each refused with a message.
+- After a successful change the old PIN no longer works, the new one does, and the browser stays signed in; other signed-in browsers are signed out.
+- The admin reset still works after the owner has changed it, and signs the owner out.
+
 ### R1d · Owner lists and sharing (FG-104)
 
 ### 6. Add and edit gifts
@@ -238,15 +246,19 @@ Paste the bot-blocking link, `http://localhost/`, `http://169.254.169.254/` and 
 ### R3d · Amazon import (FG-304)
 
 ### 22. Amazon import
-Paste the saved Amazon page, remove one row, edit a title and add the rest; then paste random text.
-- The preview shows rows with uncertain fields marked; nothing is inserted until Add selected items.
-- Added items sit at the end of Would Love in preview order.
-- Random text shows the manual-entry message and does not break the page.
+As an owner open your list, press Import from an Amazon wishlist, paste the saved Amazon page (View source → copy), and press Parse. Remove one row, edit a title and press Add selected items; then try again with random text.
+- The preview shows one row per product with its price; rows with a missing title or price show a warning, and a product already on your list says so.
+- Nothing is on the list until Add selected items; Cancel adds nothing.
+- Added items sit at the end of Would Love in preview order, with their Amazon link.
+- A block of copied text with Amazon links also works (title on the line above each link).
+- Random text shows "You can still add them by hand." and the Add a gift form still works.
+- Pasting something over 500 KB is refused with a message, not an error page.
 
 ### R4a · Recovery links (FG-401)
 
 ### 23. Recovery
-As guest 1 open Save access, copy the link, and open it in the other device's browser.
+As guest 1 open Save access (top bar, or the menu on a phone), press Make a link, copy it, and open it in the other device's browser.
+- A visitor who has not picked a name has no Save access.
 - The warning about anyone with the link is shown.
 - The address bar drops the part after `#` straight away, and the same planner, reservation and note appear.
 
@@ -254,6 +266,8 @@ As guest 1 open Save access, copy the link, and open it in the other device's br
 Generate a new link on device 1 and open the old link on a third browser; then revoke and try the newest.
 - The old and the revoked links show a generic failure message.
 - Device 2 stays signed in after a new link is generated.
+- Turn off link makes the newest link fail the same way, and guest 1 stays signed in.
+- Pressing the link more than 10 times in 15 minutes from one connection shows "Too many attempts".
 
 ### R4b · Hardening (FG-402)
 
@@ -263,12 +277,12 @@ Check response headers and page source on `/`, a list, `/owner/login` and `/reco
 - No secret from the environment appears in any page or script.
 
 ### 26. Backup and restore
-Run `scripts/backup.sh`, restore into a scratch database with `scripts/restore.sh`, and compare table row counts.
-- Counts match; restoring into a non-empty database is refused. The result is recorded in the Runbook.
+Follow the restore test in `docs/FamilyGifts/Runbook.md`: run `scripts/backup.sh`, restore into a scratch database with `scripts/restore.sh <dump> <url>`, and compare `scripts/row-counts.sh` output for both.
+- Counts match; restoring into a non-empty database is refused. The result is recorded in the Runbook. Repeat it once against the real Supabase project.
 
 ### 27. Phone and accessibility
 On a real phone run: admin setup, owner adds a gift, guest reserves, planner, recovery.
-- No horizontal scroll, buttons easy to tap, text readable, status never relies on colour alone.
+- No horizontal scroll, buttons easy to tap, text readable, status never relies on colour alone, links are underlined.
 - With the system's reduced-motion setting on there is no animation.
 
 ### 28. Toggles

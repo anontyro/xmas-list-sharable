@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import AppShell from "@/components/layout/AppShell";
+import { currentGuest } from "@/lib/auth/require";
 import ThemeRegistry from "@/theme/ThemeRegistry";
 
 export const metadata: Metadata = {
@@ -7,12 +8,15 @@ export const metadata: Metadata = {
   description: "Family Christmas wishlists and gift coordination",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // My Planner is shown only to a browser that has a guest session.
+  const guest = Boolean(await currentGuest());
+  const links = guest ? [{ label: "My Planner", href: "/planner" }] : [];
   return (
     <html lang="en">
       <body>
         <ThemeRegistry>
-          <AppShell>{children}</AppShell>
+          <AppShell links={links} guest={guest}>{children}</AppShell>
         </ThemeRegistry>
       </body>
     </html>

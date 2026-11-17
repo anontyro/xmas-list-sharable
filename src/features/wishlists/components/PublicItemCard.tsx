@@ -3,12 +3,16 @@ import CardContent from "@mui/material/CardContent";
 import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import AppLink from "@/components/ui/AppLink";
 import Icon from "@/components/ui/Icon";
 import { formatGBP } from "@/lib/money";
-import type { GuestItem } from "../views";
+import ClaimControls from "@/features/reservations/components/ClaimControls";
+import StatusChip from "@/features/reservations/components/StatusChip";
+import type { ClaimedGuestItem } from "@/features/reservations/guest-claim-view";
 import PriorityChip from "./PriorityChip";
 
-export default function PublicItemCard({ item }: { item: GuestItem }) {
+/** `canAct`: a named guest viewing a list that is not archived. */
+export default function PublicItemCard({ item, canAct }: { item: ClaimedGuestItem; canAct: boolean }) {
   return (
     <Card>
       <CardContent>
@@ -30,6 +34,9 @@ export default function PublicItemCard({ item }: { item: GuestItem }) {
             {item.productUrl && (
               <Link href={item.productUrl} target="_blank" rel="noopener noreferrer nofollow">View product</Link>
             )}
+            <StatusChip state={item.state} />
+            {canAct && <ClaimControls itemId={item.id} itemTitle={item.title} state={item.state.state} />}
+            {canAct && item.state.state !== "available" && !item.state.state.endsWith("_by_other") && <AppLink href="/planner">See it in My Planner</AppLink>}
           </Stack>
         </Stack>
       </CardContent>

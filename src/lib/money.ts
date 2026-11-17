@@ -8,6 +8,9 @@ export function parsePoundsToMinor(input: string): number | null {
   return minor <= MAX_MINOR ? minor : null;
 }
 
+/** Pence as the text a price input shows ("12.50"); null becomes an empty field. */
+export const minorToPounds = (minor: number | null): string => (minor === null ? "" : (minor / 100).toFixed(2));
+
 const gbp = new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP" });
 
 export function formatGBP(minor: number): string {

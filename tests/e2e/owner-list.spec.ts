@@ -1,17 +1,10 @@
-import { expect, test, type Page } from "@playwright/test";
-import { createList, createMemberWithPin, resetAndSeed } from "./helpers";
+import { expect, test } from "@playwright/test";
+import { createList, createMemberWithPin, ownerSignIn, resetAndSeed } from "./helpers";
 
 let householdId: string;
 test.beforeEach(async () => {
   householdId = await resetAndSeed();
 });
-
-async function ownerSignIn(page: Page, pin = "123456") {
-  await page.goto("/owner/login");
-  await page.getByLabel("PIN").fill(pin);
-  await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page).toHaveURL(/\/owner$/);
-}
 
 test("owner adds a gift and a guest sees it read-only, then the owner removes it", async ({ page, browser }) => {
   const alex = await createMemberWithPin(householdId, "Alex", "123456");

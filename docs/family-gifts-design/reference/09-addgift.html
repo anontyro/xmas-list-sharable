@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Add a gift - Family Gifts</title>
+<link rel="stylesheet" href="../styles/sticker.css">
+</head>
+<body>
+
+
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+
+<div class="pg">
+  <header class="bar">
+    <button class="brand"><img class="stk" src="../icons/tree.png" alt="">Family Gifts</button>
+    <nav class="links" aria-label="Owner">
+      <button class="lnk">My list</button>
+      <button class="lnk on">Add a gift</button>
+      <button class="lnk">Import</button>
+    </nav>
+    <div class="who"><span class="pill mnt">Owner</span><button class="chip" aria-haspopup="menu" aria-expanded="false"><span class="av2 bgy">S</span>Sarah <span aria-hidden="true">▾</span></button></div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-in">
+      <div>
+        <button class="back">&lt; My list</button>
+        <h1 class="h1">Add a gift</h1>
+        <p class="sub">Paste a link and we'll fill in what we can</p>
+      </div>
+      <img class="stk" src="../icons/presentgold.png" alt="" style="width:80px;height:78px;transform:rotate(6deg);flex:none">
+    </div>
+  </section>
+
+  <main class="wrap">
+    <div class="two">
+      <div class="main">
+        <section class="card pad c" style="gap:14px">
+          <div class="seg">
+            <button class="btn sel">Paste a link</button>
+            <button class="btn">Type it in</button>
+          </div>
+          <div class="f2">
+            <div class="span2">
+              <label class="lbl" for="lk">Product link</label>
+              <div class="r fw" style="gap:8px">
+                <input id="lk" class="inp" type="url" value="https://shop.example.com/merino-scarf" style="flex:1 1 220px;width:auto">
+                <button class="btn red" style="flex:0 0 auto">Fetch details</button>
+              </div>
+            </div>
+            <div class="note mnt span2">
+              <img class="stk" src="../icons/badge.png" alt="">
+              <p>Found the title, picture and price. Check them, then save.</p>
+            </div>
+            <div>
+              <label class="lbl" for="tt">What is it?</label>
+              <input id="tt" class="inp" type="text" value="Merino wool scarf">
+            </div>
+            <div>
+              <label class="lbl" for="pr">Price</label>
+              <div class="r" style="gap:8px">
+                <input id="pr" class="inp" type="text" inputmode="decimal" value="£35.00">
+                <select class="inp" aria-label="Currency" style="width:110px"><option>GBP</option></select>
+              </div>
+            </div>
+            <div>
+              <p class="lbl">How much do you want it?</p>
+              <div class="seg" style="flex-wrap:wrap">
+                <button class="btn sm" style="flex:1 1 90px">Most wanted</button>
+                <button class="btn sm sel" style="flex:1 1 90px">Would love</button>
+                <button class="btn sm" style="flex:1 1 90px">Nice to have</button>
+              </div>
+            </div>
+            <div>
+              <label class="lbl" for="im">Picture link</label>
+              <input id="im" class="inp" type="url" value="https://shop.example.com/img/merino-scarf.jpg">
+            </div>
+            <div class="span2">
+              <label class="lbl" for="ds">Notes for the family (optional)</label>
+              <textarea id="ds" class="ta" placeholder="Size, colour or anything that helps"></textarea>
+            </div>
+          </div>
+          <div class="r fw" style="gap:10px">
+            <button class="btn red xl" style="flex:1 1 200px">Save gift</button>
+            <button class="btn gho xl" style="flex:0 1 140px">Cancel</button>
+          </div>
+        </section>
+      </div>
+
+      <aside class="side o1">
+        <section class="card pad c" style="gap:12px">
+          <h2 class="h3d">How guests see it</h2>
+          <article class="card r">
+            <div class="th bgp"><img class="stk" src="../icons/stocking.png" alt=""></div>
+            <div class="g"><h3 class="ttl">Merino wool scarf</h3><p class="price">£35.00</p><span class="pill">Would love</span></div>
+          </article>
+        </section>
+        <section class="card pad">
+          <h2 class="h3d" style="margin-bottom:6px">What we found</h2>
+          <div class="row2"><span class="pill mnt">✓</span><p class="g ttl">Title</p></div>
+          <div class="row2"><span class="pill mnt">✓</span><p class="g ttl">Picture</p></div>
+          <div class="row2"><span class="pill mnt">✓</span><p class="g ttl">Price</p></div>
+          <div class="row2"><span class="pill pnk">–</span><p class="g ttl">Description not found</p></div>
+          <p class="help">Read from the shop page's own product data. If a shop blocks us, type it in instead.</p>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <nav class="tabs" aria-label="Owner">
+    <button class="tab"><img src="../icons/heartlist.png" alt="">My list</button>
+    <button class="tab on"><img src="../icons/presentgold.png" alt="">Add gift</button>
+    <button class="tab"><img src="../icons/box.png" alt="">Import</button>
+  </nav>
+</div>
+
+</body>
+</html>

@@ -6,6 +6,7 @@ import Typography from "@mui/material/Typography";
 import { redirect } from "next/navigation";
 import ActionButton from "@/components/ui/ActionButton";
 import AppLink from "@/components/ui/AppLink";
+import ChangePinForm from "@/features/authentication/components/ChangePinForm";
 import { ownerLogout } from "@/features/authentication/owner-login";
 import { listOwnLists } from "@/features/wishlists/owner-queries";
 import { currentOwner } from "@/lib/auth/require";
@@ -26,13 +27,17 @@ export default async function OwnerHome() {
         {lists.map((l) => (
           <Paper key={l.id} sx={{ p: 2 }}>
             <Stack direction="row" spacing={1} useFlexGap sx={{ alignItems: "center", flexWrap: "wrap" }}>
-              <AppLink href={`/owner/lists/${l.id}`} variant="subtitle1" underline="hover">{l.title}</AppLink>
+              <AppLink href={`/owner/lists/${l.id}`} variant="subtitle1">{l.title}</AppLink>
               <Typography color="text.secondary">{l.occasion} {l.year}</Typography>
               {l.archived && <Chip label="Archived" size="small" />}
             </Stack>
           </Paper>
         ))}
       </Stack>
+      <Paper sx={{ p: 2, mt: 4 }}>
+        <Typography variant="h6" component="h2" gutterBottom>Change my PIN</Typography>
+        <ChangePinForm />
+      </Paper>
     </Container>
   );
 }

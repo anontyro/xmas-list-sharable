@@ -6,7 +6,7 @@ import { currentOwner } from "@/lib/auth/require";
 import { itemOrderBy, toOwnerItem, type OwnerWishlistView } from "./views";
 import type { Priority } from "./schemas";
 
-const SORT_GAP = 10;
+export const SORT_GAP = 10;
 
 /** The signed-in owner's lists, newest year first. Empty when nobody is signed in. */
 export async function listOwnLists() {

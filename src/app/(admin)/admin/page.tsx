@@ -32,7 +32,7 @@ export default async function AdminPage() {
         {members.map((m) => (
           <Paper key={m.id} sx={{ p: 2 }}>
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
-              <AppLink href={`/admin/members/${m.id}`} underline="hover" variant="subtitle1">
+              <AppLink href={`/admin/members/${m.id}`} variant="subtitle1">
                 {m.displayName}
               </AppLink>
               <Stack direction="row" spacing={1}>

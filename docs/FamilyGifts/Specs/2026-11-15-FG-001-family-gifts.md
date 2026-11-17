@@ -91,7 +91,7 @@ R3a–R3d do not depend on each other beyond R3b needing R3a, so they may be reo
   wraps `next/image`; `name` is a string-literal union of the 36 files; `alt` defaults to `""` (decorative) and must be set when the icon is the only label.
 - **D6 · Environment.** `src/lib/env.ts` validates `DATABASE_URL`, `ADMIN_SECRET` (min 12), `SESSION_SECRET` (min 32), `TEST_DATABASE_URL` (tests only) with zod and throws at first use.
   `.env.example` lists all four; the two secrets are left empty so the app will not start with a guessable value. Local tooling reads `.env` (scripts use `tsx --env-file=.env`). Nothing from `env.ts` is imported by a client component.
-- **D7 · CI.** `.github/workflows/ci.yml` runs install, lint, typecheck, unit tests and build on push and pull request. Integration and e2e jobs are added by P3 and P13.
+- **D7 · CI.** `.github/workflows/ci.yml` runs install, lint, typecheck, unit tests and build. It is `workflow_dispatch` (manual) only while the app is being built; add `push` and `pull_request` triggers when releases start (R4b). Integration and e2e jobs are added by P3 and P13.
 
 ### R1b · Database
 
@@ -156,24 +156,24 @@ R3a–R3d do not depend on each other beyond R3b needing R3a, so they may be reo
 
 ### R2a · Guests and claims
 
-> **R2a · task FG-201 · ~21 files: ~15 new, ~6 modified · packages P14–P18**
+> **R2a · task FG-201 · ~25 files: ~19 new, ~6 modified · packages P14–P18**
 >
 > Guests give a name once, then mark interest and reserve, buy or release gifts. Exactly one guest can win a reservation, and owners and admin never see any of it.
 > In code this adds the guest session, the claim service on the partial unique index, the guest claim view and a lint rule and test that keep owner code away from claim data.
 
 - **D25 · Guest identity.** First visit to a list shows `GuestWelcome` asking for a display name (1–40 chars, trimmed). `createGuest` inserts a `guest` row, creates a `fg_guest` session and returns. Names are not unique;
-  the guest UUID is the identity. `renameGuest` updates `display_name` only. An owner or admin session never counts as a guest session.
+  the guest UUID is the identity. `renameGuest` updates `display_name` only. An owner or admin session never counts as a guest session. One address (throttle key `guest:<ip>`) can create at most 20 guests per 15 minutes.
 - **D26 · Claim operations.** In `src/features/reservations/` all state changes are single statements or short transactions:
   `setInterest` / `clearInterest` (insert or delete on unique `(guest_id, item_id)`); `reserve` inserts an active `item_claim` with status `reserved` (a unique violation maps to `CLAIM_CONFLICT`);
   `markPurchased` updates status to `purchased` where `guest_id` is the caller and `released_at is null`; `release` sets `released_at = now()`.
   Releasing a purchased claim requires `confirm: true`. Error codes: `CLAIM_CONFLICT`, `NOT_CLAIMANT`, `ITEM_UNAVAILABLE` (deleted item or archived list), `CONFIRM_REQUIRED`.
-  Every result carries the refreshed `GuestItemState` for that item.
-- **D27 · Guest item state.** `GuestItemState` is one of `available`, `interested`, `reserved_by_you`, `reserved_by_other`, `purchased_by_you`, `purchased_by_other`. Active claim wins over interest.
+  A successful result carries the refreshed `GuestItemState` for that item; after any result (including a conflict) the page refetches.
+- **D27 · Guest item state.** `GuestItemState` is `{ state, claimedBy? }` where `state` is one of `available`, `interested`, `reserved_by_you`, `reserved_by_other`, `purchased_by_you`, `purchased_by_other`. Active claim wins over interest.
   Guests see only their own interest; interest counts for other guests are not exposed.
 - **D28 · Buyer names.** Claims by other guests show the claimant's current `display_name` (PRD §15.2 default). Dropping the name later only requires removing it from the guest view mapper.
 - **D29 · Isolation guard.** `eslint.config.mjs` gets a `no-restricted-imports` rule forbidding `@/features/reservations/*` and `@/features/planner/*` from `src/app/(owner)`, `src/app/(admin)`,
   `src/features/family` and the owner modules in `src/features/wishlists`. `tests/integration/projection-isolation.test.ts` serialises every owner and admin query result
-  and asserts no key matches `claim|interest|guest|planner|recovery|token|hash|pin`.
+  and asserts no key matches `claim|interest|guest|planner|recovery|token|hash|reserved|purchased` and none of the seeded secrets appear.
 - **D30 · Refresh.** Actions call `revalidatePath` for the list. No realtime. A conflict result tells the UI to show "Someone else just reserved this" and re-render.
 
 ### R2b · Ordering and sorting
@@ -191,7 +191,7 @@ R3a–R3d do not depend on each other beyond R3b needing R3a, so they may be reo
 
 ### R3a · Planner
 
-> **R3a · task FG-301 · ~14 files: ~11 new, ~3 modified · packages P22–P25**
+> **R3a · task FG-301 · ~22 files: ~12 new, ~10 modified · packages P22–P25**
 >
 > Guests get My Planner: everything they are interested in or have claimed, grouped by recipient, with a total budget, optional recipient budgets, private notes and actual prices, and clear planned, spent and remaining numbers.
 > In code this adds the accounting function, planner queries and actions that only ever read the session guest's rows, and the planner page.
@@ -208,7 +208,7 @@ R3a–R3d do not depend on each other beyond R3b needing R3a, so they may be reo
 
 ### R3b · Exports
 
-> **R3b · task FG-302 · ~8 files: ~6 new, ~2 modified · packages P26–P27**
+> **R3b · task FG-302 · ~13 files: ~10 new, ~3 modified · packages P26–P27**
 >
 > Guests select planner entries and copy them as a readable shopping list or download Markdown or CSV.
 > In code this adds three pure formatters and an export menu that works from the planner payload already on the page.
@@ -219,7 +219,7 @@ R3a–R3d do not depend on each other beyond R3b needing R3a, so they may be reo
 
 ### R3c · URL import
 
-> **R3c · task FG-303 · ~17 files: ~14 new, ~3 modified · packages P28–P31**
+> **R3c · task FG-303 · ~18 files: ~17 new, ~1 modified · packages P28–P31**
 >
 > Owners paste a product link and get an editable draft, or a clear fallback to manual entry.
 > In code this adds an SSRF-safe fetch, a metadata extractor and a duplicate check, wired into the existing item form.
@@ -227,7 +227,7 @@ R3a–R3d do not depend on each other beyond R3b needing R3a, so they may be reo
 - **D38 · Safe fetch.** `src/lib/security/safe-fetch.ts`: only `http:` and `https:`, ports 80 and 443 only, DNS resolved with `dns.lookup(all)`, every address checked against a `net.BlockList`
   (loopback, private, link-local incl. 169.254.169.254, CGNAT, multicast, unspecified, IPv6 ULA and link-local, IPv4-mapped IPv6). The connection uses the checked IP (pinned via a custom `lookup`) so DNS rebinding cannot swap it.
   Max 3 redirects, each hop re-validated. 5 s timeout, 1 MB body cap, `text/html` only, User-Agent `FamilyGiftsBot/1.0`. Failures return typed codes (`BLOCKED_ADDRESS`, `TIMEOUT`, `TOO_LARGE`, `NOT_HTML`, `HTTP_ERROR`, `INVALID_URL`).
-  Tests may reach a local server only when `FG_ALLOW_TEST_HOSTS=1` and `NODE_ENV=test`; the flag is ignored in any other environment.
+  Tests may reach a local server only when `FG_ALLOW_TEST_HOSTS=1` and `NODE_ENV=test`, and then only loopback addresses on any port (private, link-local and the rest stay blocked); the flag is ignored in any other environment, and a built app always reports production.
 - **D39 · Extraction.** `extractMetadata(html, sourceUrl)` uses cheerio (never executes scripts) in the order JSON-LD `Product` (`offers.price`, `priceCurrency`) → Open Graph and `product:price:*` → `<title>` and meta description.
   Output `ImportDraft = { title, description, imageUrl, priceMinor, currency, canonicalUrl, sourceUrl, warnings: string[] }`. Prices parse from strings with `parsePoundsToMinor`; non-GBP currency is kept as a warning and the price is dropped.
 - **D40 · Confirmation and duplicates.** `previewUrlImport(listId, url)` is owner-only, throttled with `import:<memberId>` at 20 per 15 minutes, and returns a draft or a typed failure; it never writes an item.
@@ -235,19 +235,19 @@ R3a–R3d do not depend on each other beyond R3b needing R3a, so they may be reo
 
 ### R3d · Amazon import
 
-> **R3d · task FG-304 · ~13 files: ~11 new, ~2 modified · packages P32–P34**
+> **R3d · task FG-304 · ~19 files: ~15 new, ~4 modified · packages P32–P34**
 >
 > Owners paste an Amazon wishlist page or copied text, review a table of drafts, and add the ones they want in one go.
 > In code this adds an isolated parser with fixtures and a bulk preview and commit. It must never block manual entry, and can be dropped without affecting any other release.
 
-- **D41 · Parser.** `src/features/imports/amazon/` exports `parseAmazonHtml(html)` and `parseAmazonText(text)`, both returning `ImportDraft[]` with an `uncertain: boolean` per draft. Input over 500 KB returns `INPUT_TOO_LARGE`.
+- **D41 · Parser.** `src/features/imports/amazon/` exports `parseAmazonHtml(html)` and `parseAmazonText(text)`, both returning `AmazonDraft[]` (an `ImportDraft` plus `uncertain: boolean`), and `parseAmazon(input)`, which picks one, caps at 100 drafts and returns a `Result`. Input over 500 KB returns `INPUT_TOO_LARGE`.
   HTML is parsed with cheerio as data and never rendered. ASINs found in `/dp/`, `/gp/product/` or `data-asin` map to `https://www.amazon.co.uk/dp/<ASIN>`. Text mode pairs each Amazon URL with the nearest preceding non-empty line as title.
   Zero results returns an empty list and a message pointing to manual entry. Fixtures under `tests/fixtures/amazon/` are the contract when Amazon markup changes.
-- **D42 · Bulk commit.** `commitBulkImport(listId, drafts)` inserts all confirmed rows in one transaction with priority `would_love`, skipping blank titles, re-validating every field with the D21 schemas. Duplicate URLs warn in the preview and do not block.
+- **D42 · Bulk commit.** `commitBulkImport(listId, drafts)` inserts all confirmed rows in one transaction with priority `would_love`, skipping blank titles, re-validating every field with the D21 schemas. Duplicate URLs, or the same ASIN under a different query string, warn in the preview and do not block.
 
 ### R4a · Recovery links
 
-> **R4a · task FG-401 · ~9 files: ~8 new, ~1 modified · packages P35–P37**
+> **R4a · task FG-401 · ~13 files: ~10 new, ~3 modified · packages P35–P37**
 >
 > A guest can create a private link, open it on another device and get their planner and claims back, and can revoke it.
 > In code this adds the token service, a fragment-based exchange page and API route, and the Save Access dialog.
@@ -258,14 +258,18 @@ R3a–R3d do not depend on each other beyond R3b needing R3a, so they may be reo
 
 ### R4b · Hardening
 
-> **R4b · task FG-402 · ~10 files: ~8 new, ~2 modified · packages P38–P40**
+> **R4b · task FG-402 · ~21 files: ~12 new, ~9 modified · packages P38–P40**
 >
 > No new features. Security headers, a payload-isolation sweep, a backup and restore runbook with scripts, and a 375 px and accessibility pass on the critical flows.
 > This is the Christmas release gate.
 
 - **D44 · Headers.** `next.config.ts` sets `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin` (and `no-referrer` on `/recover` and `/api/recovery/*`). A CSP is a follow-up.
-- **D45 · Backup.** `scripts/backup.sh` runs `pg_dump --format=custom` against `DATABASE_URL`; `scripts/restore.sh` restores into an empty database named by its argument. `Docs/FamilyGifts/Runbook.md` documents deploy, migrate, backup, restore test,
+- **D45 · Backup.** `scripts/backup.sh` runs `pg_dump --format=custom` against `DATABASE_URL`; `scripts/restore.sh <dump> <target-url>` restores into an empty database and refuses one that has tables. `Docs/FamilyGifts/Runbook.md` documents deploy, migrate, backup, restore test,
   and the Supabase free-tier pause risk to check before launch.
+
+### Change after approval · owner sign-in links and PIN change
+
+Requested after R4b: the admin can share `/owner/login?name=…&pin=…` links, and owners can change their own PIN while the admin can still reset it. Built as `src/features/authentication/{prefill.ts,owner-login.ts,components/ChangePinForm.tsx}`, `PinResetForm`, the owner login and My lists pages, and `next.config.ts` (no-referrer and no-store on `/owner/login`). Rules are in decision 0004; tests are `tests/unit/prefill.test.ts`, `tests/integration/change-pin.test.ts` and `tests/e2e/pin-links.spec.ts`.
 
 ## Non-goals
 
@@ -304,8 +308,8 @@ Waves:
 | 11 | P11, P12 | R1d (FG-104) | parallel |
 | 12 | P13 | R1d (FG-104) |  |
 | 13 | P14 | R2a (FG-201) |  |
-| 14 | P15 | R2a (FG-201) |  |
-| 15 | P16 | R2a (FG-201) |  |
+| 14 | P16 | R2a (FG-201) |  |
+| 15 | P15 | R2a (FG-201) |  |
 | 16 | P17 | R2a (FG-201) |  |
 | 17 | P18 | R2a (FG-201) |  |
 | 18 | P19 | R2b (FG-202) |  |
@@ -605,9 +609,10 @@ Shared acceptance for every package:
   2. A request with the `fg_guest` cookie resolves to the same guest id on later calls; an expired or revoked token resolves to none.
   3. `renameGuest` changes `display_name` and leaves claims pointing at the same guest id.
   4. Names are trimmed; empty and 41-character names are rejected.
+  6. The 21st new guest from one address inside 15 minutes gets `RATE_LIMITED` and no row is created.
   5. Presenting an owner or admin cookie to a guest-only action returns unauthorized.
 
-### P15 · server: interest and claim service (R2a · FG-201, wave 14)
+### P15 · server: interest and claim service (R2a · FG-201, wave 15)
 - Lane: `server`
 - ownedFiles:
   - `src/features/reservations/claims.ts` (new)
@@ -620,25 +625,26 @@ Shared acceptance for every package:
   1. `claims-concurrency.test.ts`: 20 parallel `reserve` calls from 20 guests for one item produce exactly one success and 19 `CLAIM_CONFLICT`, and exactly one active `item_claim` row.
   2. `claims.test.ts`: reserve → markPurchased → release (with `confirm: true`) works for the claimant; the same calls from another guest return `NOT_CLAIMANT`; releasing a purchased claim without `confirm` returns `CONFIRM_REQUIRED`.
   3. After release, a different guest can reserve the item and the first guest's row keeps its `released_at`.
+  4a. Reserving an item you already hold (a double click) returns your state, not `CLAIM_CONFLICT`; another guest still gets the conflict.
   4. Interest is idempotent (twice gives one row), can be cleared, and does not block another guest from reserving.
   5. Reserving a soft-deleted item or an item on an archived list returns `ITEM_UNAVAILABLE`.
   6. Every result includes the refreshed `GuestItemState` for the item.
 
-### P16 · server: guest claim view and isolation guard (R2a · FG-201, wave 15)
+### P16 · server: guest claim view and isolation guard (R2a · FG-201, wave 14)
 - Lane: `server`
 - ownedFiles:
-  - `src/features/wishlists/views.ts`
   - `src/features/wishlists/public-queries.ts`
   - `src/features/reservations/guest-claim-view.ts` (new)
   - `eslint.config.mjs`
   - `tests/integration/guest-view.test.ts` (new)
   - `tests/integration/projection-isolation.test.ts` (new)
+  - `tests/unit/eslint-isolation.test.ts` (new)
 - Acceptance criteria:
   1. `guest-view.test.ts`: the same list loaded as guest A, guest B and an anonymous visitor shows each item with the right `GuestItemState` (D27), and the other guest's `display_name` as claimant for `*_by_other`.
   2. Anonymous visitors see `available` for unclaimed items and `reserved_by_other` or `purchased_by_other` for claimed items without a claimant name.
   3. `projection-isolation.test.ts` serialises every owner query, admin query and the owner list page data after claims and interests exist, and finds no key matching `claim|interest|guest|planner|recovery|token|hash|pin`.
-  4. `pnpm lint` fails when a file under `src/app/(owner)` imports from `@/features/reservations/*` and passes on the repo as written (D29).
-  5. The R1d guest view tests still pass unchanged.
+  4. `pnpm lint` fails when a file under `src/app/(owner)` imports from `@/features/reservations/*` and passes on the repo as written (D29); `eslint-isolation.test.ts` proves the rule fires for owner, admin, family and owner-wishlist files and not for the public side.
+  5. `getListForViewer(slug, viewerId)` adds the state to each item; `getListBySlug` and its R1d tests are unchanged.
 
 ### P17 · ui: guest welcome and claim controls (R2a · FG-201, wave 16)
 - Lane: `ui`
@@ -660,6 +666,8 @@ Shared acceptance for every package:
 - Lane: `e2e`
 - ownedFiles:
   - `tests/e2e/claims.spec.ts` (new)
+  - `tests/e2e/helpers.ts`
+  - `tests/e2e/owner-list.spec.ts`
   - `Docs/FamilyGifts/Decisions/0008-exclusive-claim.md` (new)
   - `Docs/FamilyGifts/Decisions/0009-buyer-names.md` (new)
 - Acceptance criteria:
@@ -683,7 +691,7 @@ Shared acceptance for every package:
   Two items that already share a `sort_order` (two near-simultaneous adds in R1d can produce this) are renumbered 10, 20, … by the next move, so the swap never gets stuck.
   3. Changing an item's priority places it last in the new group.
   4. An owner session for another member cannot move items.
-  5. `sort-filter.test.ts`: `price_asc` and `price_desc` both put unpriced items last; `newest` orders by `created_at` descending; default sort is priority then `sort_order`; the price range filter is inclusive; `avail` removes items whose state is `*_by_other`.
+  5. `sort-filter.test.ts`: `price_asc` and `price_desc` both put unpriced items last; `newest` orders by `created_at` descending; default sort is priority then `sort_order`; the price range filter is inclusive; `avail` removes items whose state is `*_by_other`. Ties on `sort_order` break by created time then id, exactly as the server query does. `parseViewParams` ignores invalid values and `toSearchParams` round-trips with it, leaving a default view's URL empty.
 
 ### P20 · ui: reorder buttons and guest sort/filter bar (R2b · FG-202, wave 19)
 - Lane: `ui`
@@ -707,7 +715,7 @@ Shared acceptance for every package:
 - Acceptance criteria:
   1. The spec moves an item up as the owner and a guest sees the new order; the guest then sorts by price descending and the unpriced item is last.
   2. After the guest sorts, a fresh visit without params shows the owner's priority order.
-  3. Keyboard-only use of Move up works.
+  3. Keyboard-only use of Move up works. A copied link with `min`/`max` params shows the same filtered list, and Clear filters restores the full list.
   4. Decision 0010 exists with `Status: Agreed`.
 
 ### P22 · server: accounting function (R3a · FG-301, wave 21)
@@ -715,12 +723,18 @@ Shared acceptance for every package:
 - ownedFiles:
   - `src/features/planner/accounting.ts` (new)
   - `tests/unit/planner/accounting.test.ts` (new)
+  - `src/lib/money.ts`
+  - `tests/unit/money.test.ts`
+  - `src/features/wishlists/sort-filter.ts`
+  - `src/features/wishlists/components/ItemForm.tsx`
+  - `src/features/wishlists/components/SortFilterBar.tsx`
 - Acceptance criteria:
   1. The Appendix B example (reserved £129.99, interested £14.99, purchased £24.99 paid £19.50, budget £250) gives planned 14949, spent 1950, potential 1499, remaining 10051.
   2. A zero budget gives remaining equal to minus planned; a null budget gives `remainingMinor` null; overspend gives a negative remaining.
   3. Entries with no price add nothing and are counted in `unpricedCount`; an `included = false` entry is ignored entirely.
   4. Moving one entry through interested → reserved → purchased never counts it twice in planned or spent.
   5. All arithmetic is on integers; a test asserts `Number.isInteger` on every output.
+  6. `minorToPounds` in `src/lib/money.ts` is the one pence-to-input-text helper; the item form, sort bar, URL builder and planner forms use it instead of their own copies, and it round-trips with `parsePoundsToMinor`.
 
 ### P23 · server: planner queries and actions (R3a · FG-301, wave 22)
 - Lane: `server`
@@ -732,10 +746,10 @@ Shared acceptance for every package:
 - Acceptance criteria:
   1. `getPlanner()` returns the session guest's interests and active claims grouped by recipient and occasion with item title, URL, listed price and state; another guest's rows never appear.
   2. Without a guest session every planner query and action returns unauthorized; an owner or admin cookie does not satisfy the guard.
-  3. Setting the total budget, a recipient budget, a note (≤ 500) and an actual price persists, and a second guest cannot read or change any of them even when passing the first guest's planner id.
+  3. `saveBudgets` (total and recipient budgets together) and `setEntryDetails` (note ≤ 500, actual price, include flag) persist, and a second guest cannot read or change any of them: no action takes a planner id, and a gift that is not in the caller's own planner returns `NOT_FOUND`.
   4. Setting an actual price leaves `wishlist_item.price_minor` unchanged.
   5. A claimed item the owner later deletes still appears with the saved title and a `removed` flag; its price counts in totals.
-  6. Removing an interested item clears interest; removing a reserved or purchased item returns `CLAIM_ACTIVE` until the claim is released.
+  6. Removing needs no separate action: withdrawing interest and releasing or undoing a claim (the R2a actions, used from the planner) already do it, so a held gift cannot be dropped without being released.
 
 ### P24 · ui: planner page (R3a · FG-301, wave 23)
 - Lane: `ui`
@@ -745,23 +759,26 @@ Shared acceptance for every package:
   - `src/features/planner/components/TotalsPanel.tsx` (new)
   - `src/features/planner/components/BudgetSheet.tsx` (new)
   - `src/features/planner/components/EntryNotes.tsx` (new)
-  - `src/components/layout/AppShell.tsx`
+  - `src/app/layout.tsx`
+  - `src/features/wishlists/components/PublicItemCard.tsx`
 - Acceptance criteria:
   1. `/planner` without a guest session shows a friendly "Pick a name first" prompt linking to the family page.
   2. Entries are grouped by recipient, each with title, link, listed price (or "No price"), status in words and the buttons from D35.
   3. `TotalsPanel` shows Planned, Spent, Potential, Remaining and "N items without a price", using `computePlan` only (no arithmetic in the component); negative remaining is shown in words as "over budget".
-  4. The budget sheet saves a total and per-recipient budgets; notes and actual price save per entry and are shown only on this page.
-  5. `AppShell` shows a My Planner link only when a guest session exists; items on the list page link to the planner when held by the guest.
+  4. The budget sheet saves a total and per-recipient budgets in one action; notes and actual price save per entry and are shown only on this page.
+  5. The root layout passes a My Planner link to `AppShell` only when a guest session exists; a gift on a list page that the guest holds or is interested in links to the planner.
 
 ### P25 · e2e: planner journey and decision 0011 (R3a · FG-301, wave 24)
 - Lane: `e2e`
 - ownedFiles:
   - `tests/e2e/planner.spec.ts` (new)
+  - `tests/e2e/helpers.ts`
+  - `tests/e2e/claims.spec.ts`
   - `Docs/FamilyGifts/Decisions/0011-planner-accounting.md` (new)
 - Acceptance criteria:
   1. A guest reserves items on two members' lists, sets a £250 budget, marks one purchased with an actual price and a note, and the planner shows the expected planned, spent and remaining.
   2. A second guest, the owner and the admin cannot see the note or actual price anywhere, including in page source and network responses.
-  3. The planner works after reload and shows the same data in a second context that shares the guest cookie.
+  3. The planner works after reload and shows the same data in a second context that shares the guest cookie. `guestPage` moves into `helpers.ts` so claims and planner specs share it.
   4. Decision 0011 exists with `Status: Agreed`.
 
 ### P26 · server: export formatters (R3b · FG-302, wave 25)
@@ -770,6 +787,8 @@ Shared acceptance for every package:
   - `src/features/planner/export/text.ts` (new)
   - `src/features/planner/export/markdown.ts` (new)
   - `src/features/planner/export/csv.ts` (new)
+  - `src/features/planner/export/types.ts` (new)
+  - `src/features/planner/export/build.ts` (new)
   - `tests/unit/planner/export.test.ts` (new)
 - Acceptance criteria:
   1. `text.ts` reproduces the PRD Appendix B output byte for byte for its sample data, including paid price and the totals lines.
@@ -777,12 +796,16 @@ Shared acceptance for every package:
   3. CSV: a title `=HYPERLINK("x")`, `+1`, `-1`, `@a` and a tab-prefixed value each come out prefixed with `'`.
   4. Notes appear only when `includeNotes` is true; recovery or session data cannot be passed in because the entry type has no such field.
   5. Every entry with a URL has it in all three formats; entries without a URL still render.
+  6. A URL containing parentheses or spaces cannot end the Markdown link early; `buildExport` computes totals over the selected entries only.
 
 ### P27 · ui: export menu and decision 0012 (R3b · FG-302, wave 26)
 - Lane: `ui`
 - ownedFiles:
   - `src/features/planner/components/ExportMenu.tsx` (new)
+  - `src/features/planner/components/SelectionContext.tsx` (new)
   - `src/features/planner/components/PlannerGroup.tsx`
+  - `src/app/(public)/planner/page.tsx`
+  - `tests/e2e/helpers.ts`
   - `tests/e2e/planner-export.spec.ts` (new)
   - `Docs/FamilyGifts/Decisions/0012-export-escaping.md` (new)
 - Acceptance criteria:
@@ -800,9 +823,9 @@ Shared acceptance for every package:
   - `tests/unit/security/ssrf.test.ts` (new)
   - `tests/integration/safe-fetch.test.ts` (new)
 - Acceptance criteria:
-  1. `ssrf.test.ts` rejects `127.0.0.1`, `10.0.0.1`, `172.16.0.1`, `192.168.1.1`, `169.254.169.254`, `100.64.0.1`, `0.0.0.0`, `::1`, `fd00::1`, `fe80::1` and `::ffff:127.0.0.1`, and accepts `93.184.216.34`.
-  2. `safe-fetch.test.ts` against a local test server: a redirect to a private address, a hostname resolving to a private address, a 5-hop redirect chain, a port other than 80/443, a `file:` URL, a body over 1 MB, a non-HTML response and a response slower than 5 s each fail with their typed code from D38.
-  3. A hostname that resolves to a public address on the first check and a private address on a second lookup is still blocked (the checked IP is the one connected to).
+  1. `ssrf.test.ts` rejects `127.0.0.1`, `10.0.0.1`, `172.16.0.1`, `192.168.1.1`, `169.254.169.254`, `100.64.0.1`, `0.0.0.0`, `::1`, `fd00::1`, `fe80::1` and `::ffff:127.0.0.1`, and accepts `93.184.216.34`. It also refuses IPv4-compatible (`::127.0.0.1`), Teredo, site-local and discard-only IPv6 ranges, and `safe-fetch.test.ts` shows that loopback written as `2130706433`, `0x7f000001`, `127.1`, `0177.0.0.1`, `[::ffff:7f00:1]`, `[::127.0.0.1]`, `[::1]` and `localhost` is refused.
+  2. `safe-fetch.test.ts` against a local test server (with DNS faked where needed): a redirect to a private or metadata address, a hostname resolving to a private address (also when only one of several answers is private), a 5-hop redirect chain, a port other than 80/443, a `file:` URL, a login in the address, a body over 1 MB, a non-HTML response, a compressed response and a response slower than the timeout each fail with their typed code from D38; a chain of 3 redirects succeeds.
+  3. A hostname whose first answer was checked and whose later answers would be private is still fetched from the first answer only (the checked IP is the one connected to), proven by what the local server receives; `FG_ALLOW_TEST_HOSTS=1` is ignored when `NODE_ENV` is `production`.
   4. A normal public-style HTML response returns its text.
 
 ### P29 · server: metadata extraction and duplicates (R3c · FG-303, wave 27)
@@ -815,12 +838,14 @@ Shared acceptance for every package:
   - `tests/fixtures/product-jsonld.html` (new)
   - `tests/fixtures/product-opengraph.html` (new)
   - `tests/fixtures/product-bare.html` (new)
+  - `tests/fixtures/product-hostile.html` (new)
 - Acceptance criteria:
   1. The JSON-LD fixture yields title, description, image, `priceMinor`, currency `GBP` and canonical URL; the Open Graph fixture yields title, image and price from `product:price:*`; the bare fixture yields at least a title from `<title>`.
   2. A fixture containing `<script>` and `onerror` attributes produces text fields with the markup left as inert text and nothing executed.
   3. A USD price produces no `priceMinor` and a warning naming the currency.
   4. `normalizeUrl("HTTPS://Shop.example/p/1/?utm_source=x#top")` equals `normalizeUrl("https://shop.example/p/1")`, and `findDuplicate` returns the matching item id from a list of existing URLs.
   5. `ImportDraft` is defined once in `types.ts` and reused by R3d.
+  6. `parsePriceString` reads `129.99`, `1,299.00`, `1.299,00`, `12,50` and numbers, and rejects `free`, empty and out-of-range values; titles and descriptions are capped at the item limits; a missing title and an unreadable price each add a warning.
 
 ### P30 · server and ui: URL preview action and panel (R3c · FG-303, wave 28)
 - Lane: `server`
@@ -840,13 +865,13 @@ Shared acceptance for every package:
 - Lane: `e2e`
 - ownedFiles:
   - `tests/e2e/url-import.spec.ts` (new)
-  - `tests/integration/safe-fetch.test.ts`
   - `Docs/FamilyGifts/Decisions/0013-url-import-ssrf.md` (new)
 - Acceptance criteria:
-  1. The spec serves the JSON-LD fixture from a local test server (allowed only when `FG_ALLOW_TEST_HOSTS=1` and `NODE_ENV=test`) and the owner gets a pre-filled editable draft.
-  2. A URL pointing at a blocked or failing target shows the fallback message and the manual form still saves an item.
-  3. `tests/integration/safe-fetch.test.ts` gains a case proving `FG_ALLOW_TEST_HOSTS=1` is ignored when `NODE_ENV=production` (a loopback URL is still blocked).
-  4. Decision 0013 exists with `Status: Agreed`.
+  1. A link the server refuses (a local address, the metadata address, an `ftp:` link) shows a message ending "You can still add it by hand.", and nothing is saved by the failed lookups.
+  2. After failed lookups the owner can still add a gift by hand and it appears with its price; the item form also works without ever touching the link box.
+  3. The 21st lookup inside the window shows the throttle message.
+  4. The live success path (a page whose details fill the form) cannot run here because the built app correctly refuses local addresses; it is covered by `url-import.test.ts` against a local server and by the manual test document.
+  5. Decision 0013 exists with `Status: Agreed`.
 
 ### P32 · server: Amazon parser and fixtures (R3d · FG-304, wave 30)
 - Lane: `server`
@@ -854,8 +879,13 @@ Shared acceptance for every package:
   - `src/features/imports/amazon/parse-html.ts` (new)
   - `src/features/imports/amazon/parse-text.ts` (new)
   - `src/features/imports/amazon/index.ts` (new)
+  - `src/features/imports/amazon/asin.ts` (new)
+  - `src/features/imports/amazon/shared.ts` (new)
+  - `src/features/imports/types.ts`
+  - `src/features/imports/extract-metadata.ts`
   - `tests/fixtures/amazon/wishlist-basic.html` (new)
   - `tests/fixtures/amazon/wishlist-partial.html` (new)
+  - `tests/fixtures/amazon/wishlist-hostile.html` (new)
   - `tests/fixtures/amazon/wishlist-copied.txt` (new)
   - `tests/unit/imports/amazon.test.ts` (new)
 - Acceptance criteria:
@@ -864,11 +894,14 @@ Shared acceptance for every package:
   3. Input over 500 KB returns `INPUT_TOO_LARGE`; empty input, plain prose and malformed HTML return an empty list with the manual-entry message and never throw.
   4. Fixture HTML containing `<script>alert(1)</script>` and `<img onerror>` yields text fields with no markup executed or retained as HTML.
   5. Drafts use the shared `ImportDraft` type from R3c.
+  6. The text parser also picks up a price line between the title and the link, and each ASIN appears once.
+  7. The dialog refuses a paste over 500 KB itself, before it is sent.
 
 ### P33 · server and ui: bulk preview and commit (R3d · FG-304, wave 31)
 - Lane: `ui`
 - ownedFiles:
   - `src/features/imports/bulk-actions.ts` (new)
+  - `src/features/wishlists/owner-queries.ts`
   - `src/features/imports/components/BulkImportDialog.tsx` (new)
   - `src/app/(owner)/owner/lists/[listId]/page.tsx`
   - `tests/integration/bulk-import.test.ts` (new)
@@ -909,9 +942,11 @@ Shared acceptance for every package:
   - `src/app/(public)/recover/page.tsx` (new)
   - `src/features/authentication/components/SaveAccessDialog.tsx` (new)
   - `src/components/layout/AppShell.tsx`
+  - `src/features/authentication/components/RecoverExchange.tsx` (new)
+  - `src/app/layout.tsx`
 - Acceptance criteria:
-  1. `AppShell` shows a Save access entry for guests; the dialog creates a link, shows it with Copy and Revoke, and shows the warning from D43.
-  2. `/recover` reads `#t=…`, replaces the history entry with `/recover` before any network call, posts the token, and on success redirects to `/planner`.
+  1. `AppShell` shows a Save access entry only when the layout reports a guest session; the dialog creates a link, shows it with Copy and Revoke, and shows the warning from D43.
+  2. `/recover` (through `RecoverExchange`) reads `#t=…`, replaces the history entry with `/recover` before any network call, posts the token, and on success redirects to `/planner`.
   3. A missing or invalid token shows a clear failure message and a link to the family page.
   4. The raw token appears in no request URL, no server-rendered HTML and no `console` output.
 
@@ -931,37 +966,47 @@ Shared acceptance for every package:
 - Lane: `server`
 - ownedFiles:
   - `next.config.ts`
-  - `tests/security/headers.test.ts` (new)
-  - `tests/security/payload-isolation.test.ts` (new)
+  - `tests/e2e/security.spec.ts` (new)
+  - `tests/e2e/helpers.ts`
+  - `.github/workflows/ci.yml`
 - Acceptance criteria:
-  1. `headers.test.ts` against the running app asserts the D44 headers on `/`, `/l/<slug>`, `/owner/login`, and `no-referrer` on `/recover` and `/api/recovery/exchange`.
-  2. `payload-isolation.test.ts` walks every owner and admin page and action result for a world with claims, interests, notes, budgets and recovery tokens, and finds no forbidden key and none of the seeded secret strings (note text, actual price, raw token).
+  1. `security.spec.ts` (a Playwright spec, so it runs against the built app and in CI with the e2e job) asserts the D44 headers on `/`, `/l/<slug>`, `/owner/login`, and `no-referrer` on `/recover` and `/api/recovery/exchange`.
+  2. The same spec fetches every owner and admin page (plus the public pages) for a world with claims, interests, notes, budgets and recovery tokens, and finds no forbidden key and none of the seeded secret strings (note text, actual price, raw token).
   3. The same test confirms no `ADMIN_SECRET`, `SESSION_SECRET` or `DATABASE_URL` value appears in any HTML or JS bundle served.
-  4. Both files run in CI.
+  4. It runs in CI, and `ci.yml` runs on push to `main`, on pull requests and manually again.
 
 ### P39 · repo: backup, restore and runbook (R4b · FG-402, wave 36)
 - Lane: `repo`
 - ownedFiles:
   - `scripts/backup.sh` (new)
   - `scripts/restore.sh` (new)
-  - `Docs/FamilyGifts/Runbook.md` (new)
+  - `scripts/row-counts.sh` (new)
+  - `scripts/_env.sh` (new)
+  - `tests/integration/restore-script.test.ts` (new)
+  - `docs/FamilyGifts/Runbook.md` (new)
   - `README.md`
 - Acceptance criteria:
-  1. `scripts/backup.sh` writes a timestamped custom-format dump; `scripts/restore.sh <db>` restores it into an empty database and refuses a non-empty one.
+  1. `scripts/backup.sh` writes a timestamped custom-format dump; `scripts/restore.sh <dump> <target-url>` restores it into an empty database and refuses a non-empty one.
   2. A documented restore test (backup, restore to a scratch database, compare row counts for every table) has been run and its result is pasted in the Runbook.
   3. The Runbook covers environment variables, Vercel deploy, running migrations as a deliberate step, seeding the household, the Supabase pause and free-tier check, and what to do if a recovery link is lost.
   4. The README links the Runbook and lists the `pnpm` scripts from D2.
+  5. An integration test proves `restore.sh` refuses a database with tables and leaves its data alone, and that `backup.sh` dumps the `DATABASE_URL` it is given even when `.env` exists.
 
 ### P40 · e2e: mobile and accessibility pass (R4b · FG-402, wave 37)
 - Lane: `e2e`
 - ownedFiles:
   - `tests/e2e/mobile-a11y.spec.ts` (new)
-  - `src/theme/theme.ts`
+  - `src/app/(public)/page.tsx`
+  - `src/app/(public)/planner/page.tsx`
+  - `src/app/(owner)/owner/page.tsx`
+  - `src/app/(owner)/owner/lists/[listId]/page.tsx`
+  - `src/app/(admin)/admin/page.tsx`
+  - `src/app/(admin)/admin/members/[memberId]/page.tsx`
 - Acceptance criteria:
   1. At 375 px the spec runs admin setup, owner add item, guest reserve, planner and recovery without horizontal scroll (document width ≤ viewport width) on each page.
   2. `@axe-core/playwright` reports no serious or critical violations on `/`, `/l/<slug>`, `/planner`, `/owner/lists/<id>` and `/admin`.
   3. The critical flows (reserve, mark purchased, add item) complete by keyboard alone.
-  4. Any theme change needed to pass contrast is made in `src/theme/theme.ts` only, and status text remains readable at the new colours.
+  4. Fixes the scan found are made where they arise: links beside text are always underlined (they were underlined only on hover), and the selected planner period is bold instead of underlined. No theme change was needed.
   5. With `prefers-reduced-motion: reduce` no transition or animation runs on interactive elements.
 
 ## Follow-ups

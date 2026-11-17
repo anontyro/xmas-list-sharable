@@ -12,14 +12,16 @@ import Typography from "@mui/material/Typography";
 import MenuIcon from "@mui/icons-material/Menu";
 import NextLink from "next/link";
 import Icon from "@/components/ui/Icon";
+import SaveAccessDialog from "@/features/authentication/components/SaveAccessDialog";
 
 export type NavLink = { label: string; href: string };
 
 const FAMILY: NavLink = { label: "Family", href: "/" };
 
 /** Top bar with the Family link plus role-specific links passed by later features. */
-export default function AppShell({ links = [], children }: { links?: NavLink[]; children: React.ReactNode }) {
+export default function AppShell({ links = [], guest = false, children }: { links?: NavLink[]; guest?: boolean; children: React.ReactNode }) {
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
+  const [saveOpen, setSaveOpen] = useState(false);
   const all = [FAMILY, ...links];
 
   return (
@@ -36,6 +38,7 @@ export default function AppShell({ links = [], children }: { links?: NavLink[]; 
                 {l.label}
               </Button>
             ))}
+            {guest && <Button color="inherit" onClick={() => setSaveOpen(true)}>Save access</Button>}
           </Box>
           <IconButton
             color="inherit"
@@ -53,9 +56,13 @@ export default function AppShell({ links = [], children }: { links?: NavLink[]; 
                 {l.label}
               </MenuItem>
             ))}
+            {guest && (
+              <MenuItem onClick={() => { setAnchor(null); setSaveOpen(true); }}>Save access</MenuItem>
+            )}
           </Menu>
         </Toolbar>
       </AppBar>
+      {guest && <SaveAccessDialog open={saveOpen} onClose={() => setSaveOpen(false)} />}
       <Box component="main">{children}</Box>
     </>
   );

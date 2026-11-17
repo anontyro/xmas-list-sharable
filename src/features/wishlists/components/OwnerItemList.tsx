@@ -15,6 +15,7 @@ import type { OwnerItem } from "@/features/wishlists/views";
 import { formatGBP } from "@/lib/money";
 import ItemForm from "./ItemForm";
 import PriorityChip from "./PriorityChip";
+import ReorderControls from "./ReorderControls";
 
 export default function OwnerItemList({ listId, items, readOnly }: { listId: string; items: OwnerItem[]; readOnly: boolean }) {
   const [editing, setEditing] = useState<string>();
@@ -30,7 +31,7 @@ export default function OwnerItemList({ listId, items, readOnly }: { listId: str
           <Box key={priority} component="section" aria-label={PRIORITY_LABELS[priority]}>
             <Typography variant="h6" component="h3" gutterBottom>{PRIORITY_LABELS[priority]}</Typography>
             <Stack spacing={1}>
-              {group.map((item) => (
+              {group.map((item, index) => (
                 <Paper key={item.id} sx={{ p: 2 }}>
                   {editing === item.id ? (
                     <ItemForm listId={listId} item={item} onDone={() => setEditing(undefined)} />
@@ -47,7 +48,8 @@ export default function OwnerItemList({ listId, items, readOnly }: { listId: str
                         <Link href={item.productUrl} target="_blank" rel="noopener noreferrer nofollow">View product</Link>
                       )}
                       {!readOnly && (
-                        <Stack direction="row" spacing={1}>
+                        <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
+                          <ReorderControls itemId={item.id} title={item.title} isFirst={index === 0} isLast={index === group.length - 1} />
                           <Button variant="outlined" size="small" onClick={() => setEditing(item.id)}>Edit</Button>
                           <ActionButton onAction={() => deleteItem(item.id)} variant="outlined" color="error" size="small" confirmText="Remove this gift from your list?">
                             Remove

@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Owner list editor - Family Gifts</title>
+<link rel="stylesheet" href="../styles/sticker.css">
+</head>
+<body>
+
+
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+
+<div class="pg">
+  <header class="bar">
+    <button class="brand"><img class="stk" src="../icons/tree.png" alt="">Family Gifts</button>
+    <nav class="links" aria-label="Owner">
+      <button class="lnk on">My list</button>
+      <button class="lnk">Add a gift</button>
+      <button class="lnk">Import</button>
+    </nav>
+    <div class="who"><span class="pill mnt">Owner</span><button class="chip" aria-haspopup="menu" aria-expanded="false"><span class="av2 bgy">S</span>Sarah <span aria-hidden="true">▾</span></button></div>
+  </header>
+
+  <section class="hero mnt">
+    <div class="hero-in">
+      <div>
+        <h1 class="h1">My Christmas list</h1>
+        <p class="sub">2026 · 5 gifts · only you can edit</p>
+      </div>
+      <img class="stk" src="../icons/gifttag.png" alt="" style="width:62px;height:74px;transform:rotate(8deg);flex:none">
+    </div>
+  </section>
+
+  <main class="wrap">
+    <div class="two">
+      <div class="main">
+        <span class="rib red">★ MOST WANTED</span>
+        <article class="card r fw">
+          <div class="th bgs"><img class="stk" src="../icons/box.png" alt=""></div>
+          <div class="g" style="flex-basis:160px"><h3 class="ttl">Cast-iron casserole dish</h3><p class="price" style="margin-bottom:0">£59.00</p></div>
+          <div class="acts">
+            <button class="btn sm" disabled style="opacity:.45" aria-label="Move Cast-iron casserole dish up">↑ Up</button>
+            <button class="btn sm" aria-label="Move Cast-iron casserole dish down">↓ Down</button>
+            <button class="btn sm yel" aria-label="Edit Cast-iron casserole dish">Edit</button>
+          </div>
+        </article>
+        <article class="card r fw">
+          <div class="th bgp"><img class="stk" src="../icons/stocking.png" alt=""></div>
+          <div class="g" style="flex-basis:160px"><h3 class="ttl">Wool hiking socks, 2 pack</h3><p class="price" style="margin-bottom:0">£16.50</p></div>
+          <div class="acts">
+            <button class="btn sm" aria-label="Move Wool hiking socks up">↑ Up</button>
+            <button class="btn sm" disabled style="opacity:.45" aria-label="Move Wool hiking socks down">↓ Down</button>
+            <button class="btn sm yel" aria-label="Edit Wool hiking socks">Edit</button>
+          </div>
+        </article>
+
+        <span class="rib grn">WOULD LOVE</span>
+        <article class="card r fw">
+          <div class="th bgm"><img class="stk" src="../icons/parcel.png" alt=""></div>
+          <div class="g" style="flex-basis:160px"><h3 class="ttl">Nordic Winters cookbook</h3><p class="price" style="margin-bottom:0">£24.99</p></div>
+          <div class="acts">
+            <button class="btn sm" disabled style="opacity:.45" aria-label="Move Nordic Winters cookbook up">↑ Up</button>
+            <button class="btn sm" aria-label="Move Nordic Winters cookbook down">↓ Down</button>
+            <button class="btn sm yel" aria-label="Edit Nordic Winters cookbook">Edit</button>
+          </div>
+        </article>
+        <article class="card r fw">
+          <div class="th bgy"><img class="stk" src="../icons/sparkles.png" alt=""></div>
+          <div class="g" style="flex-basis:160px"><h3 class="ttl">Scented candle set</h3><p class="price" style="margin-bottom:0">£18.00</p></div>
+          <div class="acts">
+            <button class="btn sm" aria-label="Move Scented candle set up">↑ Up</button>
+            <button class="btn sm" disabled style="opacity:.45" aria-label="Move Scented candle set down">↓ Down</button>
+            <button class="btn sm yel" aria-label="Edit Scented candle set">Edit</button>
+          </div>
+        </article>
+
+        <span class="rib sky">NICE TO HAVE</span>
+        <article class="card r fw">
+          <div class="th bgs"><img class="stk" src="../icons/presentgreen.png" alt=""></div>
+          <div class="g" style="flex-basis:160px"><h3 class="ttl">Jigsaw puzzle, 1000 pieces</h3><p class="price" style="margin-bottom:0">£12.99</p></div>
+          <div class="acts">
+            <button class="btn sm" disabled style="opacity:.45" aria-label="Move Jigsaw puzzle up">↑ Up</button>
+            <button class="btn sm" disabled style="opacity:.45" aria-label="Move Jigsaw puzzle down">↓ Down</button>
+            <button class="btn sm yel" aria-label="Edit Jigsaw puzzle">Edit</button>
+          </div>
+        </article>
+      </div>
+
+      <aside class="side">
+        <section class="card pad c" style="gap:12px">
+          <h2 class="h3d">Share your list</h2>
+          <div class="card cr" style="padding:10px 12px"><p class="mono">familygifts.app/l/a8Kp2vQx9m</p></div>
+          <button class="btn red blk">Copy link</button>
+          <p class="help" style="margin:0">Anyone with this link can see your list, so only send it to family.</p>
+        </section>
+        <section class="card pad c" style="gap:10px">
+          <h2 class="h3d">Add gifts</h2>
+          <button class="btn red blk">+ Add a gift</button>
+          <button class="btn yel blk">Add from a web link</button>
+          <button class="btn sky blk">Paste Amazon wishlist</button>
+        </section>
+        <div class="note mnt">
+          <img class="stk" src="../icons/sparkles.png" alt="">
+          <p>The surprise is safe. You never see who has reserved or bought anything.</p>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <nav class="tabs" aria-label="Owner">
+    <button class="tab on"><img src="../icons/heartlist.png" alt="">My list</button>
+    <button class="tab"><img src="../icons/presentgold.png" alt="">Add gift</button>
+    <button class="tab"><img src="../icons/box.png" alt="">Import</button>
+  </nav>
+</div>
+
+</body>
+</html>

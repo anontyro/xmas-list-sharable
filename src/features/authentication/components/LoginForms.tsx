@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Alert from "@mui/material/Alert";
 import Button from "@mui/material/Button";
@@ -9,6 +9,7 @@ import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import { adminLogin } from "@/features/authentication/admin-login";
 import { ownerLogin } from "@/features/authentication/owner-login";
+import { findMemberByName } from "@/features/authentication/prefill";
 
 type Outcome = { ok: boolean; error?: { message: string } } | undefined;
 
@@ -40,10 +41,15 @@ export function AdminLoginForm() {
   );
 }
 
-export function OwnerLoginForm({ members }: { members: { id: string; displayName: string }[] }) {
+/** `initialName` and `initialPin` come from a sign-in link the admin shared. They only fill the form; the person still presses Sign in. */
+export function OwnerLoginForm({ members, initialName, initialPin }: { members: { id: string; displayName: string }[]; initialName?: string; initialPin?: string }) {
   const router = useRouter();
-  const [memberId, setMemberId] = useState(members[0]?.id ?? "");
-  const [pin, setPin] = useState("");
+  const [memberId, setMemberId] = useState((findMemberByName(members, initialName) ?? members[0])?.id ?? "");
+  const [pin, setPin] = useState(initialPin ?? "");
+  // Take the PIN out of the address bar (history, bookmarks, screenshots) as soon as it has been used.
+  useEffect(() => {
+    if (initialName || initialPin) window.history.replaceState(null, "", "/owner/login");
+  }, [initialName, initialPin]);
   const { error, pending, submit } = useLogin(() => ownerLogin(memberId, pin), () => router.push("/owner"));
   if (members.length === 0) return <Alert severity="info">No one has been added yet. Ask the family admin.</Alert>;
   return (
