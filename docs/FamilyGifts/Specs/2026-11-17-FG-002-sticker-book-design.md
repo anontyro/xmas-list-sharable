@@ -117,7 +117,7 @@ Order is deliberate: R5a and R5b change no behaviour, R5c to R5f are the guest j
 
 ### R5c · Shells and navigation
 
-> **R5c · task FG-503 · ~31 files: ~19 new, ~12 modified · packages P5–P8**
+> **R5c · task FG-503 · ~32 files: ~19 new, ~13 modified · packages P5–P8**
 >
 > Every page gets the right top bar, bottom tabs and account menu for who is using it. Guests can change their name, open Save access, and sign out of the device from the menu.
 > In code the single `AppShell` is replaced by one shell per route group, guest sign-out is a server action, and the last list a guest opened is remembered for the Wishlist shortcut.
@@ -468,8 +468,10 @@ Shared acceptance for every package:
 - Lane: `repo`
 - ownedFiles:
   - `Docs/FamilyGifts/Decisions/0018-role-shells-and-navigation.md` (new)
+  - `Docs/FamilyGifts/Decisions/0001-stack-and-layout.md`
 - Acceptance criteria:
   1. Decision 0018 exists with `Status: Agreed` and states D54 to D58 as built.
+  2. Decision 0001's "Responsive shell" line is edited in place to match the code.
 
 ### P9 · server: safe return path and pasted-link parser (R5d · FG-504, wave 10)
 - Lane: `server`

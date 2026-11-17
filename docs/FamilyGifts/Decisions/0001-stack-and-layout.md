@@ -9,7 +9,7 @@ All libraries the whole project needs are installed in the first release, so lat
 - **Environment.** `src/lib/env.ts` validates `DATABASE_URL`, `ADMIN_SECRET` and `SESSION_SECRET` with zod on first use, not at import, so a build that does not read them still succeeds.
 - **Stickers.** The 36 Sticker Book icons live in `public/stickers/` and are used only through `<Sticker name="tree" />`, whose `name` is a typed union (decision 0017). Stickers are decorative (`alt=""`) unless given an alt.
 - **Tooling.** TypeScript is pinned to 5.x because `typescript-eslint` does not support 7.0 yet. `pnpm-workspace.yaml` allows the `esbuild` install script, which pnpm 11 otherwise blocks.
-- **Responsive shell.** `AppShell` shows links inline from the `sm` breakpoint and in a labelled menu below it.
+- **Responsive shell.** Each route group renders its own shell (decision 0018): top links from the 860 px breakpoint and bottom tabs below it.
 
 ## Why
 
