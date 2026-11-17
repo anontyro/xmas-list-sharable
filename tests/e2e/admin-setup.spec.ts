@@ -57,8 +57,8 @@ test("owner sign-in shows the generic message for a wrong PIN and has a masked n
   const pin = page.getByLabel("PIN");
   await expect(pin).toHaveAttribute("type", "password");
   await expect(pin).toHaveAttribute("inputmode", "numeric");
-  await expect(pin).toHaveAttribute("autocomplete", "off");
+  await expect(pin).toHaveAttribute("autocomplete", "current-password");
   await pin.fill("654321");
-  await page.getByRole("button", { name: "Sign in" }).click();
+  await page.getByRole("button", { name: "Open my list" }).click();
   await expect(page.getByText("Incorrect details or too many attempts. Try again later.")).toBeVisible();
 });

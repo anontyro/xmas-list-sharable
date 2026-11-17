@@ -4,7 +4,7 @@ import { tokens } from "@/theme/tokens";
 import Pill from "./Pill";
 
 /** The welcome and sign-in frame: a red brand panel and a white form panel (stacked on phones, side by side from 860 px). */
-export default function SplitLayout({ badge, children }: { badge: string; children: React.ReactNode }) {
+export default function SplitLayout({ badge = `Christmas ${new Date().getFullYear()}`, children }: { badge?: string; children: React.ReactNode }) {
   return (
     <Box component="main" sx={{ flex: 1, minHeight: "100vh", display: "flex", flexDirection: { xs: "column", md: "row" } }}>
       <Box

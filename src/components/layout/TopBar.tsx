@@ -58,3 +58,17 @@ export default function TopBar({ brandHref, items, right }: { brandHref: string;
     </AppBar>
   );
 }
+
+/** What an unnamed visitor sees where the name chip would be: a link to the welcome screen that brings them back to this page. */
+export function PickNameChip() {
+  const pathname = usePathname();
+  return (
+    <Box
+      component={NextLink}
+      href={`/welcome?next=${encodeURIComponent(pathname)}`}
+      sx={{ display: "inline-flex", alignItems: "center", minHeight: 40, px: "14px", border: `3px solid ${tokens.ink}`, borderRadius: "22px", backgroundColor: tokens.cream, color: tokens.ink, fontWeight: 800, fontSize: 14, textDecoration: "none" }}
+    >
+      Pick your name
+    </Box>
+  );
+}

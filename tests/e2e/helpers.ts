@@ -46,7 +46,7 @@ export async function createItem(listId: string, title: string, priceMinor: numb
 export async function ownerSignIn(page: Page, pin = "123456") {
   await page.goto("/owner/login");
   await page.getByLabel("PIN").fill(pin);
-  await page.getByRole("button", { name: "Sign in" }).click();
+  await page.getByRole("button", { name: "Open my list" }).click();
   await expect(page).toHaveURL(/\/owner$/);
 }
 
@@ -61,14 +61,15 @@ export async function gotoPlanner(page: Page) {
   await page.getByRole("link", { name: /^(My planner|Planner)$/ }).click();
 }
 
-/** A fresh browser context that has opened a list and picked a display name. */
+/** A fresh browser context that has gone through the welcome screen to a list with a display name. */
 export async function guestPage(browser: Browser, slug: string, name: string, options: Parameters<Browser["newContext"]>[0] = {}) {
   const context = await browser.newContext(options);
   const page = await context.newPage();
-  await page.goto(`/l/${slug}`);
+  await page.goto(`/welcome?next=${encodeURIComponent(`/l/${slug}`)}`);
   await page.getByLabel("Your name").fill(name);
-  await page.getByRole("button", { name: "Continue" }).click();
-  await expect(page.getByText("Shopping as")).toContainText(name);
+  await page.getByRole("button", { name: "Let's go" }).click();
+  await expect(page).toHaveURL(new RegExp(`/l/${slug}$`));
+  await expect(page.getByRole("button", { name, exact: true })).toBeVisible(); // the name chip in the top bar
   return { context, page };
 }
 

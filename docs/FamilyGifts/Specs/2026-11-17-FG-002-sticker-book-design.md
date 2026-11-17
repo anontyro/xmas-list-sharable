@@ -137,7 +137,7 @@ Order is deliberate: R5a and R5b change no behaviour, R5c to R5f are the guest j
 
 ### R5d · Welcome and sign-in
 
-> **R5d · task FG-504 · ~33 files: ~14 new, ~19 modified · packages P9–P12**
+> **R5d · task FG-504 · ~43 files: ~15 new, ~28 modified · packages P9–P12**
 >
 > First-time visitors meet a split welcome screen that asks for their name; list owners sign in by tapping their name and typing a PIN; the admin signs in on the same frame. Someone who already has a recovery link can paste it.
 > In code the sign-in pages move into a chrome-free `(welcome)` route group, the inline name form on the list page is replaced by a prompt that links here, and two small pure helpers validate the return path and read a pasted link.
@@ -487,7 +487,6 @@ Shared acceptance for every package:
 ### P10 · ui: welcome, sign-in frame and list prompt (R5d · FG-504, wave 11)
 - Lane: `ui`
 - ownedFiles:
-  - `src/app/(welcome)/layout.tsx` (new)
   - `src/app/(welcome)/welcome/page.tsx` (new)
   - `src/app/(welcome)/owner/login/page.tsx` (moved from `src/app/(owner)/owner/login/page.tsx`)
   - `src/app/(welcome)/admin/login/page.tsx` (moved from `src/app/(admin)/admin/login/page.tsx`)
@@ -502,6 +501,17 @@ Shared acceptance for every package:
   - `src/features/reservations/components/NamePrompt.tsx` (new)
   - `src/app/(public)/l/[slug]/page.tsx`
   - `src/components/layout/TopBar.tsx`
+  - `src/components/layout/GuestShell.tsx`
+  - `src/components/sticker/SplitLayout.tsx`
+  - `src/features/authentication/exchange-token.ts` (new)
+  - `src/features/authentication/components/RecoverExchange.tsx`
+  - `src/theme/theme.ts`
+  - `tests/unit/exchange-token.test.ts` (new)
+  - `tests/e2e/helpers.ts`
+  - `tests/e2e/claims.spec.ts`
+  - `tests/e2e/admin-setup.spec.ts`
+  - `tests/e2e/pin-links.spec.ts`
+  - `tests/e2e/navigation.spec.ts`
 - Acceptance criteria:
   1. `/welcome`, `/owner/login` and `/admin/login` render the split frame with no top bar or tabs, and the URLs are unchanged.
   2. A new visitor enters a name on `/welcome?next=/l/<slug>`, becomes a guest (throttle and one-guest-per-browser unchanged) and lands on the list; a hostile `next` lands on `/`; a named visitor is sent on without seeing the form.
@@ -509,6 +519,10 @@ Shared acceptance for every package:
   4. "Use recovery link" reveals a field; a pasted valid link or bare token signs the browser in as the original guest and goes to `/planner`; an invalid or revoked one shows the generic failure; the field is emptied and the token appears in no URL, request log or console output.
   5. Owner sign-in shows member names as a radio group with arrow-key selection, one PIN field with the help text, the lock-out message, "Lost your PIN? Ask the family admin.", and still honours `?name=` and `?pin=` (address bar cleaned).
   6. Admin sign-in works on the frame, with the existing throttle and generic failure message.
+  7. The `(welcome)` route group has no layout of its own (the pages bring their frame), so the pages stay chrome-free by living outside the shell groups.
+  8. Recovery-token exchange is one helper (`exchangeRecoveryToken`) used by `/recover` and the pasted-link field, sending the token only in the request body.
+  9. Floating text-field labels sit cleanly on the 3 px borders (the theme backs the label with white instead of notching the border).
+  10. The existing suites pass after their sign-in and naming locators are updated.
 
 ### P11 · e2e: welcome and sign-in (R5d · FG-504, wave 12)
 - Lane: `e2e`

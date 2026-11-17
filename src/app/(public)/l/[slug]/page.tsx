@@ -6,7 +6,7 @@ import { notFound } from "next/navigation";
 import CopyLinkButton from "@/components/ui/CopyLinkButton";
 import PublicItemCard from "@/features/wishlists/components/PublicItemCard";
 import { getGuestIdentity } from "@/features/authentication/guest-session";
-import GuestWelcome from "@/features/reservations/components/GuestWelcome";
+import NamePrompt from "@/features/reservations/components/NamePrompt";
 import SortFilterBar from "@/features/wishlists/components/SortFilterBar";
 import { getListForViewer } from "@/features/wishlists/public-queries";
 import { filterItems, parseViewParams, sortItems } from "@/features/wishlists/sort-filter";
@@ -30,7 +30,7 @@ export default async function ListPage({ params, searchParams }: { params: Promi
       {list.archived && <Alert severity="info" sx={{ mb: 2 }}>Archived: this list is no longer being updated.</Alert>}
       <Stack spacing={2} sx={{ mb: 1 }}>
         <CopyLinkButton path={`/l/${list.slug}`} />
-        {!list.archived && <GuestWelcome currentName={guest?.displayName ?? null} />}
+        {!list.archived && !guest && <NamePrompt slug={list.slug} />}
       </Stack>
       {list.items.length > 1 && (
         <div style={{ marginTop: 24 }}>

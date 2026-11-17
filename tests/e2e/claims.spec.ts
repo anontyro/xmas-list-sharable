@@ -19,12 +19,15 @@ test("a visitor must pick a name before any action, and is remembered", async ({
   const page = await context.newPage();
   await page.goto(`/l/${slug}`);
   await expect(page.getByRole("button", { name: /Reserve/ })).toHaveCount(0);
-  await expect(page.getByText("Who's shopping?")).toBeVisible();
+  await expect(page.getByText("Tell us your name to reserve or mark interest.")).toBeVisible();
+  await page.getByRole("link", { name: "Pick a name and start shopping" }).click();
+  await expect(page).toHaveURL(new RegExp(`/welcome\\?next=%2Fl%2F${slug}$`));
   await page.getByLabel("Your name").fill("Ann");
-  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Let's go" }).click();
+  await expect(page).toHaveURL(new RegExp(`/l/${slug}$`));
   await expect(page.getByRole("button", { name: /Reserve: Headphones/ })).toBeVisible();
   await page.reload();
-  await expect(page.getByText("Who's shopping?")).toHaveCount(0);
+  await expect(page.getByText("Tell us your name to reserve or mark interest.")).toHaveCount(0);
   await expect(page.getByRole("button", { name: /Reserve: Headphones/ })).toBeVisible();
   await context.close();
 });

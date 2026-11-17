@@ -172,12 +172,11 @@ test("the admin bar shows who this is and a Sign out button at every width, and 
   await expect(page).toHaveURL(/\/admin\/login$/);
 });
 
-test("signed-out owner and admin sign-in pages show the brand only", async ({ page }) => {
-  for (const path of ["/owner/login", "/admin/login"]) {
+test("the welcome and sign-in screens have no top bar or tabs", async ({ page }) => {
+  for (const path of ["/welcome", "/owner/login", "/admin/login"]) {
     await page.goto(path);
-    const bar = page.getByRole("banner");
-    await expect(bar.getByRole("link", { name: "Family Gifts" })).toBeVisible();
-    await expect(bar.getByRole("button")).toHaveCount(0);
-    await expect(page.getByRole("navigation", { name: "Main" })).toHaveCount(0);
+    await expect(page.getByRole("main")).toBeVisible();
+    await expect(page.getByRole("banner"), path).toHaveCount(0);
+    await expect(page.getByRole("navigation", { name: "Main" }), path).toHaveCount(0);
   }
 });

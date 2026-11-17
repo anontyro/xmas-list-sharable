@@ -131,7 +131,9 @@ export const theme: Theme = createTheme({
           backgroundColor: white,
           fontWeight: 700,
           fontSize: "1rem",
+          // The border is 3 px, so the usual notch in it is too tight for the floating label. The label gets a white backing instead.
           "& .MuiOutlinedInput-notchedOutline": { borderWidth: 3, borderColor: ink },
+          "& .MuiOutlinedInput-notchedOutline legend": { display: "none" },
           "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: ink },
           "&.Mui-focused": ring,
           "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderWidth: 3, borderColor: ink },
@@ -143,7 +145,15 @@ export const theme: Theme = createTheme({
       },
     },
     MuiInputLabel: {
-      styleOverrides: { root: { color: muted, fontWeight: 800, "&.Mui-focused": { color: ink }, "&.Mui-error": { color: danger } } },
+      styleOverrides: {
+        root: {
+          color: muted,
+          fontWeight: 800,
+          "&.Mui-focused": { color: ink },
+          "&.Mui-error": { color: danger },
+          "&.MuiInputLabel-shrink": { backgroundColor: white, padding: "0 6px", transform: "translate(11px, -11px) scale(0.75)", zIndex: 1 },
+        },
+      },
     },
     MuiFormHelperText: { styleOverrides: { root: { color: muted, fontWeight: 700, fontSize: "0.8125rem", "&.Mui-error": { color: danger } } } },
     MuiChip: {

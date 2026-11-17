@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { getGuestIdentity } from "@/features/authentication/guest-session";
 import { LAST_LIST_COOKIE, parseLastList } from "@/lib/last-list";
 import AccountMenu from "./AccountMenu";
+import { PickNameChip } from "./TopBar";
 import ShellFrame from "./ShellFrame";
 import type { NavItem } from "./nav";
 
@@ -15,7 +16,7 @@ export default async function GuestShell({ children }: { children: React.ReactNo
     items.push({ label: "My planner", tabLabel: "Planner", href: "/planner", sticker: "wallet", match: ["/planner"] });
   }
   return (
-    <ShellFrame brandHref="/" items={items} right={guest ? <AccountMenu kind="guest" id={guest.guestId} name={guest.displayName} /> : null}>
+    <ShellFrame brandHref="/" items={items} right={guest ? <AccountMenu kind="guest" id={guest.guestId} name={guest.displayName} /> : <PickNameChip />}>
       {children}
     </ShellFrame>
   );
