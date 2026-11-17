@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 import { db } from "./db-harness";
 import { guest, household, itemClaim, member, recoveryToken, wishlist, wishlistItem } from "@/db/schema";
@@ -60,5 +61,29 @@ describe("schema invariants", () => {
     await rejects(db.insert(member).values({ householdId: h.id, displayName: "Alex" }), "23505");
     await db.update(member).set({ active: false });
     await db.insert(member).values({ householdId: h.id, displayName: "Alex" });
+  });
+});
+
+describe("member picture", () => {
+  it("is a nullable text column", async () => {
+    const rows = await db.execute<{ data_type: string; is_nullable: string }>(
+      sql`select data_type, is_nullable from information_schema.columns where table_name = 'member' and column_name = 'avatar'`,
+    );
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ data_type: "text", is_nullable: "YES" });
+  });
+
+  it("reads null for a member made without one, and keeps one that is given", async () => {
+    const { h, m } = await world();
+    expect(m.avatar).toBeNull();
+    const [mia] = await db.insert(member).values({ householdId: h.id, displayName: "Mia", avatar: "child" }).returning();
+    expect(mia.avatar).toBe("child");
+  });
+
+  it("is not policed by the database, so the list of allowed pictures can change without a migration", async () => {
+    const constraints = await db.execute<{ def: string }>(
+      sql`select pg_get_constraintdef(c.oid) as def from pg_constraint c join pg_class t on t.oid = c.conrelid where t.relname = 'member' and c.contype = 'c'`,
+    );
+    expect(constraints.map((c) => c.def).join(" ")).not.toContain("avatar");
   });
 });
