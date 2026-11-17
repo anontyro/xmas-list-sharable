@@ -117,7 +117,7 @@ Order is deliberate: R5a and R5b change no behaviour, R5c to R5f are the guest j
 
 ### R5c · Shells and navigation
 
-> **R5c · task FG-503 · ~35 files: ~19 new, ~16 modified · packages P5–P8**
+> **R5c · task FG-503 · ~31 files: ~19 new, ~12 modified · packages P5–P8**
 >
 > Every page gets the right top bar, bottom tabs and account menu for who is using it. Guests can change their name, open Save access, and sign out of the device from the menu.
 > In code the single `AppShell` is replaced by one shell per route group, guest sign-out is a server action, and the last list a guest opened is remembered for the Wishlist shortcut.
@@ -456,16 +456,13 @@ Shared acceptance for every package:
 - Lane: `e2e`
 - ownedFiles:
   - `tests/e2e/navigation.spec.ts` (new)
-  - `tests/e2e/planner.spec.ts`
-  - `tests/e2e/recovery.spec.ts`
-  - `tests/e2e/claims.spec.ts`
-  - `tests/e2e/helpers.ts`
 - Acceptance criteria:
   1. At 375 px the tabs show and the top links do not; at 1280 px the reverse; the same destinations in both.
   2. A guest renames themselves from the menu and the new name shows beside their reservations.
   3. Sign-out without a recovery link asks first; after making a link and signing out, the link brings the guest back with the same reservation; the sign-out menu entry is not offered to an unnamed visitor.
   4. The Wishlist shortcut goes to the last list opened.
   5. The owner and admin menus and sign-out work, and an owner never sees a guest-only entry.
+  6. The menu and sign-out dialog work by keyboard alone, and a visitor with no name sees no account menu and only the Family link.
 
 ### P8 · repo: decision 0018 (R5c · FG-503, wave 9)
 - Lane: `repo`
