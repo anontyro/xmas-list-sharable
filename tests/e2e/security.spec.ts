@@ -46,7 +46,7 @@ test("owner and admin pages never contain guest activity, and no page or script 
   await adminSignIn(page);
   for (const path of ["/admin", `/admin/members/${alex}`]) await grab(path);
   await page.context().clearCookies();
-  for (const path of ["/", "/owner/login", "/admin/login", "/planner", "/recover"]) await grab(path);
+  for (const path of ["/", "/welcome", "/owner/login", "/admin/login", "/planner", "/recover"]) await grab(path);
 
   for (const [path, html] of Object.entries(pages)) {
     for (const secret of [PRIVATE.guest, PRIVATE.note, PRIVATE.price, "7777", PRIVATE.token]) expect(html, `${secret} in ${path}`).not.toContain(secret);

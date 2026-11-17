@@ -56,8 +56,9 @@ export default function OwnerSignIn({ members, initialName, initialPin }: Props)
                 value={m.id}
                 checked={memberId === m.id}
                 onChange={() => setMemberId(m.id)}
-                // Visually hidden but still the real, keyboard-operable radio. The sticker button next to it shows the state and the focus.
-                sx={{ position: "absolute", opacity: 0, width: 1, height: 1, m: 0, "&:focus-visible": { outline: "none" }, "&:focus-visible + span": ring }}
+                // The real, keyboard-operable radio, invisible and laid over the whole sticker button so a tap anywhere on it picks the name.
+                // The sticker button next to it draws the checked state and the focus ring.
+                sx={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0, m: 0, cursor: "pointer", "&:focus-visible": { outline: "none" }, "&:focus-visible + span": ring }}
               />
               <Box
                 component="span"

@@ -137,7 +137,7 @@ Order is deliberate: R5a and R5b change no behaviour, R5c to R5f are the guest j
 
 ### R5d · Welcome and sign-in
 
-> **R5d · task FG-504 · ~43 files: ~15 new, ~28 modified · packages P9–P12**
+> **R5d · task FG-504 · ~37 files: ~15 new, ~22 modified · packages P9–P12**
 >
 > First-time visitors meet a split welcome screen that asks for their name; list owners sign in by tapping their name and typing a PIN; the admin signs in on the same frame. Someone who already has a recovery link can paste it.
 > In code the sign-in pages move into a chrome-free `(welcome)` route group, the inline name form on the list page is replaced by a prompt that links here, and two small pure helpers validate the return path and read a pasted link.
@@ -528,19 +528,15 @@ Shared acceptance for every package:
 - Lane: `e2e`
 - ownedFiles:
   - `tests/e2e/welcome.spec.ts` (new)
-  - `tests/e2e/pin-links.spec.ts`
-  - `tests/e2e/admin-setup.spec.ts`
-  - `tests/e2e/owner-list.spec.ts`
-  - `tests/e2e/ordering.spec.ts`
-  - `tests/e2e/amazon-import.spec.ts`
-  - `tests/e2e/url-import.spec.ts`
-  - `tests/e2e/planner-export.spec.ts`
-  - `tests/e2e/security.spec.ts`
   - `tests/e2e/mobile-a11y.spec.ts`
+  - `tests/e2e/security.spec.ts`
+  - `src/features/authentication/components/OwnerSignIn.tsx`
 - Acceptance criteria:
-  1. The welcome journey (name, reserve, back to the list), the recovery-link paste, owner sign-in by tapping a name, and a wrong PIN with the generic message each pass at both widths.
-  2. Every existing spec that signs in or names a guest passes against the new sign-in and welcome screens, with its assertions unchanged in meaning.
-  3. The security spec's header check still holds for `/owner/login` and `/recover` (no referrer) and the isolation sweep still passes.
+  1. The welcome journey (list, prompt, name, back to the list, reserve), the Pick your name chip returning to the page the visitor was on, and the made-up return addresses, blank name and named-visitor skip each pass at both widths.
+  2. Pasting a recovery link (and a bare token) brings the same guest back with the same reservation; bad text, a wrong token and a turned-off link show the right messages; the field is emptied; the token appears in no request address, console line or page text.
+  3. Owner sign-in by tapping a name, a wrong PIN with the generic message, arrow-key selection and the links between the two doors pass; admin sign-in on the frame passes with a wrong and a right secret.
+  4. The accessibility scan and the leak sweep now include `/welcome`, `/owner/login`, `/admin/login` and `/recover`, and the header checks for `/owner/login` and `/recover` (no referrer) still hold.
+  5. The existing specs that sign in or name a guest pass against the new screens, with their assertions unchanged in meaning (their locators were updated with the screens in P10).
 
 ### P12 · repo: decision 0019 (R5d · FG-504, wave 13)
 - Lane: `repo`

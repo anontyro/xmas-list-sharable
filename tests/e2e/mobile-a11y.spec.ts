@@ -70,9 +70,11 @@ test("every page fits the screen and has no serious accessibility violations", a
   await serious(guest, "save access dialog");
   await context.close();
 
-  await page.goto("/recover");
-  await noSideScroll(page, "recover");
-  await serious(page, "recover");
+  for (const path of ["/welcome", "/owner/login", "/admin/login", "/recover"]) {
+    await page.goto(path);
+    await noSideScroll(page, path);
+    await serious(page, path);
+  }
 });
 });
 
