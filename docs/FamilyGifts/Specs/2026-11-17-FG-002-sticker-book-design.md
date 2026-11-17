@@ -18,7 +18,7 @@ Work item: FG-002 (the design handoff in `docs/family-gifts-design/`, whose `PRD
 Branch: one branch per release, `feature/FG-5xx-…`, each stacked on the last and each able to merge on its own.
 Toggle: none (D46). The app is not live yet, and a release that is merged but unfinished is not deployed.
 Design: `docs/family-gifts-design/` (`README.md`, `styles/sticker.css`, `reference/01-welcome.html` to `12-menu.html`, `icons/`). Cited below as screen `04-wishlist` and so on.
-Status: **draft 2026-11-17**. No open questions; waiting for approval.
+Status: **approved 2026-11-17** (build started with P0). No open questions.
 Manual testing: `Docs/FamilyGifts/Testing/MANUAL-TESTING-FG-002-sticker-book-design.md`
 Decisions: `Docs/FamilyGifts/Decisions/` (README lists every planned record, numbered from 0016, and the package that writes it).
 
@@ -81,7 +81,7 @@ Order is deliberate: R5a and R5b change no behaviour, R5c to R5f are the guest j
 
 ### R5a · Theme, plus decisions shared by every release
 
-> **R5a · task FG-501 · ~11 files: ~6 new, ~5 modified · packages P0–P1**
+> **R5a · task FG-501 · ~10 files: ~6 new, ~4 modified · packages P0–P1**
 >
 > Pages keep their layout but take on the Sticker Book look: cream dot-grid page, ink borders, hard shadows, red and green buttons, Lilita One headings, a visible focus ring.
 > In code the MUI theme is rebuilt from design tokens, the fonts are added, and a unit test guards the colour contrast. No behaviour changes.
@@ -324,7 +324,6 @@ Shared acceptance for every package:
   - `src/theme/tokens.ts` (new)
   - `src/theme/augment.d.ts` (new)
   - `src/theme/theme.ts`
-  - `src/theme/ThemeRegistry.tsx`
   - `src/app/fonts.ts` (new)
   - `src/app/layout.tsx`
   - `tests/unit/theme-contrast.test.ts` (new)

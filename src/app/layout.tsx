@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import AppShell from "@/components/layout/AppShell";
 import { currentGuest } from "@/lib/auth/require";
 import ThemeRegistry from "@/theme/ThemeRegistry";
+import { body, display } from "./fonts";
 
 export const metadata: Metadata = {
   title: "Family Gifts",
@@ -13,7 +14,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const guest = Boolean(await currentGuest());
   const links = guest ? [{ label: "My Planner", href: "/planner" }] : [];
   return (
-    <html lang="en">
+    <html lang="en" className={`${display.variable} ${body.variable}`}>
       <body>
         <ThemeRegistry>
           <AppShell links={links} guest={guest}>{children}</AppShell>
