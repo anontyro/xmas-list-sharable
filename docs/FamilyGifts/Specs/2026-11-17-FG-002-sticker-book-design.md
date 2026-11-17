@@ -107,8 +107,8 @@ Order is deliberate: R5a and R5b change no behaviour, R5c to R5f are the guest j
 
 - **D50 · Sticker pack.** The 36 PNGs are copied unchanged to `public/stickers/<name>.png` (flat names as in the design pack). `src/components/ui/Sticker.tsx` replaces `Icon.tsx`: `<Sticker name="tree" width={64} />` with `name` a string-literal union from `src/components/ui/sticker-names.ts` (which also holds each file's natural width and height so height follows width and nothing shifts).
   It renders `next/image` with the `.stk` look as styles (white 2 px outline and soft shadow via `filter: drop-shadow`), `alt=""` by default, and a required real `alt` when the sticker is the only label. `public/icons/`, `Icon.tsx` and `icon-names.ts` are deleted, and every use is switched in the same package.
-- **D51 · Components.** Under `src/components/sticker/`, each small and typed: `Pill` (tone default / yellow / mint / pink / sky), `Ribbon` (tone red / green / yellow / sky, rotated -1.5 degrees, text only so the label is read normally), `Note` (an Alert styled as the design's note, optional sticker),
-  `Hero` (tint, title, subtitle, optional back link, optional sticker, desktop and mobile sizes from the CSS), `Meter` (segments array, `role="img"` with an `aria-label` the caller supplies), `Stat`, `Thumb` (58 px circle on a tint), `MemberAvatar`, `GiftThumb`, `TwoColumn` (content plus 360 px sidebar, sidebar first on mobile), `SplitLayout` (brand panel plus form, used by the welcome and sign-in screens), `PageWrap` (max 1120 px, paddings from the CSS).
+- **D51 · Components.** Under `src/components/sticker/`, each small and typed: `Pill` (tone default / yellow / mint / pink / sky), `Ribbon` (tone red / green / yellow / sky, rotated -1.5 degrees, text only so the label is read normally), `Note` (a plain tinted box in the design's note style with an optional sticker; it announces itself only when given `role="alert"` or `"status"`),
+  `Hero` (a client component: tint, title, subtitle, optional back link, optional sticker or aside, desktop and mobile sizes from the CSS), `Meter` (segments array, `role="img"` with an `aria-label` the caller supplies), `Stat`, `Thumb` (58 px circle on a tint), `MemberAvatar`, `GiftThumb`, `TwoColumn` (content plus 360 px sidebar, sidebar first on mobile), `SplitLayout` (brand panel plus form, used by the welcome and sign-in screens), `PageWrap` (max 1120 px, paddings from the CSS).
   Cards themselves are MUI `Card` styled by the theme, with a `tint` prop wrapper `StickerCard` (white, yellow, mint, sky, pink, or cream dashed).
 - **D52 · Gift pictures.** `GiftThumb` shows the product picture when the gift has an `imageUrl` (a plain `<img>`, `loading="lazy"`, `referrerPolicy="no-referrer"`, `alt=""` because the title is beside it, rounded to the circle), and falls back to a sticker if it has none or the image fails to load.
   The sticker comes from `stickerForGift(title, id)` in `src/components/sticker/gift-sticker.ts`, a pure function: the first matching keyword group in the title (sock, glove, scarf, hat → `stocking`; book, novel, cookbook → `parcel`; candle, perfume, soap, bath → `sparkles`; mug, cup, dish, pan, kitchen → `box`; headphone, charger, speaker, tech → `box`; toy, game, puzzle, lego → `presentgreen`; voucher, card → `gifttag`),
@@ -399,8 +399,10 @@ Shared acceptance for every package:
 - Lane: `repo`
 - ownedFiles:
   - `Docs/FamilyGifts/Decisions/0017-stickers-and-gift-pictures.md` (new)
+  - `Docs/FamilyGifts/Decisions/0001-stack-and-layout.md`
 - Acceptance criteria:
-  1. Decision 0017 exists with `Status: Agreed` and states D50 to D53 as built.
+  1. Decision 0017 exists with `Status: Agreed` and states D50 to D53 as built, including that `Note` is not an MUI Alert and `Hero` is a client component.
+  2. Decision 0001 is edited in place so its icon and installation statements match the code (stickers, and the font packages as the one later dependency change).
 
 ### P5 · server: guest sign-out and last-list helpers (R5c · FG-503, wave 6)
 - Lane: `server`
