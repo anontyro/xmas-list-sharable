@@ -267,6 +267,10 @@ R3a–R3d do not depend on each other beyond R3b needing R3a, so they may be reo
 - **D45 · Backup.** `scripts/backup.sh` runs `pg_dump --format=custom` against `DATABASE_URL`; `scripts/restore.sh <dump> <target-url>` restores into an empty database and refuses one that has tables. `Docs/FamilyGifts/Runbook.md` documents deploy, migrate, backup, restore test,
   and the Supabase free-tier pause risk to check before launch.
 
+### Change after approval · owner sign-in links and PIN change
+
+Requested after R4b: the admin can share `/owner/login?name=…&pin=…` links, and owners can change their own PIN while the admin can still reset it. Built as `src/features/authentication/{prefill.ts,owner-login.ts,components/ChangePinForm.tsx}`, `PinResetForm`, the owner login and My lists pages, and `next.config.ts` (no-referrer and no-store on `/owner/login`). Rules are in decision 0004; tests are `tests/unit/prefill.test.ts`, `tests/integration/change-pin.test.ts` and `tests/e2e/pin-links.spec.ts`.
+
 ## Non-goals
 
 - Everything in PRD §2.3 (public registration, multi-household, email, payments, price monitoring, notifications, receipts, realtime, etc.).

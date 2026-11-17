@@ -130,6 +130,14 @@ At `/owner/login` pick Alex and try five wrong PINs, then the right PIN.
 - Resetting the PIN in admin signs out an existing owner session for that member.
 - A PIN shorter than 6 digits is refused when set.
 
+### 5a. Sign-in links and changing a PIN
+In admin open a member, set a PIN and copy the sign-in link, then open it in a private window. Sign in, then use Change my PIN on the My lists page. Then reset the PIN again from admin.
+- The member page shows a name-only link, and after saving a PIN a second link that includes it.
+- Opening a link fills in the name (and the PIN) but does not sign in; the address bar shows plain `/owner/login` afterwards.
+- A wrong current PIN, mismatched new PINs and a PIN that is not 6 to 12 digits are each refused with a message.
+- After a successful change the old PIN no longer works, the new one does, and the browser stays signed in; other signed-in browsers are signed out.
+- The admin reset still works after the owner has changed it, and signs the owner out.
+
 ### R1d · Owner lists and sharing (FG-104)
 
 ### 6. Add and edit gifts

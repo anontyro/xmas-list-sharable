@@ -19,7 +19,7 @@ async function adminSignIn(page: Page) {
 }
 
 test("security headers are on pages, and recovery pages send no referrer", async ({ request }) => {
-  for (const path of ["/", `/l/${list.slug}`, "/owner/login"]) {
+  for (const path of ["/", `/l/${list.slug}`, "/admin/login"]) {
     const h = (await request.get(path)).headers();
     expect(h["x-content-type-options"], path).toBe("nosniff");
     expect(h["x-frame-options"], path).toBe("DENY");
@@ -28,6 +28,9 @@ test("security headers are on pages, and recovery pages send no referrer", async
   const recover = (await request.get("/recover")).headers();
   expect(recover["referrer-policy"]).toBe("no-referrer");
   expect(recover["x-frame-options"]).toBe("DENY");
+  const ownerLogin = (await request.get("/owner/login?name=alex&pin=123456")).headers();
+  expect(ownerLogin["referrer-policy"]).toBe("no-referrer");
+  expect(ownerLogin["cache-control"]).toContain("no-store");
   const exchange = await request.post("/api/recovery/exchange", { data: { token: "x".repeat(43) } });
   expect(exchange.headers()["referrer-policy"]).toBe("no-referrer");
   expect(exchange.headers()["x-content-type-options"]).toBe("nosniff");

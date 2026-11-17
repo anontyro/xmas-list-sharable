@@ -41,7 +41,7 @@ export default async function MemberPage({ params }: { params: Promise<{ memberI
 
         <Paper sx={{ p: 2 }}>
           <Typography variant="h6" component="h2" gutterBottom>Owner PIN</Typography>
-          <PinResetForm memberId={member.id} hasPin={member.hasPin} />
+          <PinResetForm memberId={member.id} memberName={member.displayName} hasPin={member.hasPin} />
         </Paper>
 
         <Paper sx={{ p: 2 }}>

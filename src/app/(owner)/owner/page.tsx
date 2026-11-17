@@ -6,6 +6,7 @@ import Typography from "@mui/material/Typography";
 import { redirect } from "next/navigation";
 import ActionButton from "@/components/ui/ActionButton";
 import AppLink from "@/components/ui/AppLink";
+import ChangePinForm from "@/features/authentication/components/ChangePinForm";
 import { ownerLogout } from "@/features/authentication/owner-login";
 import { listOwnLists } from "@/features/wishlists/owner-queries";
 import { currentOwner } from "@/lib/auth/require";
@@ -33,6 +34,10 @@ export default async function OwnerHome() {
           </Paper>
         ))}
       </Stack>
+      <Paper sx={{ p: 2, mt: 4 }}>
+        <Typography variant="h6" component="h2" gutterBottom>Change my PIN</Typography>
+        <ChangePinForm />
+      </Paper>
     </Container>
   );
 }

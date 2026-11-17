@@ -26,7 +26,7 @@ test("admin creates a member, sets a PIN and creates a list with a shareable lin
   await page.getByLabel("List title").fill("Christmas 2026");
   await page.getByRole("button", { name: "Create list" }).click();
   await expect(page.getByText(/^\/l\/[0-9A-Za-z]{10}$/)).toBeVisible();
-  await expect(page.getByRole("button", { name: "Copy link" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Copy link", exact: true })).toBeVisible();
 });
 
 test("archived lists are labelled and can be restored", async ({ page }) => {
