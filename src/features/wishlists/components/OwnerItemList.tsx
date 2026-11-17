@@ -8,7 +8,7 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import ActionButton from "@/components/ui/ActionButton";
-import Icon from "@/components/ui/Icon";
+import Sticker from "@/components/ui/Sticker";
 import { deleteItem } from "@/features/wishlists/owner-actions";
 import { PRIORITIES, PRIORITY_LABELS } from "@/features/wishlists/schemas";
 import type { OwnerItem } from "@/features/wishlists/views";
@@ -38,7 +38,7 @@ export default function OwnerItemList({ listId, items, readOnly }: { listId: str
                   ) : (
                     <Stack spacing={1}>
                       <Stack direction="row" spacing={1} useFlexGap sx={{ alignItems: "center", flexWrap: "wrap" }}>
-                        <Icon name="christmas/wrapped_present_red" size={28} />
+                        <Sticker name="presentred" width={32} />
                         <Typography variant="subtitle1" sx={{ flexGrow: 1 }}>{item.title}</Typography>
                         <PriorityChip priority={item.priority} />
                       </Stack>

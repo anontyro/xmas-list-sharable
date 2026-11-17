@@ -11,7 +11,7 @@ import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import MenuIcon from "@mui/icons-material/Menu";
 import NextLink from "next/link";
-import Icon from "@/components/ui/Icon";
+import Sticker from "@/components/ui/Sticker";
 import SaveAccessDialog from "@/features/authentication/components/SaveAccessDialog";
 
 export type NavLink = { label: string; href: string };
@@ -28,7 +28,7 @@ export default function AppShell({ links = [], guest = false, children }: { link
     <>
       <AppBar position="static" color="primary" component="header">
         <Toolbar>
-          <Icon name="christmas/christmas_tree" size={32} />
+          <Sticker name="tree" width={36} />
           <Typography variant="h6" component="span" sx={{ ml: 1, flexGrow: 1 }}>
             Family Gifts
           </Typography>

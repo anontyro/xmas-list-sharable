@@ -3,7 +3,7 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import AppLink from "@/components/ui/AppLink";
-import Icon from "@/components/ui/Icon";
+import Sticker from "@/components/ui/Sticker";
 import { getFamilyDashboard } from "@/features/wishlists/public-queries";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +14,7 @@ export default async function HomePage() {
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
       <Stack direction="row" spacing={2} sx={{ alignItems: "center", mb: 3 }}>
-        <Icon name="interface/family_group" size={64} />
+        <Sticker name="family" width={72} />
         <Typography variant="h3" component="h1">Family Gifts</Typography>
       </Stack>
       {members.length === 0 ? (

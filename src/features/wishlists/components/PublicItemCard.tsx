@@ -4,7 +4,7 @@ import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import AppLink from "@/components/ui/AppLink";
-import Icon from "@/components/ui/Icon";
+import Sticker from "@/components/ui/Sticker";
 import { formatGBP } from "@/lib/money";
 import ClaimControls from "@/features/reservations/components/ClaimControls";
 import StatusChip from "@/features/reservations/components/StatusChip";
@@ -22,7 +22,7 @@ export default function PublicItemCard({ item, canAct }: { item: ClaimedGuestIte
             // eslint-disable-next-line @next/next/no-img-element
             <img src={item.imageUrl} alt={item.title} width={96} height={96} loading="lazy" referrerPolicy="no-referrer" style={{ objectFit: "cover", borderRadius: 12 }} />
           ) : (
-            <Icon name="shopping/wrapped_present_gold" size={96} />
+            <Sticker name="presentgold" width={96} />
           )}
           <Stack spacing={1} sx={{ minWidth: 0 }}>
             <Typography variant="subtitle1" component="h2" sx={{ overflowWrap: "anywhere" }}>{item.title}</Typography>
