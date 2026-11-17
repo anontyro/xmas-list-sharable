@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { createItem, createList, createMemberWithPin, guestPage, ownerSignIn, resetAndSeed } from "./helpers";
+import { createItem, createList, createMemberWithPin, gotoPlanner, guestPage, ownerSignIn, resetAndSeed } from "./helpers";
 
 let alexSlug: string;
 let sarahSlug: string;
@@ -21,19 +21,8 @@ test.beforeEach(async () => {
 
 const press = (page: Page, name: RegExp) => page.getByRole("button", { name }).click();
 
-/** The My Planner entry in the top bar: a link on wide screens, a menu item once the menu is opened on phones. */
-function navItem(page: Page) {
-  return page.getByRole("link", { name: "My Planner", exact: true }).or(page.getByRole("menuitem", { name: "My Planner" }));
-}
-
-async function openNav(page: Page) {
-  const menu = page.getByRole("button", { name: "Open menu" });
-  if (await menu.isVisible()) await menu.click();
-}
-
 async function openPlanner(page: Page) {
-  await openNav(page);
-  await navItem(page).click();
+  await gotoPlanner(page);
   await expect(page.getByRole("heading", { name: "My Planner" })).toBeVisible();
 }
 
@@ -106,8 +95,7 @@ test("notes and prices paid are private: not to another guest, the owner, or a v
   const vp = await visitor.newPage();
   await vp.goto("/planner");
   await expect(vp.getByText("Pick a name on someone's list first")).toBeVisible();
-  await openNav(vp);
-  await expect(navItem(vp)).toHaveCount(0);
+  await expect(vp.getByRole("link", { name: /^(My planner|Planner)$/ })).toHaveCount(0); // no name, no planner link
   expect(await vp.content()).not.toMatch(/topsecretnote|17\.77/);
   await visitor.close();
   await ann.context.close();

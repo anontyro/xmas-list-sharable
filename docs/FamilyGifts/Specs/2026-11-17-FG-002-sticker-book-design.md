@@ -117,7 +117,7 @@ Order is deliberate: R5a and R5b change no behaviour, R5c to R5f are the guest j
 
 ### R5c · Shells and navigation
 
-> **R5c · task FG-503 · ~24 files: ~16 new, ~8 modified · packages P5–P8**
+> **R5c · task FG-503 · ~35 files: ~19 new, ~16 modified · packages P5–P8**
 >
 > Every page gets the right top bar, bottom tabs and account menu for who is using it. Guests can change their name, open Save access, and sign out of the device from the menu.
 > In code the single `AppShell` is replaced by one shell per route group, guest sign-out is a server action, and the last list a guest opened is remembered for the Wishlist shortcut.
@@ -427,19 +427,30 @@ Shared acceptance for every package:
   - `src/components/layout/AdminShell.tsx` (new)
   - `src/components/layout/ChangeNameDialog.tsx` (new)
   - `src/components/layout/RememberList.tsx` (new)
+  - `src/components/layout/ShellFrame.tsx` (new)
+  - `src/components/layout/nav.ts` (new)
+  - `tests/unit/nav.test.ts` (new)
   - `src/components/layout/AppShell.tsx` (deleted)
   - `src/app/(public)/layout.tsx` (new)
   - `src/app/(owner)/layout.tsx` (new)
   - `src/app/(admin)/layout.tsx` (new)
   - `src/app/layout.tsx`
   - `src/app/(public)/l/[slug]/page.tsx`
+  - `src/app/(owner)/owner/page.tsx`
+  - `src/app/(admin)/admin/page.tsx`
+  - `tests/e2e/helpers.ts`
+  - `tests/e2e/planner.spec.ts`
+  - `tests/e2e/planner-export.spec.ts`
+  - `tests/e2e/recovery.spec.ts`
+  - `tests/e2e/mobile-a11y.spec.ts`
+  - `tests/e2e/owner-list.spec.ts`
 - Acceptance criteria:
   1. Guest, owner and admin pages show their own shell as D54 and D55 describe, with the top links from 860 px and the tabs below it, never both, and `aria-current="page"` on the active item.
   2. The account menu opens from the chip, closes on Escape and outside click, returns focus to the chip, and has the guest and owner items of D56 in order; the guest "Change my name" dialog renames through `renameGuest`; "Save access" opens the existing dialog.
   3. "Sign out of this device" signs out straight away when a recovery link exists and asks first when none does (both paths work by keyboard), then lands on `/`.
   4. Opening a list writes `fg_last_list`; the Wishlist link then goes to it; a tampered cookie value is ignored.
   5. Signed-out owner and admin pages show the brand only and still redirect to sign-in where they did before.
-  6. The existing suites pass after their locators are updated for the new nav.
+  6. The existing suites pass after their locators are updated for the new nav (the sign-out buttons that sat on the owner and admin pages move into the shells; owner sign-out is now a menu item).
 
 ### P7 · e2e: navigation and account menu (R5c · FG-503, wave 8)
 - Lane: `e2e`

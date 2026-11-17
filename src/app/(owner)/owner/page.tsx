@@ -4,10 +4,8 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { redirect } from "next/navigation";
-import ActionButton from "@/components/ui/ActionButton";
 import AppLink from "@/components/ui/AppLink";
 import ChangePinForm from "@/features/authentication/components/ChangePinForm";
-import { ownerLogout } from "@/features/authentication/owner-login";
 import { listOwnLists } from "@/features/wishlists/owner-queries";
 import { currentOwner } from "@/lib/auth/require";
 
@@ -18,10 +16,7 @@ export default async function OwnerHome() {
   const lists = await listOwnLists();
   return (
     <Container maxWidth="sm" sx={{ py: 4 }}>
-      <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-        <Typography variant="h4" component="h1">My lists</Typography>
-        <ActionButton onAction={ownerLogout} variant="outlined">Sign out</ActionButton>
-      </Stack>
+      <Typography variant="h4" component="h1" sx={{ mb: 2 }}>My lists</Typography>
       <Stack spacing={1}>
         {lists.length === 0 && <Typography>You don&apos;t have a list yet. Ask the family admin to create one.</Typography>}
         {lists.map((l) => (

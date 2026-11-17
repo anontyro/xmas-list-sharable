@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { expect, test, type Page } from "@playwright/test";
-import { createItem, createList, createMemberWithPin, guestPage, resetAndSeed } from "./helpers";
+import { createItem, createList, createMemberWithPin, gotoPlanner, guestPage, resetAndSeed } from "./helpers";
 
 let alexSlug: string;
 let sarahSlug: string;
@@ -21,11 +21,6 @@ test.beforeEach(async () => {
 const press = (page: Page, name: RegExp) => page.getByRole("button", { name }).click();
 const tick = (page: Page, title: string) => page.getByLabel(`Include in export: ${title}`).check();
 
-async function openNav(page: Page) {
-  const menu = page.getByRole("button", { name: "Open menu" });
-  if (await menu.isVisible()) await menu.click();
-}
-
 /** Ann holds Headphones and a formula-looking gift, likes Novel, and has bought the Cookbook with a note. */
 async function plannedGuest(browser: Parameters<typeof guestPage>[0]) {
   const g = await guestPage(browser, alexSlug, "Ann", { permissions: ["clipboard-read", "clipboard-write"] });
@@ -35,8 +30,7 @@ async function plannedGuest(browser: Parameters<typeof guestPage>[0]) {
   await g.page.goto(`/l/${sarahSlug}`);
   await press(g.page, /^Reserve: Cookbook/);
   await press(g.page, /^Mark purchased: Cookbook/);
-  await openNav(g.page);
-  await g.page.getByRole("link", { name: "My Planner", exact: true }).or(g.page.getByRole("menuitem", { name: "My Planner" })).click();
+  await gotoPlanner(g.page);
   await g.page.getByRole("button", { name: "Set budgets" }).click();
   await g.page.getByLabel("Total budget (£)").fill("250");
   await g.page.getByRole("button", { name: "Save budgets" }).click();

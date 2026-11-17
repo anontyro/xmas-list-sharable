@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { createList, createMemberWithPin, ownerSignIn, resetAndSeed } from "./helpers";
+import { createList, createMemberWithPin, openAccountMenu, ownerSignIn, resetAndSeed } from "./helpers";
 
 let householdId: string;
 test.beforeEach(async () => {
@@ -63,7 +63,8 @@ test("signed-out visitors are sent to sign in, and sign-out ends the session", a
   await page.goto(`/owner/lists/${list.id}`);
   await expect(page).toHaveURL(/\/owner\/login$/);
   await ownerSignIn(page);
-  await page.getByRole("button", { name: "Sign out" }).click();
+  await openAccountMenu(page, "Alex");
+  await page.getByRole("menuitem", { name: "Sign out" }).click();
   await expect(page).toHaveURL(/\/owner\/login$/); // the refresh after sign-out bounces the page
   await page.goto("/owner");
   await expect(page).toHaveURL(/\/owner\/login$/);

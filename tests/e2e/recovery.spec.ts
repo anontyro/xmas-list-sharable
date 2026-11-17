@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { createItem, createList, createMemberWithPin, guestPage, resetAndSeed } from "./helpers";
+import { createItem, createList, createMemberWithPin, guestPage, openAccountMenu, resetAndSeed } from "./helpers";
 
 let slug: string;
 test.beforeEach(async () => {
@@ -10,11 +10,10 @@ test.beforeEach(async () => {
   await createItem(list.id, "Headphones", 12999);
 });
 
-/** Save access is a button on wide screens and a menu item on phones. */
+/** Save access is an item in the name chip's menu, at every width. */
 async function openSaveAccess(page: Page) {
-  const menu = page.getByRole("button", { name: "Open menu" });
-  if (await menu.isVisible()) await menu.click();
-  await page.getByRole("button", { name: "Save access" }).or(page.getByRole("menuitem", { name: "Save access" })).click();
+  await openAccountMenu(page, "Ann");
+  await page.getByRole("menuitem", { name: "Save access (recovery link)" }).click();
   await expect(page.getByRole("dialog", { name: "Save access" })).toBeVisible();
 }
 

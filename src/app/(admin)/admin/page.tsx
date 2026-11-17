@@ -5,9 +5,7 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { redirect } from "next/navigation";
-import ActionButton from "@/components/ui/ActionButton";
 import AppLink from "@/components/ui/AppLink";
-import { adminLogout } from "@/features/authentication/admin-login";
 import MemberForm from "@/features/family/components/MemberForm";
 import { listMembersForAdmin } from "@/features/family/queries";
 import { currentAdmin } from "@/lib/auth/require";
@@ -19,10 +17,7 @@ export default async function AdminPage() {
   const members = await listMembersForAdmin();
   return (
     <Container maxWidth="sm" sx={{ py: 4 }}>
-      <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-        <Typography variant="h4" component="h1">Family admin</Typography>
-        <ActionButton onAction={adminLogout} variant="outlined">Sign out</ActionButton>
-      </Stack>
+      <Typography variant="h4" component="h1" sx={{ mb: 2 }}>Family admin</Typography>
       <Paper sx={{ p: 2, mb: 3 }}>
         <MemberForm />
       </Paper>

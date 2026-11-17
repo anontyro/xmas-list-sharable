@@ -11,6 +11,7 @@ import SortFilterBar from "@/features/wishlists/components/SortFilterBar";
 import { getListForViewer } from "@/features/wishlists/public-queries";
 import { filterItems, parseViewParams, sortItems } from "@/features/wishlists/sort-filter";
 import AppLink from "@/components/ui/AppLink";
+import RememberList from "@/components/layout/RememberList";
 
 export const dynamic = "force-dynamic";
 export const metadata = { robots: { index: false, follow: false } };
@@ -23,6 +24,7 @@ export default async function ListPage({ params, searchParams }: { params: Promi
   const visible = filterItems(sortItems(list.items, sort), filters);
   return (
     <Container maxWidth="sm" sx={{ py: 4 }}>
+      <RememberList slug={list.slug} />
       <Typography variant="h4" component="h1">{list.memberName}&apos;s wishlist</Typography>
       <Typography color="text.secondary" sx={{ mb: 2 }}>{list.title} · {list.occasion} {list.year}</Typography>
       {list.archived && <Alert severity="info" sx={{ mb: 2 }}>Archived: this list is no longer being updated.</Alert>}

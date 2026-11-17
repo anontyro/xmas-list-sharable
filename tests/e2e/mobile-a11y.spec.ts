@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { ADMIN_SECRET, createItem, createList, createMemberWithPin, guestPage, ownerSignIn, resetAndSeed } from "./helpers";
+import { ADMIN_SECRET, createItem, createList, createMemberWithPin, guestPage, openAccountMenu, ownerSignIn, resetAndSeed } from "./helpers";
 
 let slug: string;
 let listId: string;
@@ -61,9 +61,9 @@ test("every page fits the screen and has no serious accessibility violations", a
     await noSideScroll(guest, name);
     await serious(guest, name);
   }
-  const menu = guest.getByRole("button", { name: "Open menu" });
-  if (await menu.isVisible()) await menu.click();
-  await guest.getByRole("button", { name: "Save access" }).or(guest.getByRole("menuitem", { name: "Save access" })).click();
+  await openAccountMenu(guest, "Ann");
+  await serious(guest, "account menu");
+  await guest.getByRole("menuitem", { name: "Save access (recovery link)" }).click();
   await guest.getByRole("button", { name: "Make a link" }).click();
   await expect(guest.getByLabel("Your private link")).toBeVisible();
   await noSideScroll(guest, "save access dialog");

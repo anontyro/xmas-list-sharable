@@ -50,6 +50,17 @@ export async function ownerSignIn(page: Page, pin = "123456") {
   await expect(page).toHaveURL(/\/owner$/);
 }
 
+/** Opens the name chip's menu in the top bar (the same chip at every width). */
+export async function openAccountMenu(page: Page, name: string) {
+  await page.getByRole("button", { name, exact: true }).click();
+  await expect(page.getByRole("menu", { name: "Account" })).toBeVisible();
+}
+
+/** Goes to My planner: the top link on wide screens, the bottom tab on phones. */
+export async function gotoPlanner(page: Page) {
+  await page.getByRole("link", { name: /^(My planner|Planner)$/ }).click();
+}
+
 /** A fresh browser context that has opened a list and picked a display name. */
 export async function guestPage(browser: Browser, slug: string, name: string, options: Parameters<Browser["newContext"]>[0] = {}) {
   const context = await browser.newContext(options);
