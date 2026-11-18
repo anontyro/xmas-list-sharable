@@ -104,6 +104,23 @@ describe("getPlanner", () => {
     expect(await getPlannerSummary()).toEqual({ plannedMinor: p.totals.plannedMinor, spentMinor: p.totals.spentMinor, budgetMinor: 30000 });
   });
 
+  it("gives the summary for the period asked for, even one with nothing in it, not the newest period with entries", async () => {
+    const { alex, mk, ann, signIn } = await world();
+    const [old] = await db.insert(wishlist).values({ memberId: alex.id, title: "Old", occasion: "Christmas", year: 2025, slug: "alexold2025" }).returning();
+    const oldGift = await mk(old.id, "Old gift", 1000);
+    await db.insert(itemClaim).values({ itemId: oldGift.id, guestId: ann.id, status: "reserved" });
+    await signIn(ann);
+    expect(await getPlannerSummary()).toEqual({ plannedMinor: 1000, spentMinor: 0, budgetMinor: null }); // no period: the newest with entries
+    expect(await getPlannerSummary({ occasion: "Christmas", year: 2025 })).toEqual({ plannedMinor: 1000, spentMinor: 0, budgetMinor: null });
+    // 2026 has no entries yet: it reads as empty, not as 2025.
+    expect(await getPlannerSummary({ occasion: "Christmas", year: 2026 })).toEqual({ plannedMinor: 0, spentMinor: 0, budgetMinor: null });
+    // A budget set for an empty period still shows.
+    await saveBudgets({ occasion: "Christmas", year: 2026, total: "80", recipients: [] });
+    expect(await getPlannerSummary({ occasion: "Christmas", year: 2026 })).toEqual({ plannedMinor: 0, spentMinor: 0, budgetMinor: 8000 });
+    // The planner page itself still falls back to a period that has entries when asked for one that does not exist.
+    expect((await getPlanner({ occasion: "Nope", year: 1999 })).selected).toEqual({ occasion: "Christmas", year: 2025 });
+  });
+
   it("has an empty default planner for a guest with nothing yet", async () => {
     const { ann, signIn } = await world();
     await signIn(ann);

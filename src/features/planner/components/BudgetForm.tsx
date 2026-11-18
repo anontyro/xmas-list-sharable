@@ -1,5 +1,6 @@
 "use client";
 
+import SectionTitle from "@/components/sticker/SectionTitle";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Box from "@mui/material/Box";
@@ -60,7 +61,7 @@ export default function BudgetForm({ period, periods, backHref, total: initialTo
       if (!budgets.ok) return setError(budgets.error.message);
       if (gift) {
         const details = await setEntryDetails({ itemId: gift.itemId, note: entry.note, actualPrice: gift.state === "interested" ? "" : entry.actualPrice, included: entry.included });
-        if (!details.ok) return setError(details.error.message);
+        if (!details.ok) return setError(`Your budgets are saved, but the gift details were not: ${details.error.message}`);
       }
       router.push(backHref);
       router.refresh();
@@ -69,7 +70,7 @@ export default function BudgetForm({ period, periods, backHref, total: initialTo
 
   const budgetCard = (
           <StickerCard component="section" padded aria-label="Your budget" sx={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-            <Box component="h2" sx={{ m: 0, fontFamily: "var(--font-display), sans-serif", fontWeight: 400, fontSize: 20 }}>Your budget</Box>
+            <SectionTitle>Your budget</SectionTitle>
             <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: "12px" }}>
               <TextField label="Total budget" size="small" value={total} onChange={(e) => setTotal(e.target.value)} slotProps={{ htmlInput: { inputMode: "decimal" } }} />
               <TextField

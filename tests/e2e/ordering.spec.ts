@@ -138,3 +138,14 @@ test("the price control and chips change the visible gifts and the URL, and the 
   }
   await context.close();
 });
+
+test("a price limit at or above the dearest gift is no limit, and one with pence is cut to whole pounds", async ({ browser }) => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  // Alpha £10, Beta no price, Gamma £30: the slider tops out at £30.
+  await page.goto(`/l/${slug}?max=100`); // an old link from before the dearest gift was removed
+  expect(await guestOrder(page)).toEqual(["Alpha", "Beta", "Gamma"]); // the unpriced gift is not hidden
+  await page.goto(`/l/${slug}?max=25.50`);
+  expect(await guestOrder(page)).toEqual(["Alpha"]);
+  await context.close();
+});

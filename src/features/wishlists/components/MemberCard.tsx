@@ -1,4 +1,5 @@
 import Box from "@mui/material/Box";
+import SectionTitle from "@/components/sticker/SectionTitle";
 import MemberAvatar from "@/components/sticker/MemberAvatar";
 import Pill from "@/components/sticker/Pill";
 import LinkButton from "@/components/ui/LinkButton";
@@ -23,7 +24,7 @@ export default function MemberCard({ memberId, name, avatar, subtitle, href, lab
     <StickerCard component="article" padded sx={{ display: "flex", alignItems: "center", gap: "12px" }}>
       <MemberAvatar id={memberId} name={name} avatar={avatar} />
       <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Box component="h2" sx={{ m: 0, fontFamily: "var(--font-display), sans-serif", fontWeight: 400, fontSize: 20, overflowWrap: "anywhere" }}>{name}</Box>
+        <SectionTitle sx={{ overflowWrap: "anywhere" }}>{name}</SectionTitle>
         <Box component="p" sx={{ m: 0, fontWeight: 800, fontSize: 14, color: "text.secondary" }}>{subtitle}</Box>
         {archived && <Pill tone="mint">Archived · read-only</Pill>}
       </Box>

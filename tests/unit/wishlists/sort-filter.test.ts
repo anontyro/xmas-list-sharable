@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { filterItems, NO_FILTERS, parseViewParams, sortItems, toSearchParams } from "@/features/wishlists/sort-filter";
+import { filterItems, NO_FILTERS, normaliseMax, parseViewParams, sortItems, toSearchParams } from "@/features/wishlists/sort-filter";
 import type { Priority } from "@/features/wishlists/schemas";
 
 let n = 0;
@@ -66,5 +66,26 @@ describe("view params", () => {
     const view = { sort: "newest" as const, filters: { priorities: ["would_love" as const], minMinor: 1050, maxMinor: 9900, availableOnly: true } };
     expect(parseViewParams(Object.fromEntries(toSearchParams(view.sort, view.filters)))).toEqual(view);
     expect(toSearchParams("priority", NO_FILTERS).toString()).toBe("");
+  });
+});
+
+describe("normaliseMax", () => {
+  const f = (maxMinor: number | null) => ({ ...NO_FILTERS, maxMinor });
+  it("leaves no limit, and a limit below the slider's top, alone", () => {
+    expect(normaliseMax(f(null), 30)).toEqual(f(null));
+    expect(normaliseMax(f(2500), 30)).toEqual(f(2500));
+  });
+  it("treats a limit at or above the top as no limit, so unpriced gifts stay visible", () => {
+    expect(normaliseMax(f(3000), 30)).toEqual(f(null));
+    expect(normaliseMax(f(10000), 30)).toEqual(f(null));
+    expect(normaliseMax(f(2500), 0)).toEqual(f(null)); // nothing is priced: there is no top to be under
+  });
+  it("cuts pence to whole pounds, the way the slider would", () => {
+    expect(normaliseMax(f(2550), 30)).toEqual(f(2500));
+    expect(normaliseMax(f(2999), 30)).toEqual(f(2900));
+    expect(normaliseMax(f(3050), 30)).toEqual(f(null));
+  });
+  it("keeps the other filters", () => {
+    expect(normaliseMax({ ...NO_FILTERS, availableOnly: true, maxMinor: 9900 }, 30)).toEqual({ ...NO_FILTERS, availableOnly: true, maxMinor: null });
   });
 });

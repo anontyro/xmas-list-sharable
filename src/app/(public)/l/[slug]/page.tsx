@@ -1,4 +1,5 @@
 import Box from "@mui/material/Box";
+import SectionTitle from "@/components/sticker/SectionTitle";
 import { notFound } from "next/navigation";
 import AppLink from "@/components/ui/AppLink";
 import CopyLinkButton from "@/components/ui/CopyLinkButton";
@@ -6,7 +7,7 @@ import RememberList from "@/components/layout/RememberList";
 import Hero from "@/components/sticker/Hero";
 import Note from "@/components/sticker/Note";
 import PageWrap from "@/components/sticker/PageWrap";
-import Ribbon, { type RibbonTone } from "@/components/sticker/Ribbon";
+import PriorityRibbon from "@/components/sticker/PriorityRibbon";
 import StickerCard from "@/components/sticker/StickerCard";
 import TwoColumn from "@/components/sticker/TwoColumn";
 import { getGuestIdentity } from "@/features/authentication/guest-session";
@@ -17,28 +18,24 @@ import GiftRow from "@/features/wishlists/components/GiftRow";
 import ListFilterDialog from "@/features/wishlists/components/ListFilterDialog";
 import ListFilters from "@/features/wishlists/components/ListFilters";
 import { getListForViewer } from "@/features/wishlists/public-queries";
-import { PRIORITIES, PRIORITY_LABELS, type Priority } from "@/features/wishlists/schemas";
-import { filterItems, parseViewParams, sortItems } from "@/features/wishlists/sort-filter";
+import { PRIORITIES } from "@/features/wishlists/schemas";
+import { filterItems, normaliseMax, parseViewParams, sortItems } from "@/features/wishlists/sort-filter";
 
 export const dynamic = "force-dynamic";
 export const metadata = { robots: { index: false, follow: false } };
 
-const RIBBON: Record<Priority, { tone: RibbonTone; star: boolean }> = {
-  most_wanted: { tone: "red", star: true },
-  would_love: { tone: "green", star: false },
-  nice_to_have: { tone: "sky", star: false },
-};
 
 export default async function ListPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const guest = await getGuestIdentity();
   const list = await getListForViewer((await params).slug, guest?.guestId ?? null);
   if (!list) notFound();
-  const { sort, filters } = parseViewParams(await searchParams);
-  const visible = filterItems(sortItems(list.items, sort), filters);
-  const summary = guest ? await getPlannerSummary() : null;
-  const canAct = Boolean(guest) && !list.archived;
   const dearest = Math.max(0, ...list.items.map((i) => i.priceMinor ?? 0));
   const maxPounds = Math.ceil(dearest / 500) * 5; // the slider's top: the dearest gift rounded up to £5
+  const { sort, filters: asked } = parseViewParams(await searchParams);
+  const filters = normaliseMax(asked, maxPounds); // a stale or hand-edited price limit shows what it really does
+  const visible = filterItems(sortItems(list.items, sort), filters);
+  const summary = guest ? await getPlannerSummary({ occasion: list.occasion, year: list.year }) : null; // this list's own year, not the guest's newest
+  const canAct = Boolean(guest) && !list.archived;
   const canFilter = list.items.length > 1;
   const rows = (items: typeof visible) => items.map((item) => <GiftRow key={item.id} item={item} canAct={canAct} />);
 
@@ -76,12 +73,7 @@ export default async function ListPage({ params, searchParams }: { params: Promi
                 if (group.length === 0) return null;
                 return (
                   <Box key={p} sx={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                    <Box component="h2" sx={{ m: 0 }}>
-                      <Ribbon tone={RIBBON[p].tone}>
-                        {RIBBON[p].star && <span aria-hidden="true">★ </span>}
-                        {PRIORITY_LABELS[p].toUpperCase()}
-                      </Ribbon>
-                    </Box>
+                    <PriorityRibbon priority={p} />
                     {rows(group)}
                   </Box>
                 );
@@ -95,7 +87,7 @@ export default async function ListPage({ params, searchParams }: { params: Promi
               {canFilter && (
                 <Box sx={{ display: { xs: "none", md: "block" } }}>
                   <StickerCard component="section" padded>
-                    <Box component="h2" sx={{ m: 0, mb: "12px", fontFamily: "var(--font-display), sans-serif", fontWeight: 400, fontSize: 20 }}>Sort and filter</Box>
+                    <SectionTitle sx={{ mb: "12px" }}>Sort and filter</SectionTitle>
                     <ListFilters sort={sort} filters={filters} maxPounds={maxPounds} />
                   </StickerCard>
                 </Box>

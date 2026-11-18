@@ -8,7 +8,8 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import type { Filters, SortKey } from "../sort-filter";
-import ListFilters, { Choice, SORT_LABELS, useViewNav } from "./ListFilters";
+import Choice from "@/components/sticker/Choice";
+import ListFilters, { SORT_LABELS, useViewNav } from "./ListFilters";
 
 const QUICK_MAX_MINOR = 2500;
 

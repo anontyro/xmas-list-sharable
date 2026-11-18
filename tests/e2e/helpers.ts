@@ -33,11 +33,11 @@ export async function createMemberWithPin(householdId: string, displayName: stri
   return m.id;
 }
 
-export async function createList(memberId: string, title = "Christmas 2026", archived = false) {
+export async function createList(memberId: string, title = "Christmas 2026", archived = false, year = 2026) {
   const slug = generateSlug();
   const [l] = await db
     .insert(schema.wishlist)
-    .values({ memberId, title, occasion: "Christmas", year: 2026, slug, archivedAt: archived ? new Date() : null })
+    .values({ memberId, title, occasion: "Christmas", year, slug, archivedAt: archived ? new Date() : null })
     .returning();
   return { id: l.id, slug };
 }

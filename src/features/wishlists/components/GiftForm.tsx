@@ -1,5 +1,6 @@
 "use client";
 
+import Choice from "@/components/sticker/Choice";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Box from "@mui/material/Box";
@@ -18,7 +19,6 @@ import type { OwnerItem } from "@/features/wishlists/views";
 import { minorToPounds } from "@/lib/money";
 import FoundChecklist from "./FoundChecklist";
 import GiftPreview from "./GiftPreview";
-import { Choice } from "./ListFilters";
 
 type Values = { title: string; productUrl: string; description: string; imageUrl: string; price: string; priority: Priority };
 

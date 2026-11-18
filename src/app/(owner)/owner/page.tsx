@@ -1,4 +1,5 @@
 import Box from "@mui/material/Box";
+import SectionTitle from "@/components/sticker/SectionTitle";
 import { redirect } from "next/navigation";
 import Hero from "@/components/sticker/Hero";
 import PageWrap from "@/components/sticker/PageWrap";
@@ -26,7 +27,7 @@ export default async function OwnerHome() {
               <Box component="li" key={l.id}>
                 <StickerCard component="article" padded sx={{ display: "flex", alignItems: "center", gap: "12px", height: "100%" }}>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Box component="h2" sx={{ m: 0, fontFamily: "var(--font-display), sans-serif", fontWeight: 400, fontSize: 20, overflowWrap: "anywhere" }}>{l.title}</Box>
+                    <SectionTitle sx={{ overflowWrap: "anywhere" }}>{l.title}</SectionTitle>
                     <Box component="p" sx={{ m: 0, fontWeight: 800, fontSize: 14, color: "text.secondary" }}>{l.occasion} {l.year}</Box>
                     {l.archived && <Pill tone="mint">Archived · read-only</Pill>}
                   </Box>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { daysUntilChristmas } from "@/features/wishlists/countdown";
+import { daysUntilChristmas, isChristmas, londonYear } from "@/features/wishlists/countdown";
 
 const at = (iso: string) => daysUntilChristmas(new Date(iso));
 
@@ -26,5 +26,20 @@ describe("daysUntilChristmas", () => {
     expect(at("2026-10-24T23:30:00Z")).toBe(61); // London is already 25 October
     expect(at("2026-10-25T12:00:00Z")).toBe(61); // the day the clocks go back
     expect(at("2026-10-26T12:00:00Z")).toBe(60);
+  });
+});
+
+describe("londonYear", () => {
+  it("is the London year, not the UTC one, around New Year", () => {
+    expect(londonYear(new Date("2026-12-31T23:30:00Z"))).toBe(2026);
+    expect(londonYear(new Date("2027-01-01T00:30:00Z"))).toBe(2027);
+    expect(londonYear(new Date("2026-06-15T12:00:00Z"))).toBe(2026);
+  });
+});
+
+describe("isChristmas", () => {
+  it("ignores case and spacing, and matches only Christmas", () => {
+    for (const ok of ["Christmas", "christmas", "  CHRISTMAS ", "Christmas\n"]) expect(isChristmas(ok), ok).toBe(true);
+    for (const no of ["Birthday", "Christmas Day", "Xmas", ""]) expect(isChristmas(no), no).toBe(false);
   });
 });

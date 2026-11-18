@@ -1,4 +1,5 @@
 import Box from "@mui/material/Box";
+import SectionTitle from "@/components/sticker/SectionTitle";
 import GiftThumb from "@/components/sticker/GiftThumb";
 import Pill from "@/components/sticker/Pill";
 import StickerCard from "@/components/sticker/StickerCard";
@@ -10,7 +11,7 @@ export default function GiftPreview({ id, title, price, imageUrl, priority }: { 
   const minor = price.trim() === "" ? null : parsePoundsToMinor(price);
   return (
     <StickerCard component="section" padded aria-label="How guests see it" sx={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-      <Box component="h2" sx={{ m: 0, fontFamily: "var(--font-display), sans-serif", fontWeight: 400, fontSize: 20 }}>How guests see it</Box>
+      <SectionTitle>How guests see it</SectionTitle>
       <StickerCard component="article" sx={{ display: "flex", gap: "12px" }}>
         <GiftThumb id={id} title={title} imageUrl={imageUrl.trim() === "" ? null : imageUrl.trim()} />
         <Box sx={{ minWidth: 0, display: "flex", flexDirection: "column", gap: "4px" }}>

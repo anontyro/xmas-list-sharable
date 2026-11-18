@@ -1,5 +1,6 @@
 "use client";
 
+import SectionTitle from "@/components/sticker/SectionTitle";
 import Box from "@mui/material/Box";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
@@ -29,7 +30,7 @@ export default function EntryDetailsForm({ gift, values, onChange }: { gift: Gif
   const state: GuestItemState = { state: gift.state === "interested" ? "interested" : `${gift.state}_by_you` };
   return (
     <StickerCard component="section" padded aria-label="Gift details" sx={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-      <Box component="h2" sx={{ m: 0, fontFamily: "var(--font-display), sans-serif", fontWeight: 400, fontSize: 20 }}>Gift details</Box>
+      <SectionTitle>Gift details</SectionTitle>
       <Box sx={{ display: "flex", alignItems: "center", gap: "12px" }}>
         <GiftThumb id={gift.itemId} title={gift.title} imageUrl={null} />
         <Box sx={{ minWidth: 0 }}>

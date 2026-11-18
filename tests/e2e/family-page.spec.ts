@@ -67,3 +67,25 @@ test("a named guest gets a greeting and the planner card, which follows what the
   await expect(page).toHaveURL(/\/planner/);
   await context.close();
 });
+
+test("the planner card is about this year's Christmas, not the newest year the guest planned", async ({ browser }) => {
+  const year = new Date().getFullYear();
+  const household = await resetAndSeed();
+  const dan = await createMemberWithPin(household, "Dan", "111111");
+  const thisYear = await createList(dan, `Christmas ${year}`, false, year);
+  const lastYear = await createList(dan, `Christmas ${year - 1}`, false, year - 1);
+  await createItem(thisYear.id, "New gift", 2000);
+  await createItem(lastYear.id, "Old gift", 1000);
+
+  const { context, page } = await guestPage(browser, lastYear.slug, "Ann");
+  await page.getByRole("button", { name: /^Reserve: Old gift/ }).click();
+  await expect(page.getByText("Reserved by you")).toBeVisible();
+  await expect(page.getByText("£10.00 planned so far")).toBeVisible(); // this list's own year
+
+  await page.goto(`/l/${thisYear.slug}`);
+  await expect(page.getByText("Start planning")).toBeVisible(); // nothing planned for this year yet
+  await page.goto("/");
+  await expect(page.getByText("Start planning")).toBeVisible();
+  await expect(page.getByText("planned so far")).toHaveCount(0);
+  await context.close();
+});

@@ -1,5 +1,6 @@
 "use client";
 
+import Choice from "@/components/sticker/Choice";
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Box from "@mui/material/Box";
@@ -25,15 +26,6 @@ export function useViewNav() {
     const q = toSearchParams(sort, filters).toString();
     router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
   };
-}
-
-/** A toggle button: the state is in `aria-pressed` and the filled look, never colour alone. */
-export function Choice({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <Button size="small" variant="contained" color={on ? "yellow" : "inherit"} aria-pressed={on} onClick={onClick}>
-      {children}
-    </Button>
-  );
 }
 
 const Label = ({ id, children }: { id: string; children: React.ReactNode }) => (

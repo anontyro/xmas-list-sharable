@@ -1,5 +1,7 @@
 "use client";
 
+import StepNumber from "@/components/sticker/StepNumber";
+import SectionTitle from "@/components/sticker/SectionTitle";
 import { useState, useTransition } from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -24,7 +26,6 @@ export function statusLabel({ active, createdAt }: AccessStatus, now: Date = new
   return day(made) === day(now) ? "Active · made today" : `Active · made ${made.toLocaleDateString("en-GB", { ...London, day: "numeric", month: "short" })}`;
 }
 
-const heading = { m: 0, fontFamily: "var(--font-display), sans-serif", fontWeight: 400, fontSize: 20 } as const;
 const help = { m: 0, fontSize: 13, fontWeight: 700, color: "text.secondary" } as const;
 
 /** Make, copy or turn off the private link. The link is only ever in this component's state, from the moment it is made until the page is left. */
@@ -68,7 +69,7 @@ export default function AccessPanel({ guestId, name, status: initial }: { guestI
     <>
       <StickerCard component="section" padded aria-label="Private link" sx={{ display: "flex", flexDirection: "column", gap: "14px" }}>
         <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
-          <Box component="h2" sx={heading}>Your private link</Box>
+          <SectionTitle>Your private link</SectionTitle>
           <Pill tone={status.active ? "mint" : undefined}>{statusLabel(status)}</Pill>
         </Box>
         {link ? (
@@ -112,20 +113,13 @@ export default function AccessPanel({ guestId, name, status: initial }: { guestI
     </>
   );
 
-  const step = (n: number, text: string) => (
-    <Box sx={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
-      <Box component="span" aria-hidden="true" sx={{ flex: "none", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", border: `3px solid ${tokens.ink}`, borderRadius: "50%", fontFamily: "var(--font-display), sans-serif", fontSize: 15, backgroundColor: tokens.yellow }}>{n}</Box>
-      <Box component="p" sx={{ m: 0, flex: 1, fontWeight: 700 }}>{text}</Box>
-    </Box>
-  );
-
   const side = (
     <>
       <StickerCard component="section" padded sx={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-        <Box component="h2" sx={heading}>How it works</Box>
-        {step(1, "Copy your link and save it in a private place, like a notes app or password manager.")}
-        {step(2, "Open the link on your other phone or laptop.")}
-        {step(3, `You're back as ${name}, with your reservations, budget and notes.`)}
+        <SectionTitle>How it works</SectionTitle>
+        <StepNumber n={1}>{"Copy your link and save it in a private place, like a notes app or password manager."}</StepNumber>
+        <StepNumber n={2}>{"Open the link on your other phone or laptop."}</StepNumber>
+        <StepNumber n={3}>{`You're back as ${name}, with your reservations, budget and notes.`}</StepNumber>
       </StickerCard>
       <StickerCard tint="cream" padded sx={{ display: "flex", alignItems: "center", gap: "12px" }}>
         <MemberAvatar id={guestId} name={name} />

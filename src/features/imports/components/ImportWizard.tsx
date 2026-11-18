@@ -1,5 +1,7 @@
 "use client";
 
+import StepNumber from "@/components/sticker/StepNumber";
+import SectionTitle from "@/components/sticker/SectionTitle";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Box from "@mui/material/Box";
@@ -18,11 +20,9 @@ import { MAX_INPUT_BYTES } from "@/features/imports/amazon/shared";
 import type { AmazonDraft } from "@/features/imports/types";
 import { PRIORITIES, PRIORITY_LABELS, type Priority } from "@/features/wishlists/schemas";
 import { formatGBP, minorToPounds } from "@/lib/money";
-import { tokens } from "@/theme/tokens";
 
 type Row = { key: number; draft: AmazonDraft; title: string; price: string; duplicateOf: string | null; selected: boolean; priority: Priority };
 
-const heading = { m: 0, fontFamily: "var(--font-display), sans-serif", fontWeight: 400, fontSize: 20 } as const;
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
 /** Paste an Amazon wishlist, tick the gifts to add, set each one's priority, fill in missing prices. Nothing is saved until "Add". */
@@ -77,13 +77,6 @@ export default function ImportWizard({ listId, backHref, addHref }: { listId: st
       router.refresh();
     });
   };
-
-  const step = (n: number, label: string) => (
-    <Box sx={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
-      <Box component="span" aria-hidden="true" sx={{ flex: "none", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", border: `3px solid ${tokens.ink}`, borderRadius: "50%", fontFamily: "var(--font-display), sans-serif", fontSize: 15, backgroundColor: tokens.yellow }}>{n}</Box>
-      <Box component="p" sx={{ m: 0, flex: 1, fontWeight: 700 }}>{label}</Box>
-    </Box>
-  );
 
   const main = (
     <>
@@ -150,7 +143,7 @@ export default function ImportWizard({ listId, backHref, addHref }: { listId: st
 
   const side = (
     <StickerCard component="section" tint="yellow" padded aria-label="Ready to add" sx={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-      <Box component="h2" sx={heading}>Ready to add</Box>
+      <SectionTitle>Ready to add</SectionTitle>
       <Box component="p" aria-live="polite" sx={{ m: 0, fontWeight: 800 }}>{plural(chosen.length, "gift", "gifts")} will be added to your list</Box>
       {(skippedDuplicates > 0 || skippedOther > 0 || missingPrice > 0) && (
         <Box component="p" sx={{ m: 0, fontWeight: 700, fontSize: 14 }}>
@@ -168,9 +161,9 @@ export default function ImportWizard({ listId, backHref, addHref }: { listId: st
     <>
       <StickerCard component="section" padded aria-label="How it works">
         <Box sx={{ display: "grid", gap: "14px", gridTemplateColumns: { xs: "minmax(0, 1fr)", md: "repeat(3, minmax(0, 1fr))" } }}>
-          {step(1, "Open your Amazon wishlist and select everything on the page.")}
-          {step(2, "Copy it.")}
-          {step(3, "Paste it below, then check what we found.")}
+          <StepNumber n={1}>{"Open your Amazon wishlist and select everything on the page."}</StepNumber>
+          <StepNumber n={2}>{"Copy it."}</StepNumber>
+          <StepNumber n={3}>{"Paste it below, then check what we found."}</StepNumber>
         </Box>
       </StickerCard>
       {rows.length > 0 ? <TwoColumn sideLast main={main} side={side} /> : <Box sx={{ display: "flex", flexDirection: "column", gap: "14px" }}>{main}</Box>}

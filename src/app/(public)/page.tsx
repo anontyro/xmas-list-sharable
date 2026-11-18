@@ -10,7 +10,7 @@ import { getGuestIdentity } from "@/features/authentication/guest-session";
 import PlannerStrip from "@/features/planner/components/PlannerStrip";
 import { getPlannerSummary } from "@/features/planner/queries";
 import MemberCard from "@/features/wishlists/components/MemberCard";
-import { daysUntilChristmas } from "@/features/wishlists/countdown";
+import { daysUntilChristmas, isChristmas, londonYear } from "@/features/wishlists/countdown";
 import { getEarlierYears, getFamilyDashboard } from "@/features/wishlists/public-queries";
 
 export const dynamic = "force-dynamic";
@@ -21,16 +21,18 @@ const gifts = (n: number) => `${n} ${n === 1 ? "gift" : "gifts"}`;
 export default async function HomePage() {
   const now = new Date();
   const [{ members }, earlier, guest] = await Promise.all([getFamilyDashboard(), getEarlierYears(), getGuestIdentity()]);
-  const summary = guest ? await getPlannerSummary() : null;
+  const year = londonYear(now);
+  const christmasList = members.flatMap((m) => m.lists).find((l) => isChristmas(l.occasion) && l.year === year);
+  const christmas = Boolean(christmasList);
+  const summary = guest ? await getPlannerSummary({ occasion: christmasList?.occasion ?? "Christmas", year }) : null; // this Christmas, not the newest period with entries
   const days = daysUntilChristmas(now);
-  const christmas = members.some((m) => m.lists.some((l) => l.occasion === "Christmas" && l.year === now.getFullYear()));
   const showCountdown = christmas && days !== null;
   const greeting = guest ? `Hi ${guest.displayName}! Pick a list to browse.` : "Pick a list to browse.";
 
   return (
     <>
       <Hero
-        title={christmas ? `Christmas ${now.getFullYear()}` : "Family Gifts"}
+        title={christmas ? `Christmas ${year}` : "Family Gifts"}
         subtitle={members.length === 0 ? undefined : greeting}
         tint="yellow"
         aside={

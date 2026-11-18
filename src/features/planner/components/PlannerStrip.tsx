@@ -1,4 +1,5 @@
 import Box from "@mui/material/Box";
+import SectionTitle from "@/components/sticker/SectionTitle";
 import LinkButton from "@/components/ui/LinkButton";
 import StickerCard from "@/components/sticker/StickerCard";
 import Sticker from "@/components/ui/Sticker";
@@ -22,7 +23,7 @@ export default function PlannerStrip({ summary }: { summary: PlannerSummary }) {
       <Box sx={{ display: "flex", alignItems: "center", gap: "12px" }}>
         <Sticker name="coins" width={64} />
         <div>
-          <Box component="h2" sx={{ m: 0, fontFamily: "var(--font-display), sans-serif", fontWeight: 400, fontSize: 20 }}>My planner</Box>
+          <SectionTitle>My planner</SectionTitle>
           <Box component="p" sx={{ m: 0, fontWeight: 800, fontSize: 14 }}>{plannerStripText(summary)}</Box>
         </div>
       </Box>

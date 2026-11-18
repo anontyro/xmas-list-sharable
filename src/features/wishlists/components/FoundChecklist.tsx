@@ -1,4 +1,5 @@
 import Box from "@mui/material/Box";
+import SectionTitle from "@/components/sticker/SectionTitle";
 import Pill from "@/components/sticker/Pill";
 import StickerCard from "@/components/sticker/StickerCard";
 import type { ImportDraft } from "@/features/imports/types";
@@ -13,7 +14,7 @@ export default function FoundChecklist({ draft }: { draft: ImportDraft }) {
   ];
   return (
     <StickerCard component="section" padded aria-label="What we found" sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-      <Box component="h2" sx={{ m: 0, fontFamily: "var(--font-display), sans-serif", fontWeight: 400, fontSize: 20 }}>What we found</Box>
+      <SectionTitle>What we found</SectionTitle>
       <Box component="ul" sx={{ listStyle: "none", m: 0, p: 0, display: "flex", flexDirection: "column", gap: "6px" }}>
         {rows.map(([name, found]) => (
           <Box component="li" key={name} sx={{ display: "flex", alignItems: "center", gap: "10px" }}>

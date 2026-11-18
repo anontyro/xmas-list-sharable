@@ -1,5 +1,6 @@
 "use client";
 
+import SectionTitle from "@/components/sticker/SectionTitle";
 import { useState } from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -55,7 +56,7 @@ export default function ExportMenu({ plan }: { plan: PlannerView }) {
   return (
     <StickerCard component="section" padded aria-label="Shopping list" sx={{ display: "flex", flexDirection: "column", gap: "10px" }}>
       <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
-        <Box component="h2" sx={{ m: 0, fontFamily: "var(--font-display), sans-serif", fontWeight: 400, fontSize: 20 }}>Shopping list</Box>
+        <SectionTitle>Shopping list</SectionTitle>
         <Box component="p" aria-live="polite" sx={{ m: 0, fontWeight: 800, fontSize: 14, color: "text.secondary" }}>{chosen} of {allIds.length} selected</Box>
       </Box>
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>

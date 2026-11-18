@@ -22,4 +22,4 @@ A fixed pack makes every page look like the design and removes a second icon sys
 
 - The stickers' white outline is drawn at every size, so very small uses (the 20 px status icons) look heavy. The status and priority chips that use them are replaced by pills in the family and wishlist release.
 - A keyword can pick a surprising sticker ("tech" for a tent). It is only decoration, and the sticker is never the only label.
-- Remote product pictures are loaded straight from the shop's host, as before. The no-referrer setting keeps the list's address from leaking to it.
+- Remote product pictures are loaded straight from the shop's host, as before. The no-referrer setting keeps the list's address from leaking to it, but the shop's host still sees each guest's address when a list loads, so an owner who pastes a picture link to a tracking host makes every guest contact it. We accept this for a family-only app; a picture proxy would hide it and is the fix if that changes.

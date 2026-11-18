@@ -74,3 +74,13 @@ export function toSearchParams(sort: SortKey, f: Filters): URLSearchParams {
   if (f.availableOnly) q.set("avail", "1");
   return q;
 }
+
+/**
+ * The price slider only makes whole pounds and tops out at `maxPounds`. A limit at or above the top is no limit, and one with
+ * pence (a hand-edited link) is cut to whole pounds, so what the slider says is what the list does.
+ */
+export function normaliseMax(f: Filters, maxPounds: number): Filters {
+  if (f.maxMinor === null) return f;
+  const whole = Math.floor(f.maxMinor / 100) * 100;
+  return { ...f, maxMinor: whole >= maxPounds * 100 ? null : whole };
+}
