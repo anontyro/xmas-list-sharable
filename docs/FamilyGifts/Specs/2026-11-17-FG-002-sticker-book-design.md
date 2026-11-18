@@ -833,6 +833,9 @@ Shared acceptance for every package:
   - `src/features/family/components/MemberForm.tsx` (deleted)
   - `src/features/family/components/ListForm.tsx` (deleted)
   - `src/components/layout/AdminShell.tsx`
+  - `tests/e2e/admin-setup.spec.ts` (selectors updated for the new screens; P31 adds the full journeys)
+  - `tests/e2e/pin-links.spec.ts` (opens the Reset PIN dialog)
+  - `tests/e2e/mobile-a11y.spec.ts` and `tests/e2e/security.spec.ts` (add `/admin/lists`)
 - Acceptance criteria:
   1. `/admin` matches screen 11: cards with avatar, name, status pill, list links with Copy link, and the four buttons; Reset PIN becomes a red "Set PIN" when none is set; the sidebar has Add a member (with picture picker and optional PIN) and Create a list.
   2. Reset PIN and Rename open dialogs; Archive and Deactivate confirm; the reset dialog shows the sign-in links of decision 0004 after saving, and the PIN is never shown anywhere else.

@@ -5,10 +5,13 @@ import { currentAdmin } from "@/lib/auth/require";
 import ShellFrame from "./ShellFrame";
 import type { NavItem } from "./nav";
 
-/** Chrome for admin pages. Signed out it shows only the brand; signed in it adds Members and a Sign out button (always visible: admin has no menu). */
+/** Chrome for admin pages. Signed out it shows only the brand; signed in it adds Members, Lists and a Sign out button (always visible: admin has no menu). */
 export default async function AdminShell({ children }: { children: React.ReactNode }) {
   if (!(await currentAdmin())) return <ShellFrame brandHref="/" items={[]}>{children}</ShellFrame>;
-  const items: NavItem[] = [{ label: "Members", href: "/admin", sticker: "child", match: ["/admin"] }];
+  const items: NavItem[] = [
+    { label: "Members", href: "/admin", sticker: "child", match: ["/admin"], exclude: ["/admin/lists"] },
+    { label: "Lists", href: "/admin/lists", sticker: "heartlist", match: ["/admin/lists"] },
+  ];
   return (
     <ShellFrame
       brandHref="/admin"

@@ -1,10 +1,9 @@
 import { expect, test, type Page } from "@playwright/test";
 import { ADMIN_SECRET, createMemberWithPin, resetAndSeed } from "./helpers";
 
-let alex: string;
 test.beforeEach(async () => {
   const household = await resetAndSeed();
-  alex = await createMemberWithPin(household, "Alex", "123456");
+  await createMemberWithPin(household, "Alex", "123456");
   await createMemberWithPin(household, "Sarah", "654321");
 });
 
@@ -35,7 +34,7 @@ test("a name-only link, an unknown name and a junk PIN fall back to the normal f
 
 test("the admin copies a link that carries the PIN just set, the owner changes it, and the admin can still reset it", async ({ page, browser }) => {
   await adminSignIn(page);
-  await page.goto(`/admin/members/${alex}`);
+  await page.getByRole("button", { name: "Reset PIN: Alex" }).click();
   await expect(page.getByText("/owner/login?name=Alex", { exact: true })).toBeVisible();
   await expect(page.getByText("&pin=")).toHaveCount(0); // no PIN link until the admin sets one
   await page.getByLabel("New PIN").fill("222222");

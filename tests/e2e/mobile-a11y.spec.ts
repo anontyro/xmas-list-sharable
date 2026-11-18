@@ -36,7 +36,7 @@ test.describe("pages", () => {
 test.use({ reducedMotion: "reduce" });
 test("every page fits the screen and has no serious accessibility violations", async ({ browser, page }) => {
   await adminSignIn(page);
-  for (const path of ["/admin", `/admin/members/${alex}`]) {
+  for (const path of ["/admin", "/admin/lists", `/admin/members/${alex}`]) {
     await page.goto(path);
     await noSideScroll(page, path);
     await serious(page, path);

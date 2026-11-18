@@ -15,30 +15,41 @@ async function adminSignIn(page: import("@playwright/test").Page) {
 
 test("admin creates a member, sets a PIN and creates a list with a shareable link", async ({ page }) => {
   await adminSignIn(page);
-  await page.getByLabel("New member name").fill("Alex");
-  await page.getByRole("button", { name: "Add member" }).click();
-  await page.getByRole("link", { name: "Alex" }).click();
+  const add = page.getByRole("region", { name: "Add a member" });
+  await add.getByLabel("Display name").fill("Alex");
+  await add.getByRole("button", { name: "Add member" }).click();
+  const card = page.getByRole("article", { name: "Alex" });
+  await expect(card.getByText("PIN not set")).toBeVisible();
 
-  await page.getByLabel("Set PIN").fill("123456");
+  await card.getByRole("button", { name: "Set PIN: Alex" }).click();
+  await page.getByLabel(/^Set PIN\s*\*?$/).fill("123456");
   await page.getByRole("button", { name: "Save PIN" }).click();
   await expect(page.getByText("PIN saved")).toBeVisible();
+  await page.getByRole("button", { name: "Done" }).click();
 
-  await page.getByLabel("List title").fill("Christmas 2026");
-  await page.getByRole("button", { name: "Create list" }).click();
-  await expect(page.getByText(/^\/l\/[0-9A-Za-z]{10}$/)).toBeVisible();
-  await expect(page.getByRole("button", { name: "Copy link", exact: true })).toBeVisible();
+  const create = page.getByRole("region", { name: "Create a list" });
+  await create.getByLabel("Member").click();
+  await page.getByRole("option", { name: "Alex" }).click();
+  await create.getByRole("button", { name: "Create list" }).click();
+  await expect(card.getByText(/^\/l\/[0-9A-Za-z]{10}$/)).toBeVisible();
+  await expect(card.getByRole("button", { name: "Copy link: Alex, Christmas 2026" })).toBeVisible();
 });
 
 test("archived lists are labelled and can be restored", async ({ page }) => {
   await adminSignIn(page);
-  await page.getByLabel("New member name").fill("Sarah");
-  await page.getByRole("button", { name: "Add member" }).click();
-  await page.getByRole("link", { name: "Sarah" }).click();
-  await page.getByRole("button", { name: "Create list" }).click();
+  const add = page.getByRole("region", { name: "Add a member" });
+  await add.getByLabel("Display name").fill("Sarah");
+  await add.getByRole("button", { name: "Add member" }).click();
+  const create = page.getByRole("region", { name: "Create a list" });
+  await create.getByLabel("Member").click();
+  await page.getByRole("option", { name: "Sarah" }).click();
+  await create.getByRole("button", { name: "Create list" }).click();
+
+  await page.getByRole("link", { name: "Lists" }).first().click();
   page.once("dialog", (d) => d.accept());
-  await page.getByRole("button", { name: "Archive" }).click();
+  await page.getByRole("button", { name: /^Archive: Sarah/ }).click();
   await expect(page.getByText("Archived", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Restore" }).click();
+  await page.getByRole("button", { name: /^Restore: Sarah/ }).click();
   await expect(page.getByText("Archived", { exact: true })).toBeHidden();
 });
 
