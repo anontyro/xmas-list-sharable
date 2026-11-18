@@ -1,5 +1,7 @@
 # Manual testing: Family Gifts (FG-001)
 
+> **Note:** written before the Sticker Book re-skin (FG-002). Behaviour and rules still hold, but screen names, button labels and where things live have changed (for example the admin member page is now a card on `/admin`, and the import is a page). Use `MANUAL-TESTING-FG-002-sticker-book-design.md` for what each screen looks like now.
+
 **Spec:** `Docs/FamilyGifts/Specs/2026-11-15-FG-001-family-gifts.md`
 **Branch / PR:** `feature/FG-001-family-gifts` (one PR per release)
 **Work items:** FG-001 · tasks FG-101 to FG-402

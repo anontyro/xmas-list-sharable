@@ -23,6 +23,7 @@ Never commit `.env`. Set the same names in Vercel under Project → Settings →
 5. Deploy, open `/admin/login`, sign in with `ADMIN_SECRET`, add family members, set their PINs and create their lists. Share each list's `/l/<slug>` link.
 
 Check after the first deploy: cookies `fg_admin`, `fg_owner`, `fg_guest` are HttpOnly and Secure, and the response headers on `/` include `X-Frame-Options: DENY`.
+Then, in a private window: open a list link and check it goes to `/welcome` and, after a name is entered, back to the list; open `/l/<slug>` once and check the `fg_last_list` cookie is set (it only remembers a path, and the Wishlist tab uses it); open `/owner/login` and `/admin/login` and check both use the same sign-in frame.
 
 ## Supabase free tier
 
@@ -76,5 +77,5 @@ The login, naming and recovery throttles count attempts per address. The app rea
 ## Other things that go wrong
 
 - **Admin can't sign in:** too many tries blocks the address for 15 minutes. Wait, or clear the `auth_limit` row for `admin:<ip>`.
-- **A member forgets their PIN:** Admin → the member → Set PIN.
+- **A member forgets their PIN:** Admin → the member's card → Reset PIN (or Set PIN) → the dialog also shows a sign-in link to send them.
 - **Everyone suddenly sees errors:** check the database is not paused (above) and that `DATABASE_URL` is the pooled URL.

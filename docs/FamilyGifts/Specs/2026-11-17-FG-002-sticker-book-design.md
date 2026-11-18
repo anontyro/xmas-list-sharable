@@ -873,6 +873,9 @@ Shared acceptance for every package:
   - `src/app/(admin)/error.tsx` (new)
   - `src/app/(public)/l/[slug]/not-found.tsx`
   - `src/theme/theme.ts`
+  - `src/components/sticker/RouteState.tsx` (new; the shared loading and error pieces the route files use)
+  - `tests/unit/sticker-components.test.ts` (Empty, loading and error)
+  - `src/app/(owner)/owner/lists/[listId]/page.tsx`, `src/app/(public)/planner/page.tsx`, `src/app/(public)/l/[slug]/page.tsx`, `src/app/(admin)/admin/page.tsx`, `src/app/(admin)/admin/lists/page.tsx` (use `Empty`)
 - Acceptance criteria:
   1. Every place a list can be empty uses `Empty`, with the wording the page had before (so existing text assertions still hold) and a sensible next action.
   2. `loading.tsx` shows a sticker and "One moment…" with `role="status"`; `error.tsx` shows "Something went wrong" and a Try again button and logs nothing sensitive.
@@ -885,6 +888,7 @@ Shared acceptance for every package:
   - `tests/e2e/mobile-a11y.spec.ts`
   - `tests/e2e/security.spec.ts`
   - `tests/e2e/helpers.ts`
+  - `tests/e2e/ordering.spec.ts`, `tests/e2e/owner-gift.spec.ts`, `tests/e2e/amazon-import.spec.ts` (wait for streamed pages with `settled`, since `loading.tsx` now shows first)
 - Acceptance criteria:
   1. For each of guest, owner and admin, every route in the app is visited at 375 px and 1280 px with no horizontal scroll and no serious or critical axe violation, including each dialog, the account menu open, the phone filter dialog and an error state.
   2. Reserve, mark purchased, add a gift, import and sign in complete by keyboard alone, and with reduced motion on no interactive element transitions or animates.
@@ -896,6 +900,7 @@ Shared acceptance for every package:
   - `Docs/FamilyGifts/Testing/MANUAL-TESTING-FG-002-sticker-book-design.md`
   - `README.md`
   - `Docs/FamilyGifts/Runbook.md`
+  - `Docs/FamilyGifts/Testing/MANUAL-TESTING-FG-001-family-gifts.md` (a note that it predates the re-skin)
 - Acceptance criteria:
   1. The manual testing document covers every release with a case per screen at a real phone width and on a desktop, and the change checklist is ticked or annotated with what could not be run.
   2. The README links the design pack and the new decisions folder entries; the Runbook's first-deploy check mentions the new `/welcome` flow and `fg_last_list` cookie.

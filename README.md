@@ -1,7 +1,7 @@
 # Family Gifts
 
 A private family wishlist and gift-coordination app (Next.js, MUI, Drizzle, Postgres).
-Requirements: `docs/family-gifts-prd-v1.md`. Build plan: `docs/FamilyGifts/Specs/`.
+Requirements: `docs/family-gifts-prd-v1.md`. Build plan: `docs/FamilyGifts/Specs/`. Rules and why: `docs/FamilyGifts/Decisions/` (0001 to 0024). Design pack (the Sticker Book screens): `docs/family-gifts-design/`. Manual testing: `docs/FamilyGifts/Testing/`.
 
 ## Setup
 
