@@ -2,7 +2,7 @@
 
 import { requireGuest } from "@/lib/auth/require";
 import { action, ok } from "@/lib/result";
-import { createRecoveryToken, hasActiveRecovery, revokeRecoveryTokens } from "./recovery";
+import { createRecoveryToken, recoveryStatus, revokeRecoveryTokens } from "./recovery";
 
 /** Makes this guest's private link (replacing any earlier one). The link path is returned once and never stored. */
 export async function createRecoveryLink() {
@@ -23,6 +23,7 @@ export async function revokeRecoveryLink() {
 export async function recoveryLinkStatus() {
   return action(async () => {
     const { guestId } = await requireGuest();
-    return ok({ active: await hasActiveRecovery(guestId) });
+    const { active, createdAt } = await recoveryStatus(guestId);
+    return ok({ active, createdAt: createdAt?.toISOString() ?? null });
   });
 }

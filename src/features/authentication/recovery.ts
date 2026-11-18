@@ -19,9 +19,10 @@ export async function revokeRecoveryTokens(guestId: string): Promise<void> {
   await getDb().update(recoveryToken).set({ revokedAt: new Date() }).where(and(eq(recoveryToken.guestId, guestId), isNull(recoveryToken.revokedAt)));
 }
 
-export async function hasActiveRecovery(guestId: string): Promise<boolean> {
-  const rows = await getDb().select({ id: recoveryToken.id }).from(recoveryToken).where(and(eq(recoveryToken.guestId, guestId), isNull(recoveryToken.revokedAt)));
-  return rows.length > 0;
+/** Whether the guest has a link that works, and when it was made. Never the token: only its hash is stored. */
+export async function recoveryStatus(guestId: string): Promise<{ active: boolean; createdAt: Date | null }> {
+  const [row] = await getDb().select({ createdAt: recoveryToken.createdAt }).from(recoveryToken).where(and(eq(recoveryToken.guestId, guestId), isNull(recoveryToken.revokedAt)));
+  return { active: Boolean(row), createdAt: row?.createdAt ?? null };
 }
 
 /** The guest an active token belongs to, or null for an unknown or revoked token. */
