@@ -79,7 +79,7 @@ export async function getEarlierYears(): Promise<EarlierYearView[]> {
   for (const r of rows) {
     const key = `${r.occasion}|${r.year}`;
     const g = groups.get(key) ?? { occasion: r.occasion, year: r.year, lists: [] };
-    g.lists.push({ title: r.title, slug: r.slug, memberName: r.displayName, avatar: toAvatar(r.avatar), giftCount: r.giftCount });
+    g.lists.push({ title: r.title, slug: r.slug, memberId: r.memberId, memberName: r.displayName, avatar: toAvatar(r.avatar), giftCount: r.giftCount });
     groups.set(key, g);
   }
   return [...groups.values()];

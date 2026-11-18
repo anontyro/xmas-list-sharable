@@ -1,15 +1,14 @@
-import Chip from "@mui/material/Chip";
-import Sticker from "@/components/ui/Sticker";
-import type { StickerName } from "@/components/ui/sticker-names";
+import Pill from "@/components/sticker/Pill";
+import type { Tint } from "@/components/sticker/tint";
 import type { GuestItemState, GuestItemStateName } from "../guest-claim-view";
 
-const STICKER: Record<GuestItemStateName, StickerName> = {
-  available: "gifttag",
-  interested: "heartbadge",
-  reserved_by_you: "bag",
-  reserved_by_other: "bag",
-  purchased_by_you: "badge",
-  purchased_by_other: "badge",
+const TONE: Record<GuestItemStateName, Tint | undefined> = {
+  available: undefined,
+  interested: "pink",
+  reserved_by_you: "yellow",
+  reserved_by_other: "yellow",
+  purchased_by_you: "mint",
+  purchased_by_other: "mint",
 };
 
 export function statusLabel({ state, claimedBy }: GuestItemState): string {
@@ -23,8 +22,7 @@ export function statusLabel({ state, claimedBy }: GuestItemState): string {
   }
 }
 
-/** Status in words with an icon; colour only reinforces it. */
+/** Status in words; the tint only reinforces it (decision 0020). */
 export default function StatusChip({ state }: { state: GuestItemState }) {
-  const mine = state.state.endsWith("_by_you") || state.state === "interested";
-  return <Chip size="small" color={mine ? "primary" : "default"} variant={state.state === "available" ? "outlined" : "filled"} icon={<Sticker name={STICKER[state.state]} width={20} />} label={statusLabel(state)} />;
+  return <Pill tone={TONE[state.state]}>{statusLabel(state)}</Pill>;
 }

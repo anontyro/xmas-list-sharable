@@ -1,41 +1,86 @@
-import Container from "@mui/material/Container";
-import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
-import AppLink from "@/components/ui/AppLink";
+import Box from "@mui/material/Box";
+import Hero from "@/components/sticker/Hero";
+import PageWrap from "@/components/sticker/PageWrap";
+import Ribbon from "@/components/sticker/Ribbon";
+import LinkButton from "@/components/ui/LinkButton";
+import StickerCard from "@/components/sticker/StickerCard";
+import Pill from "@/components/sticker/Pill";
 import Sticker from "@/components/ui/Sticker";
-import { getFamilyDashboard } from "@/features/wishlists/public-queries";
+import { getGuestIdentity } from "@/features/authentication/guest-session";
+import PlannerStrip from "@/features/planner/components/PlannerStrip";
+import { getPlannerSummary } from "@/features/planner/queries";
+import MemberCard from "@/features/wishlists/components/MemberCard";
+import { daysUntilChristmas } from "@/features/wishlists/countdown";
+import { getEarlierYears, getFamilyDashboard } from "@/features/wishlists/public-queries";
 
 export const dynamic = "force-dynamic";
 export const metadata = { robots: { index: false, follow: false } };
 
+const gifts = (n: number) => `${n} ${n === 1 ? "gift" : "gifts"}`;
+
 export default async function HomePage() {
-  const { members } = await getFamilyDashboard();
+  const now = new Date();
+  const [{ members }, earlier, guest] = await Promise.all([getFamilyDashboard(), getEarlierYears(), getGuestIdentity()]);
+  const summary = guest ? await getPlannerSummary() : null;
+  const days = daysUntilChristmas(now);
+  const christmas = members.some((m) => m.lists.some((l) => l.occasion === "Christmas" && l.year === now.getFullYear()));
+  const showCountdown = christmas && days !== null;
+  const greeting = guest ? `Hi ${guest.displayName}! Pick a list to browse.` : "Pick a list to browse.";
+
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      <Stack direction="row" spacing={2} sx={{ alignItems: "center", mb: 3 }}>
-        <Sticker name="family" width={72} />
-        <Typography variant="h3" component="h1">Family Gifts</Typography>
-      </Stack>
-      {members.length === 0 ? (
-        <Typography>No wishlists yet. Once the family admin creates some, they&apos;ll appear here.</Typography>
-      ) : (
-        <Stack spacing={2}>
-          {members.map((m) => (
-            <Paper key={m.id} sx={{ p: 2 }}>
-              <Typography variant="h6" component="h2">{m.displayName}</Typography>
-              <Stack component="ul" sx={{ listStyle: "none", p: 0, m: 0 }} spacing={0.5}>
-                {m.lists.map((l) => (
-                  <li key={l.slug}>
-                    <AppLink href={`/l/${l.slug}`}>{l.title}</AppLink>{" "}
-                    <Typography component="span" color="text.secondary">({l.occasion} {l.year})</Typography>
-                  </li>
-                ))}
-              </Stack>
-            </Paper>
-          ))}
-        </Stack>
-      )}
-    </Container>
+    <>
+      <Hero
+        title={christmas ? `Christmas ${now.getFullYear()}` : "Family Gifts"}
+        subtitle={members.length === 0 ? undefined : greeting}
+        tint="yellow"
+        aside={
+          showCountdown ? (
+            <Box sx={{ textAlign: "center", flex: "none" }}>
+              <Sticker name="calendar" width={64} />
+              <Box component="p" sx={{ m: 0, fontFamily: "var(--font-display), sans-serif", fontSize: 20, lineHeight: 1 }}>
+                {days === 0 ? "Today!" : `${days} ${days === 1 ? "day" : "days"}`}
+              </Box>
+            </Box>
+          ) : undefined
+        }
+      />
+      <PageWrap>
+        {members.length === 0 ? (
+          <StickerCard tint="cream" padded>No wishlists yet. Once the family admin creates some, they&apos;ll appear here.</StickerCard>
+        ) : (
+          <Box sx={{ display: "grid", gap: "14px", gridTemplateColumns: { xs: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))", md: "repeat(3, minmax(0, 1fr))" } }}>
+            {members.flatMap((m) =>
+              m.lists.map((l) => (
+                <MemberCard
+                  key={l.slug}
+                  memberId={m.id}
+                  name={m.displayName}
+                  avatar={m.avatar}
+                  subtitle={`${l.occasion} ${l.year} · ${gifts(l.giftCount)}`}
+                  href={`/l/${l.slug}`}
+                  label={m.lists.length === 1 ? `Open ${m.displayName}'s list` : `Open ${m.displayName}'s ${l.title} list`}
+                />
+              )),
+            )}
+          </Box>
+        )}
+        {summary && <PlannerStrip summary={summary} />}
+        {earlier.length > 0 && (
+          <Box component="section" sx={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            <Ribbon tone="sky">Earlier years</Ribbon>
+            {earlier.map((g) => (
+              <StickerCard key={`${g.occasion}${g.year}`} component="article" padded sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "12px" }}>
+                <Sticker name="bookmark" width={40} />
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Box component="h3" sx={{ m: 0, fontSize: 18, fontWeight: 800 }}>{g.occasion} {g.year}</Box>
+                  <Pill tone="mint">Archived · read-only</Pill>
+                </Box>
+                <LinkButton href={`/earlier/${g.year}`} size="small" color="inherit" variant="contained" aria-label={`View ${g.occasion} ${g.year} lists`}>View lists</LinkButton>
+              </StickerCard>
+            ))}
+          </Box>
+        )}
+      </PageWrap>
+    </>
   );
 }

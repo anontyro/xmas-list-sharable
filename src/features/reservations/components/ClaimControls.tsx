@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Alert from "@mui/material/Alert";
-import Button from "@mui/material/Button";
+import Button, { type ButtonProps } from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
@@ -13,6 +13,12 @@ import Stack from "@mui/material/Stack";
 import { purchaseItem, releaseItem, reserveItem, showInterest, withdrawInterest } from "@/features/reservations/actions";
 import type { GuestItemStateName } from "@/features/reservations/guest-claim-view";
 import type { Result } from "@/lib/result";
+
+type ButtonLook = Pick<ButtonProps, "variant" | "color">;
+const red = { variant: "contained", color: "primary" } as const;
+const pink = { variant: "contained", color: "pink" } as const;
+const mint = { variant: "contained", color: "mint" } as const;
+const ghost = { variant: "ghost", color: "inherit" } as const;
 
 /** The buttons a guest may press for one gift, given its state. Another guest's claim shows none. */
 export default function ClaimControls({ itemId, itemTitle, state }: { itemId: string; itemTitle: string; state: GuestItemStateName }) {
@@ -31,24 +37,24 @@ export default function ClaimControls({ itemId, itemTitle, state }: { itemId: st
   };
 
   const buttons = {
-    available: [["Interested", () => showInterest(itemId), "outlined"], ["Reserve", () => reserveItem(itemId), "contained"]],
-    interested: [["Not interested", () => withdrawInterest(itemId), "outlined"], ["Reserve", () => reserveItem(itemId), "contained"]],
-    reserved_by_you: [["Mark purchased", () => purchaseItem(itemId), "contained"], ["Release", () => releaseItem(itemId), "outlined"]],
+    available: [["Interested", () => showInterest(itemId), pink], ["Reserve", () => reserveItem(itemId), red]],
+    interested: [["Not interested", () => withdrawInterest(itemId), ghost], ["Reserve", () => reserveItem(itemId), red]],
+    reserved_by_you: [["Mark purchased", () => purchaseItem(itemId), mint], ["Release", () => releaseItem(itemId), ghost]],
     purchased_by_you: [],
     reserved_by_other: [],
     purchased_by_other: [],
-  } as const satisfies Record<GuestItemStateName, readonly (readonly [string, () => Promise<Result<unknown>>, "outlined" | "contained"])[]>;
+  } as const satisfies Record<GuestItemStateName, readonly (readonly [string, () => Promise<Result<unknown>>, ButtonLook])[]>;
 
   return (
     <Stack spacing={1}>
       <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
-        {buttons[state].map(([label, call, variant]) => (
-          <Button key={label} size="small" variant={variant} disabled={pending} onClick={() => run(call)} aria-label={`${label}: ${itemTitle}`}>
+        {buttons[state].map(([label, call, look]) => (
+          <Button key={label} size="small" {...look} disabled={pending} onClick={() => run(call)} aria-label={`${label}: ${itemTitle}`}>
             {label}
           </Button>
         ))}
         {state === "purchased_by_you" && (
-          <Button size="small" variant="outlined" disabled={pending} onClick={() => setConfirming(true)} aria-label={`Undo purchase: ${itemTitle}`}>
+          <Button size="small" variant="ghost" disabled={pending} onClick={() => setConfirming(true)} aria-label={`Undo purchase: ${itemTitle}`}>
             Undo purchase
           </Button>
         )}

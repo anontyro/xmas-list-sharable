@@ -77,7 +77,7 @@ test("family page, archived banner, unknown link and robots", async ({ page }) =
   const archived = await createList(sarah, "Sarah's old list", true);
 
   await page.goto("/");
-  await expect(page.getByRole("link", { name: "Alex's Christmas" })).toHaveAttribute("href", `/l/${active.slug}`);
+  await expect(page.getByRole("link", { name: "Open Alex's list" })).toHaveAttribute("href", `/l/${active.slug}`);
   await expect(page.getByText("Sarah's old list")).toHaveCount(0);
 
   await page.goto(`/l/${archived.slug}`);

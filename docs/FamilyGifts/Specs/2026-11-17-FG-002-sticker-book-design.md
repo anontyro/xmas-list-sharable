@@ -582,9 +582,13 @@ Shared acceptance for every package:
 - ownedFiles:
   - `src/app/(public)/page.tsx`
   - `src/app/(public)/earlier/[year]/page.tsx` (new)
+  - `src/app/(public)/earlier/[year]/not-found.tsx` (new)
   - `src/features/wishlists/components/MemberCard.tsx` (new)
   - `src/features/planner/components/PlannerStrip.tsx` (new)
   - `src/features/wishlists/components/GiftRow.tsx` (new)
+  - `src/components/ui/LinkButton.tsx` (new)
+  - `tests/unit/planner-strip.test.ts` (new)
+  - `tests/e2e/owner-list.spec.ts`
   - `src/features/reservations/components/ClaimControls.tsx`
   - `src/features/reservations/components/StatusChip.tsx`
 - Acceptance criteria:

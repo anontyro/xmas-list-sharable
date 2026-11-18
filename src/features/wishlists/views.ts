@@ -53,7 +53,7 @@ export type FamilyDashboardView = {
 export type EarlierYearView = {
   occasion: string;
   year: number;
-  lists: { title: string; slug: string; memberName: string; avatar: AvatarSticker | null; giftCount: number }[];
+  lists: { title: string; slug: string; memberId: string; memberName: string; avatar: AvatarSticker | null; giftCount: number }[];
 };
 
 type ItemRow = typeof wishlistItem.$inferSelect;
