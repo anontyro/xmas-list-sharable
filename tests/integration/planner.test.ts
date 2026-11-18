@@ -3,7 +3,7 @@ import { cookieJar, resetRequest } from "./request-context";
 import { db } from "./db-harness";
 import { guest, household, itemClaim, itemInterest, member, plannerItem, recipientBudget, wishlist, wishlistItem } from "@/db/schema";
 import { saveBudgets, setEntryDetails } from "@/features/planner/actions";
-import { getPlanner } from "@/features/planner/queries";
+import { getPlanner, getPlannerSummary } from "@/features/planner/queries";
 import { COOKIE_NAMES } from "@/lib/auth/cookies";
 import { createSession } from "@/lib/auth/session";
 import { UnauthorizedError } from "@/lib/result";
@@ -90,6 +90,18 @@ describe("getPlanner", () => {
     expect((await getPlanner({ occasion: "Christmas", year: 2026 })).groups[0].entries[0].title).toBe("X");
     expect((await getPlanner({ occasion: "Nope", year: 1999 })).selected).toEqual({ occasion: "Birthday", year: 2026 });
     expect((await getPlanner()).periods).toHaveLength(2);
+  });
+
+  it("gives the family page's summary the same planned, spent and budget numbers as the planner page", async () => {
+    const { la, ls, mk, ann, signIn } = await world();
+    const headphones = await mk(la.id, "Headphones", 12999);
+    const cookbook = await mk(ls.id, "Cookbook", 2499);
+    await db.insert(itemClaim).values([{ itemId: headphones.id, guestId: ann.id, status: "reserved" }, { itemId: cookbook.id, guestId: ann.id, status: "purchased" }]);
+    await signIn(ann);
+    expect(await getPlannerSummary()).toEqual({ plannedMinor: 15498, spentMinor: 2499, budgetMinor: null });
+    await saveBudgets({ occasion: "Christmas", year: 2026, total: "300", recipients: [] });
+    const p = await getPlanner();
+    expect(await getPlannerSummary()).toEqual({ plannedMinor: p.totals.plannedMinor, spentMinor: p.totals.spentMinor, budgetMinor: 30000 });
   });
 
   it("has an empty default planner for a guest with nothing yet", async () => {

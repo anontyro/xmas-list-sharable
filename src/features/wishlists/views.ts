@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import { wishlistItem } from "@/db/schema";
+import type { AvatarSticker } from "@/features/family/avatars";
 import type { Priority } from "./schemas";
 
 // Every response shape for a role is declared here, with an explicit mapper, so no query can leak extra columns.
@@ -40,7 +41,19 @@ export type GuestWishlistView = {
 };
 
 export type FamilyDashboardView = {
-  members: { id: string; displayName: string; lists: { title: string; occasion: string; year: number; slug: string }[] }[];
+  members: {
+    id: string;
+    displayName: string;
+    avatar: AvatarSticker | null;
+    lists: { title: string; occasion: string; year: number; slug: string; giftCount: number }[];
+  }[];
+};
+
+/** Archived lists of active members, one group per occasion and year, for the "Earlier years" pages. */
+export type EarlierYearView = {
+  occasion: string;
+  year: number;
+  lists: { title: string; slug: string; memberName: string; avatar: AvatarSticker | null; giftCount: number }[];
 };
 
 type ItemRow = typeof wishlistItem.$inferSelect;

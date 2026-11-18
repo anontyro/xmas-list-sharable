@@ -119,3 +119,9 @@ export async function getPlanner(requested?: Partial<Period>): Promise<PlannerVi
     totals: computePlan(ordered.flatMap((g) => g.entries), planner?.budgetMinor ?? null),
   };
 }
+
+/** The three numbers on the family page's planner card, taken from the planner page's own totals so the two never disagree (decision 0020). */
+export async function getPlannerSummary(): Promise<{ plannedMinor: number; spentMinor: number; budgetMinor: number | null }> {
+  const { totals, budgetMinor } = await getPlanner();
+  return { plannedMinor: totals.plannedMinor, spentMinor: totals.spentMinor, budgetMinor };
+}

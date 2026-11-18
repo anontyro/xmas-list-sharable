@@ -569,6 +569,7 @@ Shared acceptance for every package:
   - `tests/unit/avatars.test.ts` (new)
   - `tests/integration/public-views.test.ts`
   - `tests/integration/projection-isolation.test.ts`
+  - `tests/integration/planner.test.ts`
 - Acceptance criteria:
   1. `AVATAR_STICKERS` has the eight names of D64 and every one is a sticker file; the zod schema rejects anything else.
   2. `getFamilyDashboard` returns `giftCount` (excluding soft-deleted gifts) and `avatar`; `getEarlierYears` returns archived lists grouped by occasion and year with counts for active members only.

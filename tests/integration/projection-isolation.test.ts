@@ -5,7 +5,7 @@ import { guest, guestPlanner, household, itemClaim, itemInterest, member, planne
 import { COOKIE_NAMES } from "@/lib/auth/cookies";
 import { createSession } from "@/lib/auth/session";
 import { getHousehold, getMemberForAdmin, listListsForAdmin, listLoginMembers, listMembersForAdmin } from "@/features/family/queries";
-import { getFamilyDashboard } from "@/features/wishlists/public-queries";
+import { getEarlierYears, getFamilyDashboard } from "@/features/wishlists/public-queries";
 import { getOwnList, listOwnLists } from "@/features/wishlists/owner-queries";
 
 vi.mock("next/headers", async () => (await import("./request-context")).nextHeadersMock);
@@ -29,6 +29,7 @@ describe("owner and admin responses never carry private data", () => {
     const [h] = await db.insert(household).values({ name: "F" }).returning();
     const [alex] = await db.insert(member).values({ householdId: h.id, displayName: "Alex", pinHash: "$argon2id$x" }).returning();
     const [l] = await db.insert(wishlist).values({ memberId: alex.id, title: "x", occasion: "Christmas", year: 2026, slug: "listslug001" }).returning();
+    await db.insert(wishlist).values({ memberId: alex.id, title: "old", occasion: "Christmas", year: 2025, slug: "oldslug0001", archivedAt: new Date() });
     const [item] = await db.insert(wishlistItem).values({ wishlistId: l.id, title: "Book" }).returning();
     const [g] = await db.insert(guest).values({ householdId: h.id, displayName: "Zelda-Claimant" }).returning();
     await db.insert(itemInterest).values({ guestId: g.id, itemId: item.id });
@@ -47,10 +48,13 @@ describe("owner and admin responses never carry private data", () => {
       adminMember: await getMemberForAdmin(alex.id),
       adminLists: await listListsForAdmin(alex.id),
       dashboard: await getFamilyDashboard(),
+      earlierYears: await getEarlierYears(),
       ownLists: await listOwnLists(),
       ownList: await getOwnList(l.id),
     };
     expect(outputs.ownList!.items).toHaveLength(1); // the data really is there to leak
+    expect(outputs.dashboard.members[0].lists[0].giftCount).toBe(1); // and the new count fields are in what is checked
+    expect(outputs.earlierYears).toHaveLength(1);
     const bad = keys(outputs).filter((k) => FORBIDDEN_KEY.test(k));
     expect(bad).toEqual([]);
     const json = JSON.stringify(outputs);
