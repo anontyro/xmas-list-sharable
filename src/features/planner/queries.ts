@@ -27,6 +27,8 @@ export type PlannerView = {
   periods: Period[];
   selected: Period;
   budgetMinor: number | null;
+  /** Every person budget set for this period, including people with no gifts in the planner yet. */
+  recipientBudgets: { memberId: string; budgetMinor: number }[];
   groups: PlannerGroup[];
   totals: PlanTotals;
 };
@@ -115,6 +117,7 @@ export async function getPlanner(requested?: Partial<Period>): Promise<PlannerVi
     periods,
     selected,
     budgetMinor: planner?.budgetMinor ?? null,
+    recipientBudgets: recipientBudgets.map((b) => ({ memberId: b.memberId, budgetMinor: b.budgetMinor })),
     groups: ordered,
     totals: computePlan(ordered.flatMap((g) => g.entries), planner?.budgetMinor ?? null),
   };

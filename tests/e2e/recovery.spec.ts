@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { createItem, createList, createMemberWithPin, guestPage, openAccountMenu, resetAndSeed } from "./helpers";
+import { createItem, createList, createMemberWithPin, guestPage, openAccountMenu, resetAndSeed, setGiftDetails } from "./helpers";
 
 let slug: string;
 test.beforeEach(async () => {
@@ -29,11 +29,7 @@ async function annWithPlan(browser: Parameters<typeof guestPage>[0]) {
   await ann.page.getByRole("button", { name: /^Reserve: Headphones/ }).click();
   await expect(ann.page.getByText("Reserved by you")).toBeVisible();
   await ann.page.goto("/planner");
-  const card = ann.page.locator(".MuiPaper-root").filter({ has: ann.page.getByRole("heading", { name: "Headphones" }) }).first();
-  await card.getByRole("button", { name: /Notes and price paid/ }).click();
-  await card.getByLabel("Private note", { exact: true }).fill("wrap in blue");
-  await card.getByRole("button", { name: "Save", exact: true }).click();
-  await expect(card.getByText("Saved")).toBeVisible();
+  await setGiftDetails(ann.page, "Headphones", { note: "wrap in blue" });
   return ann;
 }
 
@@ -51,8 +47,7 @@ test("a link brings the same planner, reservation and note to a fresh browser, a
   await page.goto(link);
   await expect(page).toHaveURL(/\/planner$/);
   await expect(page.getByRole("heading", { name: "Headphones" })).toBeVisible();
-  await page.getByRole("button", { name: /Notes and price paid/ }).click();
-  await expect(page.getByLabel("Private note", { exact: true })).toHaveValue("wrap in blue");
+  await expect(page.getByText("wrap in blue")).toBeVisible();
   const token = link.split("#t=")[1];
   expect(requests.filter((u) => u.includes(token))).toEqual([]); // fragments are never sent
   expect(logs.join("\n")).not.toContain(token);

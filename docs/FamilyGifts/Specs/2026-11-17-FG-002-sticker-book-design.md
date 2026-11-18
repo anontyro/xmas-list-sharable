@@ -656,6 +656,13 @@ Shared acceptance for every package:
   - `src/features/planner/components/EntryNotes.tsx` (deleted)
   - `src/features/planner/components/PlannerGroup.tsx` (deleted)
   - `src/features/planner/components/TotalsPanel.tsx` (deleted)
+  - `src/features/planner/components/PickNameFirst.tsx` (new)
+  - `src/features/planner/components/SelectionContext.tsx`
+  - `src/features/planner/queries.ts`
+  - `tests/e2e/helpers.ts`
+  - `tests/e2e/planner.spec.ts`
+  - `tests/e2e/planner-export.spec.ts`
+  - `tests/e2e/recovery.spec.ts`
 - Acceptance criteria:
   1. The planner matches screen 05: mint hero, a card per recipient with ribbon, budget, rows with labelled checkboxes, pills, prices and paid amounts, a dashed private-note card with Edit note, the Shopping list card and the yellow total card with meter, three stats and the not-counted note.
   2. All totals equal `computePlan` for the same data (the existing planner e2e figures still hold), and the meter's `aria-label` states spent, planned and total in words.

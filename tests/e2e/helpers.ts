@@ -14,7 +14,16 @@ export const ADMIN_SECRET = process.env.ADMIN_SECRET!;
 
 /** Empties the database and leaves just the household, as `pnpm db:seed` would. */
 export async function resetAndSeed() {
-  await db.execute(sql.raw(`truncate ${tables} restart identity cascade`));
+  // The last request of the previous test can still be writing when this runs, and Postgres then picks one of the two as a deadlock victim: try again.
+  for (let attempt = 1; ; attempt++) {
+    try {
+      await db.execute(sql.raw(`truncate ${tables} restart identity cascade`));
+      break;
+    } catch (e) {
+      const code = (e as { cause?: { code?: string } }).cause?.code;
+      if (code !== "40P01" || attempt === 3) throw e;
+    }
+  }
   const [h] = await db.insert(schema.household).values({ name: "Family" }).returning();
   return h.id;
 }
@@ -75,6 +84,24 @@ export async function guestPage(browser: Browser, slug: string, name: string, op
   await expect(page).toHaveURL(new RegExp(`/l/${slug}$`));
   await expect(page.getByRole("button", { name, exact: true })).toBeVisible(); // the name chip in the top bar
   return { context, page };
+}
+
+/** From the planner: opens Budget and notes, sets the total budget and saves (back on the planner afterwards). */
+export async function setTotalBudget(page: Page, amount: string) {
+  await page.getByRole("link", { name: /^(Set|Edit) budget$/ }).click();
+  await page.getByLabel("Total budget").fill(amount);
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page).toHaveURL(/\/planner\?/);
+}
+
+/** From the planner: opens Budget and notes for one gift, fills what was paid and/or the private note, and saves. */
+export async function setGiftDetails(page: Page, title: string, { price, note }: { price?: string; note?: string }) {
+  const escaped = title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  await page.getByRole("link", { name: new RegExp(`^(Edit note|Add note or price paid): ${escaped}$`) }).click();
+  if (price !== undefined) await page.getByLabel("What you paid").fill(price);
+  if (note !== undefined) await page.getByLabel("Private note", { exact: true }).fill(note);
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page).toHaveURL(/\/planner\?/);
 }
 
 export const PRIVATE = { guest: "Zelda-Claimant", note: "secret-note-123", price: "77.77", token: "recovery-token-hash-abc" };

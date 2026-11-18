@@ -2,7 +2,6 @@
 
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import Checkbox from "@mui/material/Checkbox";
-import FormControlLabel from "@mui/material/FormControlLabel";
 
 type Selection = {
   selected: ReadonlySet<string>;
@@ -32,9 +31,6 @@ export function useSelection(): Selection {
 export function EntrySelect({ itemId, title }: { itemId: string; title: string }) {
   const { selected, toggle } = useSelection();
   return (
-    <FormControlLabel
-      label="Include in export"
-      control={<Checkbox checked={selected.has(itemId)} onChange={() => toggle(itemId)} slotProps={{ input: { "aria-label": `Include in export: ${title}` } }} />}
-    />
+    <Checkbox checked={selected.has(itemId)} onChange={() => toggle(itemId)} slotProps={{ input: { "aria-label": `Select ${title}` } }} />
   );
 }
