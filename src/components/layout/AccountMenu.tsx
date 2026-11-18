@@ -18,12 +18,11 @@ import { tintFor, TINT_COLOR } from "@/components/sticker/tint";
 import { ownerLogout } from "@/features/authentication/owner-login";
 import { signOutGuest } from "@/features/authentication/guest-actions";
 import { recoveryLinkStatus } from "@/features/authentication/recovery-actions";
-import SaveAccessDialog from "@/features/authentication/components/SaveAccessDialog";
 import { tokens } from "@/theme/tokens";
 import ChangeNameDialog from "./ChangeNameDialog";
 
 type Props = { kind: "guest" | "owner"; id: string; name: string; myListHref?: string };
-type Dialogs = "name" | "access" | "confirm" | null;
+type Dialogs = "name" | "confirm" | null;
 
 const dashed = { my: "4px", borderStyle: "dashed", borderColor: tokens.ink, borderBottomWidth: 2, opacity: 1 } as const;
 
@@ -88,7 +87,7 @@ export default function AccountMenu({ kind, id, name, myListHref = "/owner" }: P
         </li>
         <Divider component="li" sx={dashed} />
         {kind === "guest" && <MenuItem onClick={open("name")}>Change my name</MenuItem>}
-        {kind === "guest" && <MenuItem onClick={open("access")} sx={{ backgroundColor: tokens.sky, "&:hover": { backgroundColor: tokens.sky } }}>Save access (recovery link)</MenuItem>}
+        {kind === "guest" && <MenuItem component={NextLink} href="/access" {...item} sx={{ backgroundColor: tokens.sky, "&:hover": { backgroundColor: tokens.sky } }}>Save access (recovery link)</MenuItem>}
         {kind === "guest" && <MenuItem component={NextLink} href="/planner" {...item}>My planner</MenuItem>}
         {kind === "guest" && <MenuItem component={NextLink} href="/owner/login" {...item}>I own a list (PIN)</MenuItem>}
         {kind === "owner" && <MenuItem component={NextLink} href={myListHref} {...item}>My list</MenuItem>}
@@ -105,7 +104,6 @@ export default function AccountMenu({ kind, id, name, myListHref = "/owner" }: P
       </Menu>
 
       {kind === "guest" && <ChangeNameDialog open={dialog === "name"} currentName={name} onClose={() => setDialog(null)} />}
-      {kind === "guest" && <SaveAccessDialog open={dialog === "access"} onClose={() => setDialog(null)} />}
       {kind === "guest" && (
         <Dialog open={dialog === "confirm"} onClose={() => setDialog(null)} aria-labelledby="confirm-signout-title">
           <DialogTitle id="confirm-signout-title">Sign out without a recovery link?</DialogTitle>

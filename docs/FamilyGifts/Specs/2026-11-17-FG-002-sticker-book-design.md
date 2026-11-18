@@ -443,6 +443,8 @@ Shared acceptance for every package:
   - `tests/e2e/planner-export.spec.ts`
   - `tests/e2e/recovery.spec.ts`
   - `tests/e2e/mobile-a11y.spec.ts`
+  - `tests/e2e/welcome.spec.ts`
+  - `tests/e2e/navigation.spec.ts`
   - `tests/e2e/owner-list.spec.ts`
 - Acceptance criteria:
   1. Guest, owner and admin pages show their own shell as D54 and D55 describe, with the top links from 860 px and the tabs below it, never both, and `aria-current="page"` on the active item.
@@ -677,6 +679,9 @@ Shared acceptance for every package:
   - `src/features/authentication/components/AccessPanel.tsx` (new)
   - `src/features/authentication/components/SaveAccessDialog.tsx` (deleted)
   - `src/components/layout/AccountMenu.tsx`
+  - `tests/unit/access-status.test.ts` (new)
+  - `tests/e2e/recovery.spec.ts`
+  - `tests/e2e/mobile-a11y.spec.ts`
 - Acceptance criteria:
   1. `/access` matches screen 07: sky hero with back link, status pill, the link card (only right after making a link), Copy link, Make a new link, Turn link off, the three-step "How it works" card, the warning note and the identity card.
   2. The link text appears only in the response to making it; reloading or leaving and returning shows the status and no link, and the help text says so; no link or token is in the server-rendered HTML.

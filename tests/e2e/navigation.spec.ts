@@ -101,9 +101,9 @@ test("sign-out without a recovery link asks first; with one it signs out at once
   // Make a link, then sign out goes straight through to the family page, and the chip is gone.
   await openAccountMenu(page, "Ann");
   await page.getByRole("menuitem", { name: "Save access (recovery link)" }).click();
+  await expect(page).toHaveURL(/\/access$/);
   await page.getByRole("button", { name: "Make a link" }).click();
   const link = await page.getByLabel("Your private link").inputValue();
-  await page.getByRole("button", { name: "Close" }).click();
   await openAccountMenu(page, "Ann");
   await page.getByRole("menuitem", { name: "Sign out of this device" }).click();
   await expect(page).toHaveURL(/\/$/);

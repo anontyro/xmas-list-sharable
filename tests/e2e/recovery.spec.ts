@@ -10,11 +10,12 @@ test.beforeEach(async () => {
   await createItem(list.id, "Headphones", 12999);
 });
 
-/** Save access is an item in the name chip's menu, at every width. */
+/** Save access is an item in the name chip's menu, at every width, and opens its own page. */
 async function openSaveAccess(page: Page) {
   await openAccountMenu(page, "Ann");
   await page.getByRole("menuitem", { name: "Save access (recovery link)" }).click();
-  await expect(page.getByRole("dialog", { name: "Save access" })).toBeVisible();
+  await expect(page).toHaveURL(/\/access$/);
+  await expect(page.getByRole("heading", { name: "Save your access", level: 1 })).toBeVisible();
 }
 
 async function makeLink(page: Page) {
@@ -36,7 +37,7 @@ async function annWithPlan(browser: Parameters<typeof guestPage>[0]) {
 test("a link brings the same planner, reservation and note to a fresh browser, and the address bar is clean", async ({ browser }) => {
   const ann = await annWithPlan(browser);
   const link = await makeLink(ann.page);
-  await expect(ann.page.getByText("Anyone who has this link")).toBeVisible();
+  await expect(ann.page.getByText("Anyone with this link")).toBeVisible();
 
   const other = await browser.newContext();
   const page = await other.newPage();
@@ -87,7 +88,7 @@ test("turning off or replacing a link makes the old one fail with the same messa
   await expect(p1.getByText("This link doesn't work.")).toBeVisible();
   await expect(p1).toHaveURL(/\/recover$/);
 
-  await ann.page.getByRole("button", { name: "Turn off link" }).click();
+  await ann.page.getByRole("button", { name: "Turn link off" }).click();
   const p2 = await fresh.newPage();
   await p2.goto(second);
   await expect(p2.getByText("This link doesn't work.")).toBeVisible();
@@ -106,7 +107,26 @@ test("another guest cannot reach Ann's plans without her link", async ({ browser
   await ann.context.close();
 });
 
-test("a visitor who has never picked a name has no Save access", async ({ page }) => {
+test("a visitor who has never picked a name has no Save access, and /access sends them to the welcome screen", async ({ page }) => {
   await page.goto(`/l/${slug}`);
-  await expect(page.getByRole("button", { name: "Save access" })).toHaveCount(0);
+  await expect(page.getByRole("menuitem", { name: /Save access/ })).toHaveCount(0);
+  await page.goto("/access");
+  await expect(page).toHaveURL(/\/welcome\?next=(%2F|\/)access$/);
+});
+
+test("the link is shown only right after it is made: a reload shows the status and no link", async ({ browser }) => {
+  const ann = await annWithPlan(browser);
+  await openSaveAccess(ann.page);
+  await expect(ann.page.getByText("No link yet")).toBeVisible();
+  await ann.page.getByRole("button", { name: "Make a link" }).click();
+  const link = await ann.page.getByLabel("Your private link").inputValue();
+  await expect(ann.page.getByText("Active · made today")).toBeVisible();
+  await expect(ann.page.getByText("Copy it now")).toBeVisible();
+  const token = link.split("#t=")[1];
+  await ann.page.reload();
+  await expect(ann.page.getByText("Active · made today")).toBeVisible();
+  await expect(ann.page.getByRole("textbox", { name: "Your private link" })).toHaveCount(0); // no link field any more
+  expect(await ann.page.content()).not.toContain(token);
+  await expect(ann.page.getByText("can't show your link again")).toBeVisible();
+  await ann.context.close();
 });

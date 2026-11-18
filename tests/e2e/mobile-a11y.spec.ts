@@ -64,10 +64,13 @@ test("every page fits the screen and has no serious accessibility violations", a
   await openAccountMenu(guest, "Ann");
   await serious(guest, "account menu");
   await guest.getByRole("menuitem", { name: "Save access (recovery link)" }).click();
+  await expect(guest).toHaveURL(/\/access$/);
+  await noSideScroll(guest, "access page");
+  await serious(guest, "access page");
   await guest.getByRole("button", { name: "Make a link" }).click();
-  await expect(guest.getByLabel("Your private link")).toBeVisible();
-  await noSideScroll(guest, "save access dialog");
-  await serious(guest, "save access dialog");
+  await expect(guest.getByRole("textbox", { name: "Your private link" })).toBeVisible();
+  await noSideScroll(guest, "access page with a link");
+  await serious(guest, "access page with a link");
   await context.close();
 
   for (const path of ["/welcome", "/owner/login", "/admin/login", "/recover"]) {

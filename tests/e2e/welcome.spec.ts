@@ -21,6 +21,7 @@ async function annWithLink(browser: Parameters<typeof guestPage>[0]) {
   await expect(ann.page.getByText("Reserved by you")).toBeVisible();
   await openAccountMenu(ann.page, "Ann");
   await ann.page.getByRole("menuitem", { name: "Save access (recovery link)" }).click();
+  await expect(ann.page).toHaveURL(/\/access$/);
   await ann.page.getByRole("button", { name: "Make a link" }).click();
   const link = await ann.page.getByLabel("Your private link").inputValue();
   return { ...ann, link };
@@ -134,7 +135,7 @@ test("pasting a recovery link brings a guest back on a fresh browser, and the to
 
 test("a turned-off recovery link fails on the welcome screen with the same message as any other bad link", async ({ browser }) => {
   const ann = await annWithLink(browser);
-  await ann.page.getByRole("button", { name: "Turn off link" }).click();
+  await ann.page.getByRole("button", { name: "Turn link off" }).click();
 
   const context = await browser.newContext();
   const page = await context.newPage();
