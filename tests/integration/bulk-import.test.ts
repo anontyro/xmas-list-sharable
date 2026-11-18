@@ -61,6 +61,43 @@ describe("commitBulkImport", () => {
     expect(love[1]).toMatchObject({ priceMinor: 500, productUrl: expect.stringContaining("amazon.co.uk/dp/") });
   });
 
+  it("puts each row in its own priority group, after the gifts already there and in the order given", async () => {
+    const { a, la, signIn } = await world();
+    await db.insert(wishlistItem).values([
+      { wishlistId: la.id, title: "Old top", priority: "most_wanted", sortOrder: 40 },
+      { wishlistId: la.id, title: "Old love", priority: "would_love", sortOrder: 30 },
+      { wishlistId: la.id, title: "Old nice", priority: "nice_to_have", sortOrder: 20 },
+    ]);
+    await signIn(a);
+    const r = await commitBulkImport(la.id, [
+      { ...row("Nice one"), priority: "nice_to_have" },
+      { ...row("Top one"), priority: "most_wanted" },
+      row("Default one"), // no priority: Would Love
+      { ...row("Top two"), priority: "most_wanted" },
+      { ...row("Nice two"), priority: "nice_to_have" },
+    ]);
+    expect(r).toMatchObject({ ok: true, data: { added: 5, skipped: 0 } });
+    const all = await items(la.id);
+    const group = (p: string) => all.filter((i) => i.priority === p).map((i) => i.title);
+    expect(group("most_wanted")).toEqual(["Old top", "Top one", "Top two"]);
+    expect(group("would_love")).toEqual(["Old love", "Default one"]);
+    expect(group("nice_to_have")).toEqual(["Old nice", "Nice one", "Nice two"]);
+    // The gifts that were already there did not move.
+    expect(all.filter((i) => i.title.startsWith("Old")).map((i) => [i.title, i.sortOrder])).toEqual(
+      expect.arrayContaining([["Old top", 40], ["Old love", 30], ["Old nice", 20]]),
+    );
+  });
+
+  it("refuses any other priority and adds nothing, even for the good rows", async () => {
+    const { a, la, signIn } = await world();
+    await signIn(a);
+    for (const priority of ["urgent", "", null, 3, "MOST_WANTED"]) {
+      const r = await commitBulkImport(la.id, [{ ...row("Good"), priority: "most_wanted" }, { ...row("Odd"), priority } as never]);
+      expect(r, String(priority)).toMatchObject({ ok: false, error: { code: "INVALID", message: expect.stringContaining("Odd") } });
+    }
+    expect(await items(la.id)).toHaveLength(0);
+  });
+
   it("adds nothing when any row is invalid", async () => {
     const { a, la, signIn } = await world();
     await signIn(a);
