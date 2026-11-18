@@ -606,7 +606,7 @@ Shared acceptance for every package:
   - `src/features/wishlists/components/ListFilterDialog.tsx` (new)
   - `src/features/wishlists/components/SortFilterBar.tsx` (deleted)
   - `src/features/wishlists/components/PublicItemCard.tsx` (deleted)
-  - `src/features/wishlists/components/PriorityChip.tsx` (deleted)
+  - `tests/e2e/ordering.spec.ts`
 - Acceptance criteria:
   1. The list page matches screen 04: hero with back link and sticker, ribbons per priority in the owner's order, a `GiftRow` per gift, and the sidebar on desktop.
   2. Sort, priority, price and availability controls read and write the existing URL parameters through the existing pure functions; a copied filter link shows the same view; "Up to £N" at its maximum omits `max`; clearing restores a plain URL.
@@ -702,6 +702,7 @@ Shared acceptance for every package:
   - `src/features/wishlists/components/ReorderControls.tsx`
   - `src/features/wishlists/components/ItemForm.tsx` (deleted)
   - `src/features/wishlists/components/OwnerItemList.tsx` (deleted)
+  - `src/features/wishlists/components/PriorityChip.tsx` (deleted; the owner list still uses it until here)
   - `src/features/imports/components/UrlImportPanel.tsx`
   - `src/components/layout/OwnerShell.tsx`
 - Acceptance criteria:

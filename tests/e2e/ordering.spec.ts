@@ -15,10 +15,19 @@ test.beforeEach(async () => {
 });
 
 const guestOrder = async (page: Page) =>
-  (await page.getByRole("heading", { level: 2 }).allInnerTexts()).filter((t) => ["Alpha", "Beta", "Gamma"].includes(t));
+  (await page.getByRole("heading", { level: 3 }).allInnerTexts()).filter((t) => ["Alpha", "Beta", "Gamma"].includes(t));
 
 const ownerOrder = (page: Page) =>
   page.locator('[aria-label^="Move up:"]').evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")!.replace("Move up: ", "")));
+
+/** Picks a sort. Phones keep the controls in a dialog behind "More filters" (which hides the page while open, so close it); wide screens show them in the sidebar. */
+async function chooseSort(page: Page, name: string) {
+  const more = page.getByRole("button", { name: "More filters" });
+  const onPhone = await more.isVisible();
+  if (onPhone) await more.click();
+  await page.getByRole("button", { name, exact: true }).click();
+  if (onPhone) await page.keyboard.press("Escape");
+}
 
 test("the owner reorders by keyboard and guests see it; a guest's sort never changes the owner's order", async ({ page, browser }) => {
   await ownerSignIn(page);
@@ -41,14 +50,11 @@ test("the owner reorders by keyboard and guests see it; a guest's sort never cha
   await gp.goto(`/l/${slug}`);
   expect(await guestOrder(gp)).toEqual(["Alpha", "Gamma", "Beta"]);
 
-  await gp.getByRole("button", { name: /Sort and filter/ }).click();
-  await gp.getByRole("combobox", { name: "Sort by" }).click();
-  await gp.getByRole("option", { name: "Price: high to low" }).click();
+  await chooseSort(gp, "Price, high to low");
   await expect.poll(() => guestOrder(gp)).toEqual(["Gamma", "Alpha", "Beta"]); // unpriced last
   await expect(gp).toHaveURL(/sort=price_desc/);
 
-  await gp.getByRole("combobox", { name: "Sort by" }).click();
-  await gp.getByRole("option", { name: "Price: low to high" }).click();
+  await chooseSort(gp, "Price, low to high");
   await expect.poll(() => guestOrder(gp)).toEqual(["Alpha", "Gamma", "Beta"]); // unpriced still last
 
   // A fresh visit with no params shows the owner's order again, and the owner's order is untouched.
@@ -64,7 +70,6 @@ test("a copied filter link shows the same view, and filters can be cleared", asy
   const page = await context.newPage();
   await page.goto(`/l/${slug}?min=5&max=20`);
   expect(await guestOrder(page)).toEqual(["Alpha"]); // £10 only; Beta has no price, Gamma is over £20
-  await expect(page.getByRole("button", { name: /Sort and filter \(on\)/ })).toBeVisible();
   await page.goto(`/l/${slug}?min=100`);
   await expect(page.getByText("No gifts match these filters.")).toBeVisible();
   await page.getByRole("link", { name: "Clear filters" }).click();
