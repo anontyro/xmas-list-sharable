@@ -618,6 +618,7 @@ Shared acceptance for every package:
 - Lane: `e2e`
 - ownedFiles:
   - `tests/e2e/family-page.spec.ts` (new)
+  - `tests/e2e/helpers.ts`
   - `Docs/FamilyGifts/Decisions/0020-family-dashboard-and-countdown.md` (new)
   - `tests/e2e/ordering.spec.ts`
   - `tests/e2e/claims.spec.ts`

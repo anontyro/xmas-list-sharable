@@ -82,3 +82,59 @@ test("the owner page has no claim-based sort or filter", async ({ page }) => {
   await page.goto(`/owner/lists/${listId}`);
   await expect(page.getByText(/Sort and filter|reserved|available/i)).toHaveCount(0);
 });
+
+test("the list shows ribbons for each priority in the owner's order", async ({ browser }) => {
+  await createItem(listId, "Delta", 2000, "most_wanted");
+  await createItem(listId, "Epsilon", 500, "nice_to_have");
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.goto(`/l/${slug}`);
+  const ribbons = (await page.getByRole("heading", { level: 2 }).allInnerTexts()).map((t) => t.replace("★ ", ""));
+  expect(ribbons.filter((t) => t !== "Sort and filter")).toEqual(["MOST WANTED", "WOULD LOVE", "NICE TO HAVE"]);
+  expect(await page.getByRole("heading", { level: 3 }).allInnerTexts()).toEqual(["Delta", "Alpha", "Beta", "Gamma", "Epsilon"]);
+  await context.close();
+});
+
+test("the price control and chips change the visible gifts and the URL, and the phone dialog works by keyboard", async ({ browser }, info) => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.goto(`/l/${slug}`);
+  if (info.project.name === "mobile") {
+    await page.getByRole("button", { name: "Under £25" }).click();
+    await expect(page).toHaveURL(/max=25\.00/);
+    await expect.poll(() => guestOrder(page)).toEqual(["Alpha"]); // Beta has no price, Gamma is £30
+    await page.getByRole("button", { name: "Under £25" }).click();
+    await expect(page).not.toHaveURL(/max=/);
+    await page.getByRole("button", { name: "Available only" }).click();
+    await expect(page).toHaveURL(/avail=1/);
+
+    const more = page.getByRole("button", { name: "More filters" });
+    await more.focus();
+    await page.keyboard.press("Enter");
+    const dialog = page.getByRole("dialog", { name: "Sort and filter" });
+    await expect(dialog).toBeVisible();
+    for (let i = 0; i < 12; i++) {
+      await page.keyboard.press("Tab");
+      expect(await page.evaluate(() => Boolean(document.activeElement?.closest('[role="dialog"]')))).toBe(true); // focus never leaves the dialog
+    }
+    await page.keyboard.press("Escape");
+    await expect(dialog).toHaveCount(0);
+    await expect(more).toBeFocused();
+  } else {
+    const slider = page.getByRole("slider");
+    await expect(slider).toHaveAttribute("aria-valuemax", "30"); // the dearest gift (£30) rounded up to £5
+    await slider.focus();
+    for (let i = 0; i < 5; i++) await page.keyboard.press("ArrowLeft");
+    await expect(page).toHaveURL(/max=25\.00/);
+    await expect.poll(() => guestOrder(page)).toEqual(["Alpha"]);
+    await page.keyboard.press("End"); // back at the top: the limit is off and `max` leaves the URL
+    await expect(page).not.toHaveURL(/max=/);
+    await expect.poll(() => guestOrder(page)).toEqual(["Alpha", "Beta", "Gamma"]);
+    await page.getByRole("button", { name: "Most Wanted" }).click();
+    await expect(page).toHaveURL(/priority=most_wanted/);
+    await expect(page.getByRole("button", { name: "Most Wanted" })).toHaveAttribute("aria-pressed", "true");
+    await page.getByRole("button", { name: "Clear filters" }).first().click();
+    await expect(page).toHaveURL(new RegExp(`/l/${slug}$`));
+  }
+  await context.close();
+});
