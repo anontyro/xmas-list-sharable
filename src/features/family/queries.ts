@@ -41,12 +41,6 @@ export async function listMembersForAdmin() {
   return rows.map((m) => ({ ...toAdminMember(m), lists: lists.filter((l) => l.memberId === m.id) }));
 }
 
-export async function getMemberForAdmin(memberId: string) {
-  await requireAdmin();
-  const [m] = await getDb().select(ADMIN_MEMBER_COLUMNS).from(member).where(eq(member.id, memberId));
-  return m ? toAdminMember(m) : null;
-}
-
 /** Every list, active and archived, with its member's name (the Lists tab). */
 export async function listAllListsForAdmin() {
   await requireAdmin();
@@ -55,13 +49,4 @@ export async function listAllListsForAdmin() {
     .from(wishlist)
     .innerJoin(member, eq(member.id, wishlist.memberId))
     .orderBy(desc(wishlist.year), asc(member.displayName), asc(wishlist.title));
-}
-
-export async function listListsForAdmin(memberId: string) {
-  await requireAdmin();
-  return getDb()
-    .select(ADMIN_LIST_COLUMNS)
-    .from(wishlist)
-    .where(eq(wishlist.memberId, memberId))
-    .orderBy(desc(wishlist.year), asc(wishlist.title));
 }

@@ -22,8 +22,10 @@ export default function CreateListForm({ members, year }: { members: { id: strin
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(undefined);
+    const yearNumber = Number(listYear.trim());
+    if (!Number.isInteger(yearNumber) || yearNumber < 2000 || yearNumber > 2100) return setError("Enter a year like 2026");
     start(async () => {
-      const r = await createList({ memberId, title: `${occasion.trim()} ${listYear}`, occasion, year: Number(listYear) });
+      const r = await createList({ memberId, title: `${occasion.trim()} ${yearNumber}`, occasion, year: yearNumber });
       if (!r.ok) return setError(r.error.message);
       router.refresh();
     });

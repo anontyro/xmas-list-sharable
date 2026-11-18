@@ -175,3 +175,20 @@ test("Reset PIN, Rename with a new picture, Archive then Restore and Deactivate 
   expect(dialogs[0]).toContain("Archive this list?");
   expect(dialogs.at(-1)).toContain("Deactivate this member?");
 });
+
+test("the picture picker moves with the arrow keys, and a bad year gets a friendly message", async ({ page }) => {
+  await createMemberWithPin(householdId, "Alex", "123456");
+  await adminSignIn(page);
+  const add = page.getByRole("region", { name: "Add a member" });
+  await add.getByRole("radio", { name: "Gingerbread picture" }).click();
+  await page.keyboard.press("ArrowRight");
+  await expect(add.getByRole("radio", { name: "Reindeer picture" })).toBeChecked();
+  await expect(add.getByRole("radio", { name: "Reindeer picture" })).toBeFocused();
+
+  const create = page.getByRole("region", { name: "Create a list" });
+  await create.getByLabel("Member").click();
+  await page.getByRole("option", { name: "Alex" }).click();
+  await create.getByLabel("Year").fill("abc");
+  await create.getByRole("button", { name: "Create list" }).click();
+  await expect(create.getByText("Enter a year like 2026")).toBeVisible();
+});

@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Sticker from "@/components/ui/Sticker";
@@ -20,10 +21,11 @@ const LABELS: Record<AvatarSticker, string> = {
 
 /** The eight picture stickers as a radio group, plus "No picture" (their first initial is used). */
 export default function AvatarPicker({ value, onChange }: { value: AvatarSticker | null; onChange: (v: AvatarSticker | null) => void }) {
+  const labelId = useId();
   return (
     <Box>
-      <Box component="p" id="avatar-label" sx={{ m: 0, mb: "6px", fontWeight: 800, fontSize: 14 }}>Picture (optional)</Box>
-      <Box role="radiogroup" aria-labelledby="avatar-label" sx={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+      <Box component="p" id={labelId} sx={{ m: 0, mb: "6px", fontWeight: 800, fontSize: 14 }}>Picture (optional)</Box>
+      <Box role="radiogroup" aria-labelledby={labelId} sx={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
         {AVATAR_STICKERS.map((name, i) => {
           const on = value === name;
           return (
@@ -34,7 +36,16 @@ export default function AvatarPicker({ value, onChange }: { value: AvatarSticker
               role="radio"
               aria-checked={on}
               aria-label={`${LABELS[name]} picture`}
+              tabIndex={on || (value === null && i === 0) ? 0 : -1}
               onClick={() => onChange(name)}
+              onKeyDown={(e) => {
+                const step = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
+                if (!step) return;
+                e.preventDefault();
+                const next = AVATAR_STICKERS[(i + step + AVATAR_STICKERS.length) % AVATAR_STICKERS.length];
+                onChange(next);
+                (e.currentTarget.parentElement?.querySelector(`[aria-label="${LABELS[next]} picture"]`) as HTMLElement | null)?.focus();
+              }}
               sx={{
                 width: 48,
                 height: 48,

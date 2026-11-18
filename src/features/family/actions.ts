@@ -53,7 +53,12 @@ export async function renameMember(memberId: string, displayName: string, avatar
     const picture = avatar === undefined || avatar === null ? { success: true as const, data: avatar } : avatarSchema.safeParse(avatar);
     if (!picture.success) return fail("INVALID", "Pick one of the pictures");
     try {
-      await getDb().update(member).set({ displayName: name.data, ...(picture.data === undefined ? {} : { avatar: picture.data }) }).where(eq(member.id, memberId));
+      const updated = await getDb()
+        .update(member)
+        .set({ displayName: name.data, ...(picture.data === undefined ? {} : { avatar: picture.data }) })
+        .where(eq(member.id, memberId))
+        .returning({ id: member.id });
+      if (updated.length === 0) return NOT_FOUND;
       revalidatePath("/admin");
       return ok(null);
     } catch (e) {
@@ -66,7 +71,8 @@ export async function renameMember(memberId: string, displayName: string, avatar
 export async function deactivateMember(memberId: string) {
   return action(async () => {
     await requireAdmin();
-    await getDb().update(member).set({ active: false }).where(eq(member.id, memberId));
+    const updated = await getDb().update(member).set({ active: false }).where(eq(member.id, memberId)).returning({ id: member.id });
+    if (updated.length === 0) return NOT_FOUND;
     await revokeSessionsFor("owner", memberId);
     revalidatePath("/admin");
     revalidatePath("/");

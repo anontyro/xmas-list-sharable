@@ -4,7 +4,7 @@ import { db } from "./db-harness";
 import { guest, guestPlanner, household, itemClaim, itemInterest, member, plannerItem, recoveryToken, wishlist, wishlistItem } from "@/db/schema";
 import { COOKIE_NAMES } from "@/lib/auth/cookies";
 import { createSession } from "@/lib/auth/session";
-import { getHousehold, getMemberForAdmin, listAllListsForAdmin, listListsForAdmin, listLoginMembers, listMembersForAdmin } from "@/features/family/queries";
+import { getHousehold, listAllListsForAdmin, listLoginMembers, listMembersForAdmin } from "@/features/family/queries";
 import { getEarlierYears, getFamilyDashboard } from "@/features/wishlists/public-queries";
 import { getOwnList, listOwnLists } from "@/features/wishlists/owner-queries";
 
@@ -45,8 +45,6 @@ describe("owner and admin responses never carry private data", () => {
       household: await getHousehold(),
       loginMembers: await listLoginMembers(),
       adminMembers: await listMembersForAdmin(),
-      adminMember: await getMemberForAdmin(alex.id),
-      adminLists: await listListsForAdmin(alex.id),
       adminAllLists: await listAllListsForAdmin(),
       dashboard: await getFamilyDashboard(),
       earlierYears: await getEarlierYears(),

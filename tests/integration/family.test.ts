@@ -3,7 +3,7 @@ import { cookieJar, resetRequest } from "./request-context";
 import { db } from "./db-harness";
 import { household, member, session, wishlist } from "@/db/schema";
 import { archiveList, createList, createMember, deactivateMember, renameMember, restoreList, setOwnerPin } from "@/features/family/actions";
-import { getMemberForAdmin, listAllListsForAdmin, listLoginMembers, listMembersForAdmin } from "@/features/family/queries";
+import { listAllListsForAdmin, listLoginMembers, listMembersForAdmin } from "@/features/family/queries";
 import { COOKIE_NAMES } from "@/lib/auth/cookies";
 import { createSession, getSession } from "@/lib/auth/session";
 import { UnauthorizedError } from "@/lib/result";
@@ -43,9 +43,8 @@ describe("without an admin session", () => {
   });
 
   it("admin queries throw", async () => {
-    const { m } = await setup(false);
+    await setup(false);
     await expect(listMembersForAdmin()).rejects.toBeInstanceOf(UnauthorizedError);
-    await expect(getMemberForAdmin(m.id)).rejects.toBeInstanceOf(UnauthorizedError);
     await expect(listAllListsForAdmin()).rejects.toBeInstanceOf(UnauthorizedError);
   });
 });
@@ -79,6 +78,8 @@ describe("as admin", () => {
     const ghost = "00000000-0000-0000-0000-000000000000";
     expect(await setOwnerPin(ghost, "123456")).toMatchObject({ ok: false, error: { code: "NOT_FOUND" } });
     expect(await createList({ memberId: ghost, title: "T", year: 2026 })).toMatchObject({ ok: false, error: { code: "NOT_FOUND" } });
+    expect(await renameMember(ghost, "Nobody")).toMatchObject({ ok: false, error: { code: "NOT_FOUND" } });
+    expect(await deactivateMember(ghost)).toMatchObject({ ok: false, error: { code: "NOT_FOUND" } });
     expect(await db.select().from(wishlist)).toHaveLength(0);
   });
 

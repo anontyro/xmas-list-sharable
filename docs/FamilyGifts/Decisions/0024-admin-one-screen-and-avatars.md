@@ -21,4 +21,5 @@ The admin is one person doing small jobs for a handful of relatives. One screen 
 - Archive is per list, not per member: a member with several open lists has an Archive list button on each, which is a small change from the one-per-card drawing.
 - The phone tab bar has Members and Lists but not Sign out, which stays in the top bar at every width.
 - List titles cannot be edited and a deactivated member cannot be reactivated (both are non-goals).
-- A copied link needs the browser to allow clipboard writes; if it does not, the button does nothing visible.
+- A copied link needs the browser to allow clipboard writes; if it does not, the button says "Couldn't copy".
+- Rename and Deactivate report "That member no longer exists" for an unknown member, like Set PIN does. The owner sign-in checks a member with no PIN against a dummy hash, so its timing matches a wrong PIN.
