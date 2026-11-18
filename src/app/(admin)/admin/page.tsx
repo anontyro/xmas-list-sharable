@@ -1,3 +1,4 @@
+import Empty from "@/components/sticker/Empty";
 import { redirect } from "next/navigation";
 import Hero from "@/components/sticker/Hero";
 import PageWrap from "@/components/sticker/PageWrap";
@@ -21,7 +22,7 @@ export default async function AdminPage() {
         <TwoColumn
           main={
             members.length === 0 ? (
-              <p>No members yet. Add the first one.</p>
+              <Empty sticker="family">No members yet. Add the first one.</Empty>
             ) : (
               members.map((m) => <AdminMemberCard key={m.id} member={m} />)
             )

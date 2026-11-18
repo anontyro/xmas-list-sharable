@@ -1,3 +1,4 @@
+import Empty from "@/components/sticker/Empty";
 import Box from "@mui/material/Box";
 import SectionTitle from "@/components/sticker/SectionTitle";
 import { notFound } from "next/navigation";
@@ -61,7 +62,7 @@ export default async function ListPage({ params, searchParams }: { params: Promi
           sideLast
           main={
             list.items.length === 0 ? (
-              <StickerCard tint="cream" padded>Nothing on this list yet.</StickerCard>
+              <Empty sticker="presentgold">Nothing on this list yet.</Empty>
             ) : visible.length === 0 ? (
               <StickerCard tint="cream" padded>
                 No gifts match these filters. <AppLink href={`/l/${list.slug}`}>Clear filters</AppLink>

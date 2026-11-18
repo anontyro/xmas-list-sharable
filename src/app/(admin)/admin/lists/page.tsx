@@ -1,3 +1,4 @@
+import Empty from "@/components/sticker/Empty";
 import Box from "@mui/material/Box";
 import { redirect } from "next/navigation";
 import Hero from "@/components/sticker/Hero";
@@ -21,7 +22,7 @@ export default async function AdminListsPage() {
     <>
       <Hero title="Lists" subtitle="Every list, with its private link." tint="sky" sticker={{ name: "bookmark", width: 64, rotate: 6 }} />
       <PageWrap>
-        {lists.length === 0 && <p>No lists yet. Create one on the Members page.</p>}
+        {lists.length === 0 && <Empty sticker="heartlist">No lists yet. Create one on the Members page.</Empty>}
         {years.map((year) => (
           <Box key={year} component="section" aria-label={String(year)} sx={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             <SectionTitle>{year}</SectionTitle>

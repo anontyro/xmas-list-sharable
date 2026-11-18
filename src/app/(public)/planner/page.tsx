@@ -1,7 +1,7 @@
+import Empty from "@/components/sticker/Empty";
 import Box from "@mui/material/Box";
 import Hero from "@/components/sticker/Hero";
 import PageWrap from "@/components/sticker/PageWrap";
-import StickerCard from "@/components/sticker/StickerCard";
 import TwoColumn from "@/components/sticker/TwoColumn";
 import LinkButton from "@/components/ui/LinkButton";
 import { getGuestIdentity } from "@/features/authentication/guest-session";
@@ -45,7 +45,7 @@ export default async function PlannerPage({ searchParams }: { searchParams: Prom
             main={
               <>
                 {plan.groups.length === 0 && (
-                  <StickerCard tint="cream" padded>Nothing in your planner yet. Open a family list and tap Interested or Reserve on a gift.</StickerCard>
+                  <Empty sticker="checklist">Nothing in your planner yet. Open a family list and tap Interested or Reserve on a gift.</Empty>
                 )}
                 {plan.groups.map((g) => (
                   <RecipientCard key={g.memberId} group={g} period={plan.selected} />

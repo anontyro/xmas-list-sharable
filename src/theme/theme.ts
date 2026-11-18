@@ -158,7 +158,7 @@ export const theme: Theme = createTheme({
     MuiFormHelperText: { styleOverrides: { root: { color: muted, fontWeight: 700, fontSize: "0.8125rem", "&.Mui-error": { color: danger } } } },
     MuiChip: {
       styleOverrides: {
-        root: { height: 26, border: border(2), borderRadius: 12, fontWeight: 800, fontSize: "0.75rem", color: ink },
+        root: { height: 26, border: border(2), borderRadius: 12, fontWeight: 800, fontSize: "0.75rem", color: ink, "&.MuiChip-clickable:hover": { backgroundColor: yellow }, "&.Mui-disabled": { opacity: 0.5 } },
         filled: { backgroundColor: white },
         outlined: { borderColor: ink },
         label: { padding: "0 9px" },
@@ -185,9 +185,30 @@ export const theme: Theme = createTheme({
     },
     MuiLink: {
       defaultProps: { underline: "always" },
-      styleOverrides: { root: { fontWeight: 800 } },
+      // Hover thickens the underline, so the change does not depend on colour.
+      styleOverrides: { root: { fontWeight: 800, textDecorationThickness: "1px", textUnderlineOffset: 3, "&:hover": { textDecorationThickness: "3px" } } },
     },
-    MuiMenuItem: { styleOverrides: { root: { minHeight: 46, fontWeight: 800, fontSize: "0.9375rem", borderRadius: 10 } } },
+    MuiMenuItem: {
+      styleOverrides: {
+        root: {
+          minHeight: 46,
+          fontWeight: 800,
+          fontSize: "0.9375rem",
+          borderRadius: 10,
+          "&:hover": { backgroundColor: yellow },
+          "&.Mui-focusVisible": { backgroundColor: yellow },
+          "&.Mui-selected, &.Mui-selected:hover": { backgroundColor: sky },
+          "&.Mui-disabled": { opacity: 0.5 },
+        },
+      },
+    },
+    MuiCheckbox: { styleOverrides: { root: { color: ink, "&.Mui-checked": { color: ink }, "&:hover": { backgroundColor: yellow }, "&.Mui-disabled": { opacity: 0.5, color: ink } } } },
+    MuiSlider: {
+      styleOverrides: {
+        root: { color: ink, "&.Mui-disabled": { opacity: 0.5, color: ink } },
+        thumb: { backgroundColor: yellow, border: border(), "&:hover, &.Mui-focusVisible, &.Mui-active": { boxShadow: "none", backgroundColor: red }, "&.Mui-focusVisible": ring },
+      },
+    },
     MuiDialogTitle: { styleOverrides: { root: { fontFamily: display, fontWeight: 400, fontSize: "1.5rem" } } },
   },
 });

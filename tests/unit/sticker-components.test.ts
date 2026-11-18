@@ -4,6 +4,8 @@ import { readdirSync, readFileSync } from "node:fs";
 import { ThemeProvider } from "@mui/material/styles";
 import { describe, expect, it } from "vitest";
 import { GiftThumbView } from "@/components/sticker/GiftThumb";
+import Empty from "@/components/sticker/Empty";
+import { ErrorState, LoadingState } from "@/components/sticker/RouteState";
 import Hero from "@/components/sticker/Hero";
 import MemberAvatar from "@/components/sticker/MemberAvatar";
 import Meter from "@/components/sticker/Meter";
@@ -121,5 +123,22 @@ describe("theme tokens only", () => {
       const src = readFileSync(file, "utf8").replace(/\/\/.*$/gm, "");
       expect(src.match(/#[0-9a-fA-F]{3,8}\b|rgba?\(/g), file).toBeNull();
     }
+  });
+});
+
+describe("Empty, LoadingState, ErrorState", () => {
+  it("Empty shows its message and action beside a decorative sticker", () => {
+    const html = render(h(Empty, { sticker: "presentgold", action: h("a", { href: "/x" }, "Add one"), children: "No gifts yet." }));
+    expect(html).toContain("No gifts yet.");
+    expect(html).toContain("Add one");
+    expect(html).toContain('alt=""');
+  });
+
+  it("the loading state is a polite status, and the error state offers Try again without showing error details", () => {
+    expect(render(h(LoadingState))).toMatch(/role="status"[^>]*>.*One moment…/s);
+    const html = render(h(ErrorState, { reset: () => {} }));
+    expect(html).toContain("Something went wrong");
+    expect(html).toContain("Try again");
+    expect(html).toContain('role="alert"');
   });
 });

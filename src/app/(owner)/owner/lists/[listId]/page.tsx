@@ -1,3 +1,4 @@
+import Empty from "@/components/sticker/Empty";
 import Box from "@mui/material/Box";
 import SectionTitle from "@/components/sticker/SectionTitle";
 import { notFound, redirect } from "next/navigation";
@@ -37,7 +38,7 @@ export default async function OwnerListPage({ params }: { params: Promise<{ list
           sideLast
           main={
             list.items.length === 0 ? (
-              <StickerCard tint="cream" padded>No gifts yet.{!list.archived && " Add your first one with + Add a gift."}</StickerCard>
+              <Empty sticker="presentgold">No gifts yet.{!list.archived && " Add your first one with + Add a gift."}</Empty>
             ) : (
               PRIORITIES.map((p) => {
                 const group = list.items.filter((i) => i.priority === p);
