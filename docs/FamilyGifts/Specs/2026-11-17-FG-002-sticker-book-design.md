@@ -790,6 +790,7 @@ Shared acceptance for every package:
 - ownedFiles:
   - `tests/e2e/amazon-import.spec.ts`
   - `tests/e2e/pin-links.spec.ts`
+  - `tests/e2e/helpers.ts`
 - Acceptance criteria:
   1. The import journey passes: paste the basic fixture, untick one, change a priority and a title, add a missing price, add the rest, and the list shows exactly those gifts in their groups; the duplicate row is skipped; unreadable and oversize input show the fallback.
   2. The owner changes their PIN on `/owner/pin` (wrong current PIN refused, mismatched new PINs refused, other sessions ended) and the admin can still reset it afterwards.

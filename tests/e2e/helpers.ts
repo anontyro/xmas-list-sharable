@@ -49,9 +49,9 @@ export async function archiveList(listId: string) {
 let created = 0;
 
 /** Each gift gets a later `createdAt` than the one before, so gifts made in the same millisecond still keep the order they were made in. */
-export async function createItem(listId: string, title: string, priceMinor: number | null = null, priority: "most_wanted" | "would_love" | "nice_to_have" = "would_love") {
+export async function createItem(listId: string, title: string, priceMinor: number | null = null, priority: "most_wanted" | "would_love" | "nice_to_have" = "would_love", productUrl: string | null = null) {
   const createdAt = new Date(Date.now() + ++created);
-  const [i] = await db.insert(schema.wishlistItem).values({ wishlistId: listId, title, priceMinor, priority, createdAt }).returning();
+  const [i] = await db.insert(schema.wishlistItem).values({ wishlistId: listId, title, priceMinor, priority, createdAt, productUrl }).returning();
   return i.id;
 }
 

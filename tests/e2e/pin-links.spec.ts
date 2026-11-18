@@ -82,3 +82,37 @@ test("the admin copies a link that carries the PIN just set, the owner changes i
   await expect(owner).toHaveURL(/\/owner$/);
   await ctx.close();
 });
+
+test("changing the PIN ends the owner's other sessions, keeps this one, and only the new PIN works", async ({ browser }) => {
+  const signIn = async (pin: string) => {
+    const ctx = await browser.newContext();
+    const page = await ctx.newPage();
+    await page.goto("/owner/login");
+    await page.getByLabel("PIN").fill(pin);
+    await page.getByRole("button", { name: "Open my list" }).click();
+    return { ctx, page };
+  };
+  const phone = await signIn("123456");
+  await expect(phone.page).toHaveURL(/\/owner$/);
+  const laptop = await signIn("123456");
+  await expect(laptop.page).toHaveURL(/\/owner$/);
+
+  await laptop.page.goto("/owner/pin");
+  const form = laptop.page.getByRole("form", { name: "Change my PIN" });
+  await form.getByLabel("Current PIN").fill("123456");
+  await form.getByLabel(/^New PIN\s*\*?$/).fill("987654");
+  await form.getByLabel("New PIN again").fill("987654");
+  await form.getByRole("button", { name: "Change PIN" }).click();
+  await expect(form.getByText("PIN changed")).toBeVisible();
+
+  await laptop.page.goto("/owner"); // this device stays signed in
+  await expect(laptop.page).toHaveURL(/\/owner$/);
+  await phone.page.goto("/owner"); // the other one is signed out
+  await expect(phone.page).toHaveURL(/\/owner\/login/);
+
+  const old = await signIn("123456");
+  await expect(old.page.getByText("Incorrect details or too many attempts")).toBeVisible();
+  const fresh = await signIn("987654");
+  await expect(fresh.page).toHaveURL(/\/owner$/);
+  for (const c of [phone, laptop, old, fresh]) await c.ctx.close();
+});
