@@ -16,6 +16,12 @@ describe("isActive", () => {
     expect(isActive("/earlier/2025", ["/", "/earlier"])).toBe(true);
   });
 
+  it("is not active on an excluded path under a matching one", () => {
+    expect(isActive("/owner/lists/abc/add", ["/owner/lists"], ["/owner/lists/abc/add"])).toBe(false);
+    expect(isActive("/owner/lists/abc/gifts/x", ["/owner/lists"], ["/owner/lists/abc/add"])).toBe(true);
+    expect(isActive("/owner/lists/abc", ["/owner/lists"], [])).toBe(true);
+  });
+
   it("matches any of several paths and none of an empty list", () => {
     expect(isActive("/owner/lists/abc", ["/owner/lists"])).toBe(true);
     expect(isActive("/owner", ["/owner/lists"])).toBe(false);

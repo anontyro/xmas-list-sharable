@@ -26,7 +26,7 @@ export default function TopBar({ brandHref, items, right }: { brandHref: string;
         {items.length > 0 && (
           <Box component="nav" aria-label="Main" sx={{ display: { xs: "none", md: "flex" }, gap: 1, ml: "20px" }}>
             {items.map((item) => {
-              const active = isActive(pathname, item.match);
+              const active = isActive(pathname, item.match, item.exclude);
               return (
                 <Box
                   key={item.href}

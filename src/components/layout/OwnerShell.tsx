@@ -16,7 +16,11 @@ export default async function OwnerShell({ children }: { children: React.ReactNo
   const [row] = await getDb().select({ displayName: member.displayName }).from(member).where(eq(member.id, owner.memberId));
   const primary = newestOpenList(await listOwnLists());
   const myList = primary ? `/owner/lists/${primary.id}` : "/owner";
-  const items: NavItem[] = [{ label: "My list", href: myList, sticker: "heartlist", match: ["/owner/lists"] }];
+  const addGift = primary ? `/owner/lists/${primary.id}/add` : null;
+  const items: NavItem[] = [
+    { label: "My list", href: myList, sticker: "heartlist", match: ["/owner/lists"], exclude: addGift ? [addGift] : [] },
+    ...(addGift ? [{ label: "Add a gift", href: addGift, sticker: "presentgold" as const, match: [addGift] }] : []),
+  ];
   return (
     <ShellFrame
       brandHref="/owner"

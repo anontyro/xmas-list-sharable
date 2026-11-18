@@ -85,7 +85,8 @@ test("owner never sees reservations, interest or buyer names", async ({ browser,
   await page.goto(`/owner/lists/${listId}`);
   await expect(page.getByText("Headphones")).toBeVisible();
   const text = await page.locator("body").innerText();
-  expect(text).not.toMatch(/reserved|purchased|interested|available|Ann/i);
+  // The page says in words that the owner cannot see who reserved or bought anything: that sentence is allowed, claim state is not.
+  expect(text.replace(/never see who has reserved or bought anything/, "")).not.toMatch(/reserved|purchased|interested|available|Ann/i);
   const html = await page.content();
   expect(html).not.toMatch(/reserved_by|purchased_by|claimedBy|Ann/);
   await a.context.close();

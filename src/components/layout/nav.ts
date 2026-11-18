@@ -9,9 +9,12 @@ export type NavItem = {
   sticker: StickerName;
   /** Paths that make this item the current one: "/" matches only the home page, others match themselves and anything beneath. */
   match: string[];
+  /** Paths that are never this item even when they sit under one of `match` ("Add a gift" is under "My list"). */
+  exclude?: string[];
 };
 
 /** Whether `pathname` is on one of the item's paths. */
-export function isActive(pathname: string, match: string[]): boolean {
+export function isActive(pathname: string, match: string[], exclude: string[] = []): boolean {
+  if (exclude.length > 0 && isActive(pathname, exclude)) return false;
   return match.some((m) => (m === "/" ? pathname === "/" : pathname === m || pathname.startsWith(m.endsWith("/") ? m : `${m}/`)));
 }

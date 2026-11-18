@@ -50,6 +50,12 @@ test("every page fits the screen and has no serious accessibility violations", a
   await page.getByRole("button", { name: "Import from an Amazon wishlist" }).click();
   await noSideScroll(page, "import dialog");
   await serious(page, "import dialog");
+  await page.keyboard.press("Escape");
+  for (const [path, name] of [[`/owner/lists/${listId}/add`, "add a gift (link)"], [`/owner/lists/${listId}/add?mode=manual`, "add a gift (typed)"]]) {
+    await page.goto(path);
+    await noSideScroll(page, name);
+    await serious(page, name);
+  }
   await page.context().clearCookies();
 
   const { context, page: guest } = await guestPage(browser, slug, "Ann", { reducedMotion: "reduce" });
@@ -101,11 +107,11 @@ test("reserve, mark purchased and add a gift all work from the keyboard alone", 
   await context.close();
 
   await ownerSignIn(page);
-  await page.goto(`/owner/lists/${listId}`);
-  await tabTo(page, page.getByRole("textbox", { name: /^Gift/ }));
+  await page.goto(`/owner/lists/${listId}/add?mode=manual`);
+  await tabTo(page, page.getByLabel("What is it?"));
   await page.keyboard.type("Keyboard gift");
   await page.keyboard.press("Enter"); // submits the form
-  await expect(page.getByText("Keyboard gift")).toBeVisible();
+  await expect(page.getByRole("heading", { level: 3, name: "Keyboard gift" })).toBeVisible();
 });
 
 test("with reduced motion on, nothing on the page transitions or animates", async ({ browser }) => {

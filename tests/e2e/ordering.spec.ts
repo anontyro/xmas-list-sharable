@@ -80,7 +80,7 @@ test("a copied filter link shows the same view, and filters can be cleared", asy
 test("the owner page has no claim-based sort or filter", async ({ page }) => {
   await ownerSignIn(page);
   await page.goto(`/owner/lists/${listId}`);
-  await expect(page.getByText(/Sort and filter|reserved|available/i)).toHaveCount(0);
+  await expect(page.getByText(/Sort and filter|Reserved by|Available only/i)).toHaveCount(0);
 });
 
 test("the list shows ribbons for each priority in the owner's order", async ({ browser }) => {

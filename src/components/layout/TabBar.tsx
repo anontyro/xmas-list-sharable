@@ -25,7 +25,7 @@ export default function TabBar({ items }: { items: NavItem[] }) {
       }}
     >
       {items.map((item) => {
-        const active = isActive(pathname, item.match);
+        const active = isActive(pathname, item.match, item.exclude);
         return (
           <Box
             key={item.href}

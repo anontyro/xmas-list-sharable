@@ -39,9 +39,10 @@ test("unreadable text shows the fallback, and the owner adds a gift by hand", as
   await expect(page.getByText("You can still add them by hand.")).toBeVisible();
   await page.getByRole("button", { name: "Cancel" }).click();
 
-  await page.getByRole("textbox", { name: /^Gift/ }).fill("By hand");
-  await page.getByRole("button", { name: "Add gift" }).click();
-  await expect(page.getByText("By hand")).toBeVisible();
+  await page.getByRole("link", { name: "+ Add a gift" }).click();
+  await page.getByLabel("What is it?").fill("By hand");
+  await page.getByRole("button", { name: "Save gift" }).click();
+  await expect(page.getByRole("heading", { level: 3, name: "By hand" })).toBeVisible();
 });
 
 test("a paste over 500 KB gets a friendly message before anything is sent", async ({ page }) => {

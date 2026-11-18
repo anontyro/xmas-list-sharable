@@ -718,6 +718,16 @@ Shared acceptance for every package:
   - `src/features/wishlists/components/PriorityChip.tsx` (deleted; the owner list still uses it until here)
   - `src/features/imports/components/UrlImportPanel.tsx`
   - `src/components/layout/OwnerShell.tsx`
+  - `src/components/layout/nav.ts`
+  - `src/components/layout/TopBar.tsx`
+  - `src/components/layout/TabBar.tsx`
+  - `tests/unit/nav.test.ts`
+  - `tests/e2e/owner-list.spec.ts`
+  - `tests/e2e/url-import.spec.ts`
+  - `tests/e2e/amazon-import.spec.ts`
+  - `tests/e2e/ordering.spec.ts`
+  - `tests/e2e/mobile-a11y.spec.ts`
+  - `tests/e2e/claims.spec.ts`
 - Acceptance criteria:
   1. The editor matches screen 08: mint hero with count, ribbons, rows with up, down and edit, and the sidebar with share link, add shortcuts and the surprise note; up is disabled at the top of a group and down at the bottom, and reordering still persists and never changes another priority group.
   2. The add and edit pages match screen 09; both modes keep every field usable, a failed or blocked fetch shows the pink note and leaves the form usable, a successful one fills the fields and shows "What we found" with text and icons; the preview updates as the owner types.
