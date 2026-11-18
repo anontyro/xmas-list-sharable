@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { createItem, createList, createMemberWithPin, ownerSignIn, PRIVATE, resetAndSeed, seedGuestActivity } from "./helpers";
+import { createItem, createList, createMemberWithPin, ownerSignIn, PRIVATE, resetAndSeed, seedGuestActivity, settled } from "./helpers";
 
 let householdId: string;
 let listId: string;
@@ -15,6 +15,7 @@ test.beforeEach(async () => {
 /** What a guest sees on the list: ribbons and gift titles, in order. */
 async function guestView(page: Page) {
   await page.goto(`/l/${slug}`);
+  await settled(page);
   const nodes = page.locator("main h2, main h3");
   return (await nodes.allInnerTexts()).map((t) => t.replace("★ ", "").trim()).filter((t) => !/^Sort and filter$|^My planner$/.test(t));
 }

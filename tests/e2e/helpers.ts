@@ -116,3 +116,8 @@ export async function seedGuestActivity(householdId: string, itemId: string) {
   await db.insert(schema.recoveryToken).values({ guestId: g.id, tokenHash: PRIVATE.token });
   return g.id;
 }
+
+/** Waits for a page to finish streaming in: route `loading.tsx` screens show "One moment…" until the content arrives. */
+export async function settled(page: Page) {
+  await expect(page.getByText("One moment…")).toHaveCount(0);
+}

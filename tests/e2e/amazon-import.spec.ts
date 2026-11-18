@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
-import { createItem, createList, createMemberWithPin, ownerSignIn, resetAndSeed } from "./helpers";
+import { createItem, createList, createMemberWithPin, ownerSignIn, resetAndSeed, settled } from "./helpers";
 
 let listId: string;
 test.beforeEach(async () => {
@@ -75,6 +75,7 @@ const WISHLIST = [
 
 /** The owner's list as a guest reads it: ribbons and gift titles, in order. */
 async function editorOrder(page: import("@playwright/test").Page) {
+  await settled(page);
   const texts = await page.getByRole("main").locator("h2, h3").allInnerTexts();
   return texts.map((t) => t.replace("★ ", "").trim()).filter((t) => !["Share your list", "Add gifts"].includes(t));
 }

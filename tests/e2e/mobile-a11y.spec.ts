@@ -5,14 +5,16 @@ import { ADMIN_SECRET, createItem, createList, createMemberWithPin, guestPage, o
 let slug: string;
 let listId: string;
 let alex: string;
+let itemId: string;
 test.beforeEach(async () => {
   const household = await resetAndSeed();
   alex = await createMemberWithPin(household, "Alex", "123456");
   const list = await createList(alex);
   slug = list.slug;
   listId = list.id;
-  await createItem(list.id, "Headphones", 12999);
+  itemId = await createItem(list.id, "Headphones", 12999);
   await createItem(list.id, "Novel", 1499);
+  await createList(alex, "Christmas 2025", true, 2025);
 });
 
 const noSideScroll = async (page: Page, where: string) =>
@@ -36,10 +38,20 @@ test.describe("pages", () => {
 test.use({ reducedMotion: "reduce" });
 test("every page fits the screen and has no serious accessibility violations", async ({ browser, page }) => {
   await adminSignIn(page);
-  for (const path of ["/admin", "/admin/lists", `/admin/members/${alex}`]) {
+  for (const path of ["/admin", "/admin/lists"]) {
     await page.goto(path);
     await noSideScroll(page, path);
     await serious(page, path);
+  }
+  await page.goto(`/admin/members/${alex}`); // the old member page now lands on /admin
+  await expect(page).toHaveURL(/\/admin$/);
+  for (const [button, dialog] of [["Reset PIN: Alex", "Reset PIN for Alex"], ["Rename Alex", "Rename Alex"]]) {
+    await page.getByRole("button", { name: button }).click();
+    await expect(page.getByRole("dialog", { name: dialog })).toBeVisible();
+    await noSideScroll(page, `admin dialog: ${dialog}`);
+    await serious(page, `admin dialog: ${dialog}`);
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog")).toHaveCount(0);
   }
   await page.context().clearCookies();
 
@@ -47,7 +59,7 @@ test("every page fits the screen and has no serious accessibility violations", a
   await page.goto(`/owner/lists/${listId}`);
   await noSideScroll(page, "owner list");
   await serious(page, "owner list");
-  for (const [path, name] of [[`/owner/lists/${listId}/add`, "add a gift (link)"], [`/owner/lists/${listId}/add?mode=manual`, "add a gift (typed)"], [`/owner/lists/${listId}/import`, "import page"], ["/owner", "owner lists"], ["/owner/pin", "change PIN"]]) {
+  for (const [path, name] of [[`/owner/lists/${listId}/gifts/${itemId}`, "edit a gift"], [`/owner/lists/${listId}/add`, "add a gift (link)"], [`/owner/lists/${listId}/add?mode=manual`, "add a gift (typed)"], [`/owner/lists/${listId}/import`, "import page"], ["/owner", "owner lists"], ["/owner/pin", "change PIN"]]) {
     await page.goto(path);
     await noSideScroll(page, name);
     await serious(page, name);
@@ -57,11 +69,21 @@ test("every page fits the screen and has no serious accessibility violations", a
   const { context, page: guest } = await guestPage(browser, slug, "Ann", { reducedMotion: "reduce" });
   await guest.getByRole("button", { name: /^Reserve: Headphones/ }).click();
   await expect(guest.getByText("Reserved by you")).toBeVisible();
-  const visited: [string, string][] = [["/", "family page"], [`/l/${slug}`, "list"], ["/planner", "planner"]];
+  const visited: [string, string][] = [["/", "family page"], [`/l/${slug}`, "list"], ["/planner", "planner"], ["/planner/budget", "budget and notes"], ["/earlier/2025", "earlier years"], ["/earlier/1999", "earlier years not found"], ["/l/nosuchlistxx", "list not found"]];
   for (const [path, name] of visited) {
     await guest.goto(path);
     await noSideScroll(guest, name);
     await serious(guest, name);
+  }
+  await guest.goto(`/l/${slug}`);
+  const more = guest.getByRole("button", { name: "More filters" }); // phones keep the sort and filters in a dialog
+  if (await more.isVisible()) {
+    await more.click();
+    await expect(guest.getByRole("dialog", { name: "Sort and filter" })).toBeVisible();
+    await noSideScroll(guest, "filter dialog");
+    await serious(guest, "filter dialog");
+    await guest.keyboard.press("Escape");
+    await expect(guest.getByRole("dialog")).toHaveCount(0);
   }
   await openAccountMenu(guest, "Ann");
   await serious(guest, "account menu");
@@ -108,6 +130,25 @@ test("reserve, mark purchased and add a gift all work from the keyboard alone", 
   await page.keyboard.type("Keyboard gift");
   await page.keyboard.press("Enter"); // submits the form
   await expect(page.getByRole("heading", { level: 3, name: "Keyboard gift" })).toBeVisible();
+
+  // Import: paste, find, and add, using Tab and Enter/Space only.
+  await page.goto(`/owner/lists/${listId}/import`);
+  await tabTo(page, page.getByLabel("Paste your wishlist"));
+  await page.keyboard.type("Wool scarf\n£35.00\nhttps://www.amazon.co.uk/dp/B0SCARF003");
+  await tabTo(page, page.getByRole("button", { name: "Find gifts" }));
+  await page.keyboard.press("Enter");
+  const add = page.getByRole("button", { name: "Add 1 gift" });
+  await tabTo(page, add);
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("heading", { level: 3, name: "Wool scarf" })).toBeVisible();
+});
+
+test("owner sign-in works from the keyboard alone", async ({ page }) => {
+  await page.goto("/owner/login");
+  await tabTo(page, page.getByLabel("PIN"));
+  await page.keyboard.type("123456");
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/\/owner$/);
 });
 
 test("with reduced motion on, nothing on the page transitions or animates", async ({ browser }) => {

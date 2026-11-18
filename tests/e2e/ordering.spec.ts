@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { createItem, createList, createMemberWithPin, ownerSignIn, resetAndSeed } from "./helpers";
+import { createItem, createList, createMemberWithPin, ownerSignIn, resetAndSeed, settled } from "./helpers";
 
 let slug: string;
 let listId: string;
@@ -14,11 +14,15 @@ test.beforeEach(async () => {
   await createItem(list.id, "Gamma", 3000);
 });
 
-const guestOrder = async (page: Page) =>
-  (await page.getByRole("heading", { level: 3 }).allInnerTexts()).filter((t) => ["Alpha", "Beta", "Gamma"].includes(t));
+const guestOrder = async (page: Page) => {
+  await settled(page);
+  return (await page.getByRole("heading", { level: 3 }).allInnerTexts()).filter((t) => ["Alpha", "Beta", "Gamma"].includes(t));
+};
 
-const ownerOrder = (page: Page) =>
-  page.locator('[aria-label^="Move up:"]').evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")!.replace("Move up: ", "")));
+const ownerOrder = async (page: Page) => {
+  await settled(page);
+  return page.locator('[aria-label^="Move up:"]').evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")!.replace("Move up: ", "")));
+};
 
 /** Picks a sort. Phones keep the controls in a dialog behind "More filters" (which hides the page while open, so close it); wide screens show them in the sidebar. */
 async function chooseSort(page: Page, name: string) {
@@ -89,6 +93,7 @@ test("the list shows ribbons for each priority in the owner's order", async ({ b
   const context = await browser.newContext();
   const page = await context.newPage();
   await page.goto(`/l/${slug}`);
+  await settled(page);
   const ribbons = (await page.getByRole("heading", { level: 2 }).allInnerTexts()).map((t) => t.replace("★ ", ""));
   expect(ribbons.filter((t) => t !== "Sort and filter")).toEqual(["MOST WANTED", "WOULD LOVE", "NICE TO HAVE"]);
   expect(await page.getByRole("heading", { level: 3 }).allInnerTexts()).toEqual(["Delta", "Alpha", "Beta", "Gamma", "Epsilon"]);
