@@ -17,9 +17,15 @@ export default async function OwnerShell({ children }: { children: React.ReactNo
   const primary = newestOpenList(await listOwnLists());
   const myList = primary ? `/owner/lists/${primary.id}` : "/owner";
   const addGift = primary ? `/owner/lists/${primary.id}/add` : null;
+  const importGifts = primary ? `/owner/lists/${primary.id}/import` : null;
   const items: NavItem[] = [
-    { label: "My list", href: myList, sticker: "heartlist", match: ["/owner/lists"], exclude: addGift ? [addGift] : [] },
-    ...(addGift ? [{ label: "Add a gift", href: addGift, sticker: "presentgold" as const, match: [addGift] }] : []),
+    { label: "My list", href: myList, sticker: "heartlist", match: ["/owner/lists"], exclude: [addGift, importGifts].filter((p): p is string => p !== null) },
+    ...(addGift && importGifts
+      ? [
+          { label: "Add a gift", href: addGift, sticker: "presentgold" as const, match: [addGift] },
+          { label: "Import", href: importGifts, sticker: "download" as const, match: [importGifts] },
+        ]
+      : []),
   ];
   return (
     <ShellFrame

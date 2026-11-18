@@ -775,6 +775,10 @@ Shared acceptance for every package:
   - `src/features/authentication/components/ChangePinForm.tsx`
   - `src/components/layout/OwnerShell.tsx`
   - `src/components/layout/AccountMenu.tsx`
+  - `src/app/(owner)/owner/lists/[listId]/page.tsx`
+  - `tests/e2e/amazon-import.spec.ts`
+  - `tests/e2e/pin-links.spec.ts`
+  - `tests/e2e/mobile-a11y.spec.ts`
 - Acceptance criteria:
   1. The import page matches screen 10: steps card, paste box with Find gifts and Clear, the best-effort note, "WE FOUND N GIFTS", cards with checkbox, thumbnail, editable title, price or price input, state pill, priority select and Remove, and the "Ready to add" sidebar with correct counts.
   2. Duplicates start unchecked and show "Skipped"; a row with no price can be given one; only ticked rows with a title are sent; nothing is saved by Find gifts, Clear or Start over.

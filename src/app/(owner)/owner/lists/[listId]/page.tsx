@@ -8,7 +8,6 @@ import StickerCard from "@/components/sticker/StickerCard";
 import TwoColumn from "@/components/sticker/TwoColumn";
 import CopyLinkButton from "@/components/ui/CopyLinkButton";
 import LinkButton from "@/components/ui/LinkButton";
-import BulkImportDialog from "@/features/imports/components/BulkImportDialog";
 import OwnerGiftRow from "@/features/wishlists/components/OwnerGiftRow";
 import { getOwnList } from "@/features/wishlists/owner-queries";
 import { PRIORITIES, PRIORITY_LABELS, type Priority } from "@/features/wishlists/schemas";
@@ -77,7 +76,7 @@ export default async function OwnerListPage({ params }: { params: Promise<{ list
                   <Box component="h2" sx={heading}>Add gifts</Box>
                   <LinkButton href={`${base}/add?mode=manual`} variant="contained">+ Add a gift</LinkButton>
                   <LinkButton href={`${base}/add?mode=link`} variant="contained" color="yellow">Add from a web link</LinkButton>
-                  <BulkImportDialog listId={list.id} />
+                  <LinkButton href={`${base}/import`} variant="contained" color="sky">Paste Amazon wishlist</LinkButton>
                 </StickerCard>
               )}
               <Note tint="mint" sticker="sparkles"><p>The surprise is safe. You never see who has reserved or bought anything.</p></Note>

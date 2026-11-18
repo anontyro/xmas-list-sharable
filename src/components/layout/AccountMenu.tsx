@@ -92,6 +92,7 @@ export default function AccountMenu({ kind, id, name, myListHref = "/owner" }: P
         {kind === "guest" && <MenuItem component={NextLink} href="/owner/login" {...item}>I own a list (PIN)</MenuItem>}
         {kind === "owner" && <MenuItem component={NextLink} href={myListHref} {...item}>My list</MenuItem>}
         {kind === "owner" && <MenuItem component={NextLink} href="/owner" {...item}>All my lists</MenuItem>}
+        {kind === "owner" && <MenuItem component={NextLink} href="/owner/pin" {...item}>Change my PIN</MenuItem>}
         <Divider component="li" sx={dashed} />
         <MenuItem onClick={kind === "guest" ? signOutGuestDevice : signOutOwner} sx={{ color: tokens.danger }}>
           {kind === "guest" ? "Sign out of this device" : "Sign out"}

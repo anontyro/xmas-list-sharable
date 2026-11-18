@@ -1,38 +1,42 @@
-import Chip from "@mui/material/Chip";
-import Container from "@mui/material/Container";
-import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
 import { redirect } from "next/navigation";
-import AppLink from "@/components/ui/AppLink";
-import ChangePinForm from "@/features/authentication/components/ChangePinForm";
+import Hero from "@/components/sticker/Hero";
+import PageWrap from "@/components/sticker/PageWrap";
+import Pill from "@/components/sticker/Pill";
+import StickerCard from "@/components/sticker/StickerCard";
+import LinkButton from "@/components/ui/LinkButton";
 import { listOwnLists } from "@/features/wishlists/owner-queries";
 import { currentOwner } from "@/lib/auth/require";
 
 export const metadata = { title: "My lists · Family Gifts", robots: { index: false } };
 
+/** All of the owner's lists, archived ones included, as cards. */
 export default async function OwnerHome() {
   if (!(await currentOwner())) redirect("/owner/login");
   const lists = await listOwnLists();
   return (
-    <Container maxWidth="sm" sx={{ py: 4 }}>
-      <Typography variant="h4" component="h1" sx={{ mb: 2 }}>My lists</Typography>
-      <Stack spacing={1}>
-        {lists.length === 0 && <Typography>You don&apos;t have a list yet. Ask the family admin to create one.</Typography>}
-        {lists.map((l) => (
-          <Paper key={l.id} sx={{ p: 2 }}>
-            <Stack direction="row" spacing={1} useFlexGap sx={{ alignItems: "center", flexWrap: "wrap" }}>
-              <AppLink href={`/owner/lists/${l.id}`} variant="subtitle1">{l.title}</AppLink>
-              <Typography color="text.secondary">{l.occasion} {l.year}</Typography>
-              {l.archived && <Chip label="Archived" size="small" />}
-            </Stack>
-          </Paper>
-        ))}
-      </Stack>
-      <Paper sx={{ p: 2, mt: 4 }}>
-        <Typography variant="h6" component="h2" gutterBottom>Change my PIN</Typography>
-        <ChangePinForm />
-      </Paper>
-    </Container>
+    <>
+      <Hero title="My lists" subtitle="Pick a list to edit" tint="mint" sticker={{ name: "heartlist", width: 70, rotate: 6 }} />
+      <PageWrap>
+        {lists.length === 0 ? (
+          <StickerCard tint="cream" padded>You don&apos;t have a list yet. Ask the family admin to create one.</StickerCard>
+        ) : (
+          <Box component="ul" sx={{ listStyle: "none", m: 0, p: 0, display: "grid", gap: "14px", gridTemplateColumns: { xs: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))", md: "repeat(3, minmax(0, 1fr))" } }}>
+            {lists.map((l) => (
+              <Box component="li" key={l.id}>
+                <StickerCard component="article" padded sx={{ display: "flex", alignItems: "center", gap: "12px", height: "100%" }}>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Box component="h2" sx={{ m: 0, fontFamily: "var(--font-display), sans-serif", fontWeight: 400, fontSize: 20, overflowWrap: "anywhere" }}>{l.title}</Box>
+                    <Box component="p" sx={{ m: 0, fontWeight: 800, fontSize: 14, color: "text.secondary" }}>{l.occasion} {l.year}</Box>
+                    {l.archived && <Pill tone="mint">Archived · read-only</Pill>}
+                  </Box>
+                  <LinkButton href={`/owner/lists/${l.id}`} size="small" variant="contained" aria-label={`Open ${l.title}`}>Open</LinkButton>
+                </StickerCard>
+              </Box>
+            ))}
+          </Box>
+        )}
+      </PageWrap>
+    </>
   );
 }

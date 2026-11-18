@@ -47,11 +47,7 @@ test("every page fits the screen and has no serious accessibility violations", a
   await page.goto(`/owner/lists/${listId}`);
   await noSideScroll(page, "owner list");
   await serious(page, "owner list");
-  await page.getByRole("button", { name: "Import from an Amazon wishlist" }).click();
-  await noSideScroll(page, "import dialog");
-  await serious(page, "import dialog");
-  await page.keyboard.press("Escape");
-  for (const [path, name] of [[`/owner/lists/${listId}/add`, "add a gift (link)"], [`/owner/lists/${listId}/add?mode=manual`, "add a gift (typed)"]]) {
+  for (const [path, name] of [[`/owner/lists/${listId}/add`, "add a gift (link)"], [`/owner/lists/${listId}/add?mode=manual`, "add a gift (typed)"], [`/owner/lists/${listId}/import`, "import page"], ["/owner", "owner lists"], ["/owner/pin", "change PIN"]]) {
     await page.goto(path);
     await noSideScroll(page, name);
     await serious(page, name);

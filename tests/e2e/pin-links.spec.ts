@@ -49,6 +49,7 @@ test("the admin copies a link that carries the PIN just set, the owner changes i
   await owner.getByRole("button", { name: "Open my list" }).click();
   await expect(owner).toHaveURL(/\/owner$/);
 
+  await owner.goto("/owner/pin");
   const form = owner.getByRole("form", { name: "Change my PIN" });
   await form.getByLabel("Current PIN").fill("999999");
   await form.getByLabel(/^New PIN\s*\*?$/).fill("333333");
@@ -65,7 +66,7 @@ test("the admin copies a link that carries the PIN just set, the owner changes i
   await form.getByRole("button", { name: "Change PIN" }).click();
   await expect(form.getByText("PIN changed")).toBeVisible();
   await owner.reload();
-  await expect(owner).toHaveURL(/\/owner$/); // still signed in
+  await expect(owner).toHaveURL(/\/owner\/pin$/); // still signed in
 
   // The admin resets it again later, and the owner's own PIN no longer works.
   await page.getByLabel("New PIN").fill("555555");
