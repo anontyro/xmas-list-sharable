@@ -3,7 +3,7 @@ import { cookieJar, resetRequest } from "./request-context";
 import { db } from "./db-harness";
 import { household, member, session, wishlist } from "@/db/schema";
 import { archiveList, createList, createMember, deactivateMember, renameMember, restoreList, setOwnerPin } from "@/features/family/actions";
-import { getMemberForAdmin, listLoginMembers, listMembersForAdmin } from "@/features/family/queries";
+import { getMemberForAdmin, listAllListsForAdmin, listLoginMembers, listMembersForAdmin } from "@/features/family/queries";
 import { COOKIE_NAMES } from "@/lib/auth/cookies";
 import { createSession, getSession } from "@/lib/auth/session";
 import { UnauthorizedError } from "@/lib/result";
@@ -26,10 +26,11 @@ describe("without an admin session", () => {
     const { m } = await setup(false);
     const [l] = await db.insert(wishlist).values({ memberId: m.id, title: "x", occasion: "Christmas", year: 2026, slug: "aaaaaaaaaa" }).returning();
     const results = [
-      await createMember("Sam"),
+      await createMember({ displayName: "Sam" }),
       await renameMember(m.id, "Changed"),
       await deactivateMember(m.id),
       await setOwnerPin(m.id, "123456"),
+      await createMember({ displayName: "Pat", avatar: "star", pin: "123456" }),
       await createList({ memberId: m.id, title: "T", year: 2026 }),
       await archiveList(l.id),
       await restoreList(l.id),
@@ -45,15 +46,16 @@ describe("without an admin session", () => {
     const { m } = await setup(false);
     await expect(listMembersForAdmin()).rejects.toBeInstanceOf(UnauthorizedError);
     await expect(getMemberForAdmin(m.id)).rejects.toBeInstanceOf(UnauthorizedError);
+    await expect(listAllListsForAdmin()).rejects.toBeInstanceOf(UnauthorizedError);
   });
 });
 
 describe("as admin", () => {
   it("creates members, with unique names among active members", async () => {
     await setup(true);
-    expect((await createMember("Sarah")).ok).toBe(true);
-    expect(await createMember("Sarah")).toMatchObject({ ok: false, error: { code: "NAME_TAKEN" } });
-    expect(await createMember("  ")).toMatchObject({ ok: false, error: { code: "INVALID" } });
+    expect((await createMember({ displayName: "Sarah" })).ok).toBe(true);
+    expect(await createMember({ displayName: "Sarah" })).toMatchObject({ ok: false, error: { code: "NAME_TAKEN" } });
+    expect(await createMember({ displayName: "  " })).toMatchObject({ ok: false, error: { code: "INVALID" } });
     expect(await renameMember((await db.select().from(member))[0].id, "Sarah")).toMatchObject({ error: { code: "NAME_TAKEN" } });
   });
 
@@ -100,5 +102,56 @@ describe("as admin", () => {
     await restoreList(r.data.id);
     expect((await db.select().from(wishlist))[0].archivedAt).toBeNull();
     expect(await createList({ memberId: m.id, title: "", year: 2026 })).toMatchObject({ ok: false });
+  });
+
+  it("creates a member with a picture and a hashed PIN, or with neither", async () => {
+    await setup(true);
+    const a = await createMember({ displayName: "Mia", avatar: "reindeer", pin: "246810" });
+    const b = await createMember({ displayName: "Jo" });
+    expect(a.ok && b.ok).toBe(true);
+    const rows = await db.select().from(member);
+    const mia = rows.find((r) => r.displayName === "Mia")!;
+    const jo = rows.find((r) => r.displayName === "Jo")!;
+    expect(mia.avatar).toBe("reindeer");
+    expect(mia.pinHash).toMatch(/^\$argon2id\$/);
+    expect(await verifyPin("246810", mia.pinHash!)).toBe(true);
+    expect(jo).toMatchObject({ avatar: null, pinHash: null });
+    const listed = await listMembersForAdmin();
+    expect(listed.find((m) => m.displayName === "Mia")).toMatchObject({ avatar: "reindeer", hasPin: true });
+    expect(listed.find((m) => m.displayName === "Jo")).toMatchObject({ avatar: null, hasPin: false });
+    expect(JSON.stringify(listed)).not.toContain("argon2");
+  });
+
+  it("refuses a bad picture or PIN and creates nothing", async () => {
+    await setup(true);
+    expect(await createMember({ displayName: "X", avatar: "dragon" as never })).toMatchObject({ ok: false, error: { code: "INVALID" } });
+    expect(await createMember({ displayName: "X", pin: "12345" })).toMatchObject({ ok: false, error: { code: "INVALID", message: "PIN must be 6 to 12 digits" } });
+    expect(await createMember({ displayName: "X", pin: "1234567890123" })).toMatchObject({ ok: false, error: { code: "INVALID" } });
+    expect(await db.select().from(member)).toHaveLength(1); // only Alex from setup
+  });
+
+  it("rename can set, keep and clear the picture", async () => {
+    const { m } = await setup(true);
+    const picture = async () => (await db.select().from(member))[0].avatar;
+    await renameMember(m.id, "Alex", "star");
+    expect(await picture()).toBe("star");
+    await renameMember(m.id, "Alexander");
+    expect(await picture()).toBe("star"); // left alone
+    expect(await renameMember(m.id, "Alexander", "dragon" as never)).toMatchObject({ ok: false, error: { code: "INVALID" } });
+    await renameMember(m.id, "Alexander", null);
+    expect(await picture()).toBeNull();
+  });
+
+  it("admin queries return members with their lists, and every list with its member", async () => {
+    const { m } = await setup(true);
+    await createList({ memberId: m.id, title: "Christmas 2026", year: 2026 });
+    const old = await createList({ memberId: m.id, title: "Christmas 2025", year: 2025 });
+    if (!old.ok) throw new Error("create failed");
+    await archiveList(old.data.id);
+    const [alex] = await listMembersForAdmin();
+    expect(alex.lists.map((l) => [l.year, l.archivedAt !== null])).toEqual([[2026, false], [2025, true]]);
+    expect(alex.lists[0].slug).toMatch(/^[0-9A-Za-z]{10}$/);
+    const all = await listAllListsForAdmin();
+    expect(all.map((l) => [l.year, l.memberName])).toEqual([[2026, "Alex"], [2025, "Alex"]]);
   });
 });

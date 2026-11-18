@@ -9,7 +9,8 @@ import { revokeSessionsFor } from "@/lib/auth/session";
 import { action, fail, ok } from "@/lib/result";
 import { hashPin } from "@/lib/security/password";
 import { generateSlug } from "@/features/wishlists/slug";
-import { listInput, memberName, pin, type ListInput } from "./schemas";
+import { avatarSchema, type AvatarSticker } from "./avatars";
+import { listInput, memberName, newMemberInput, pin, type ListInput, type NewMemberInput } from "./schemas";
 import { getHousehold } from "./queries";
 
 const pgCode = (e: unknown) => {
@@ -21,15 +22,19 @@ const NOT_FOUND = fail("NOT_FOUND", "That member no longer exists");
 
 const NAME_TAKEN = fail("NAME_TAKEN", "Someone with that name already exists");
 
-export async function createMember(displayName: string) {
+export async function createMember(input: NewMemberInput) {
   return action(async () => {
     await requireAdmin();
-    const name = memberName.safeParse(displayName);
-    if (!name.success) return fail("INVALID", name.error.issues[0].message);
+    const parsed = newMemberInput.safeParse(input);
+    if (!parsed.success) return fail("INVALID", parsed.error.issues[0].message);
     const hh = await getHousehold();
     if (!hh) return fail("NO_HOUSEHOLD", "Run pnpm db:seed first");
+    const { displayName, avatar, pin: newPin } = parsed.data;
     try {
-      const [m] = await getDb().insert(member).values({ householdId: hh.id, displayName: name.data }).returning({ id: member.id });
+      const [m] = await getDb()
+        .insert(member)
+        .values({ householdId: hh.id, displayName, avatar: avatar ?? null, pinHash: newPin ? await hashPin(newPin) : null })
+        .returning({ id: member.id });
       revalidatePath("/admin");
       return ok({ id: m.id });
     } catch (e) {
@@ -39,13 +44,16 @@ export async function createMember(displayName: string) {
   });
 }
 
-export async function renameMember(memberId: string, displayName: string) {
+/** `avatar` undefined leaves the picture alone; null clears it. */
+export async function renameMember(memberId: string, displayName: string, avatar?: AvatarSticker | null) {
   return action(async () => {
     await requireAdmin();
     const name = memberName.safeParse(displayName);
     if (!name.success) return fail("INVALID", name.error.issues[0].message);
+    const picture = avatar === undefined || avatar === null ? { success: true as const, data: avatar } : avatarSchema.safeParse(avatar);
+    if (!picture.success) return fail("INVALID", "Pick one of the pictures");
     try {
-      await getDb().update(member).set({ displayName: name.data }).where(eq(member.id, memberId));
+      await getDb().update(member).set({ displayName: name.data, ...(picture.data === undefined ? {} : { avatar: picture.data }) }).where(eq(member.id, memberId));
       revalidatePath("/admin");
       return ok(null);
     } catch (e) {

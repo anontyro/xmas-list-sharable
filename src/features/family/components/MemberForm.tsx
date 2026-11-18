@@ -19,7 +19,7 @@ export default function MemberForm({ memberId, initialName = "" }: { memberId?: 
     e.preventDefault();
     setError(undefined);
     start(async () => {
-      const r = memberId ? await renameMember(memberId, name) : await createMember(name);
+      const r = memberId ? await renameMember(memberId, name) : await createMember({ displayName: name });
       if (!r.ok) return setError(r.error.message);
       if (!memberId) setName("");
       router.refresh();
