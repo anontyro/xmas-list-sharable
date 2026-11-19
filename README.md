@@ -1,7 +1,7 @@
 # Family Gifts
 
 A private family wishlist and gift-coordination app (Next.js, MUI, Drizzle, Postgres).
-Requirements: `docs/family-gifts-prd-v1.md`. Build plan: `docs/FamilyGifts/Specs/`.
+Requirements: `docs/family-gifts-prd-v1.md`. Build plan: `docs/FamilyGifts/Specs/`. Rules and why: `docs/FamilyGifts/Decisions/` (0001 to 0024). Design pack (the Sticker Book screens): `docs/family-gifts-design/`. Manual testing: `docs/FamilyGifts/Testing/`.
 
 ## Setup
 
@@ -12,8 +12,9 @@ pnpm db:up && pnpm db:migrate && pnpm db:seed --demo   # local Postgres in Docke
 pnpm dev
 ```
 
-If your Docker volume predates `docker/init-test-db.sql`, create the test database once:
-`docker compose exec db psql -U family -d family_gifts -c "create database family_gifts_test"`.
+If your Docker volume predates `docker/init-test-db.sql`, create the test databases once:
+`docker compose exec db psql -U family -d family_gifts -c "create database family_gifts_test" -c "create database family_gifts_e2e"`.
+Integration tests use `TEST_DATABASE_URL` and e2e tests use `E2E_DATABASE_URL`; both empty their database before every test, so never point them at the same one if you run them at the same time.
 
 ## Scripts
 
@@ -29,4 +30,4 @@ If your Docker volume predates `docker/init-test-db.sql`, create the test databa
 | `pnpm db:seed` | Create the household (`--demo` adds sample members and lists) |
 | `scripts/backup.sh`, `restore.sh`, `row-counts.sh` | Back up, restore and compare the database (see the runbook) |
 
-Running, deploying, backing up and restoring: `docs/FamilyGifts/Runbook.md`.
+First-time Supabase and Vercel setup: `docs/FamilyGifts/Supabase-and-Vercel-setup.md`. Running, deploying, backing up and restoring: `docs/FamilyGifts/Runbook.md`.

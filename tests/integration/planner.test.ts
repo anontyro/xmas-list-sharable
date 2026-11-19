@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { cookieJar, resetRequest } from "./request-context";
 import { db } from "./db-harness";
-import { guest, household, itemClaim, itemInterest, member, plannerItem, wishlist, wishlistItem } from "@/db/schema";
+import { guest, household, itemClaim, itemInterest, member, plannerItem, recipientBudget, wishlist, wishlistItem } from "@/db/schema";
 import { saveBudgets, setEntryDetails } from "@/features/planner/actions";
-import { getPlanner } from "@/features/planner/queries";
+import { getPlanner, getPlannerSummary } from "@/features/planner/queries";
 import { COOKIE_NAMES } from "@/lib/auth/cookies";
 import { createSession } from "@/lib/auth/session";
 import { UnauthorizedError } from "@/lib/result";
@@ -92,6 +92,35 @@ describe("getPlanner", () => {
     expect((await getPlanner()).periods).toHaveLength(2);
   });
 
+  it("gives the family page's summary the same planned, spent and budget numbers as the planner page", async () => {
+    const { la, ls, mk, ann, signIn } = await world();
+    const headphones = await mk(la.id, "Headphones", 12999);
+    const cookbook = await mk(ls.id, "Cookbook", 2499);
+    await db.insert(itemClaim).values([{ itemId: headphones.id, guestId: ann.id, status: "reserved" }, { itemId: cookbook.id, guestId: ann.id, status: "purchased" }]);
+    await signIn(ann);
+    expect(await getPlannerSummary()).toEqual({ plannedMinor: 15498, spentMinor: 2499, budgetMinor: null });
+    await saveBudgets({ occasion: "Christmas", year: 2026, total: "300", recipients: [] });
+    const p = await getPlanner();
+    expect(await getPlannerSummary()).toEqual({ plannedMinor: p.totals.plannedMinor, spentMinor: p.totals.spentMinor, budgetMinor: 30000 });
+  });
+
+  it("gives the summary for the period asked for, even one with nothing in it, not the newest period with entries", async () => {
+    const { alex, mk, ann, signIn } = await world();
+    const [old] = await db.insert(wishlist).values({ memberId: alex.id, title: "Old", occasion: "Christmas", year: 2025, slug: "alexold2025" }).returning();
+    const oldGift = await mk(old.id, "Old gift", 1000);
+    await db.insert(itemClaim).values({ itemId: oldGift.id, guestId: ann.id, status: "reserved" });
+    await signIn(ann);
+    expect(await getPlannerSummary()).toEqual({ plannedMinor: 1000, spentMinor: 0, budgetMinor: null }); // no period: the newest with entries
+    expect(await getPlannerSummary({ occasion: "Christmas", year: 2025 })).toEqual({ plannedMinor: 1000, spentMinor: 0, budgetMinor: null });
+    // 2026 has no entries yet: it reads as empty, not as 2025.
+    expect(await getPlannerSummary({ occasion: "Christmas", year: 2026 })).toEqual({ plannedMinor: 0, spentMinor: 0, budgetMinor: null });
+    // A budget set for an empty period still shows.
+    await saveBudgets({ occasion: "Christmas", year: 2026, total: "80", recipients: [] });
+    expect(await getPlannerSummary({ occasion: "Christmas", year: 2026 })).toEqual({ plannedMinor: 0, spentMinor: 0, budgetMinor: 8000 });
+    // The planner page itself still falls back to a period that has entries when asked for one that does not exist.
+    expect((await getPlanner({ occasion: "Nope", year: 1999 })).selected).toEqual({ occasion: "Christmas", year: 2025 });
+  });
+
   it("has an empty default planner for a guest with nothing yet", async () => {
     const { ann, signIn } = await world();
     await signIn(ann);
@@ -102,6 +131,24 @@ describe("getPlanner", () => {
 });
 
 describe("planner actions", () => {
+  it("saves nothing when one of the people is unknown: the total and the other budgets are left as they were", async () => {
+    const { sarah, ann, signIn } = await world();
+    await signIn(ann);
+    expect((await saveBudgets({ occasion: "Christmas", year: 2026, total: "100", recipients: [{ memberId: sarah.id, budget: "10" }] })).ok).toBe(true);
+
+    const r = await saveBudgets({
+      occasion: "Christmas",
+      year: 2026,
+      total: "999",
+      recipients: [{ memberId: sarah.id, budget: "77" }, { memberId: "00000000-0000-4000-8000-000000000000", budget: "5" }],
+    });
+
+    expect(r).toMatchObject({ ok: false, error: { code: "NOT_FOUND" } });
+    const p = await getPlanner();
+    expect(p.budgetMinor).toBe(10000);
+    expect((await db.select().from(recipientBudget)).map((b) => b.budgetMinor)).toEqual([1000]);
+  });
+
   it("saves budgets, notes, actual prices and exclusions, and they show up in the totals", async () => {
     const { sarah, la, ls, mk, ann, signIn } = await world();
     const a = await mk(la.id, "Headphones", 12999);

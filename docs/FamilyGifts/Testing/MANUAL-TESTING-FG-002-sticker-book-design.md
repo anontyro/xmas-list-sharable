@@ -68,6 +68,8 @@
 | ☐ | R6c | FG-603 | Admin on one screen | D82–D84 | 16, 17 |
 | ☐ | R7 | FG-701 | States, accessibility, phone gate | D85–D86 | 18, 19 |
 
+**Not run yet (nothing below is ticked):** the automated suites cover every screen at 375 px and 1280 px, but a real phone, a real Supabase database, the Vercel image handling, the iOS home-bar spacing and a screen reader have not been tried. Those are what cases 2, 19 and the "Watch for" list are for.
+
 ## Test cases
 
 ### R5a–R5b · Theme and stickers (FG-501, FG-502)
@@ -144,7 +146,7 @@ Press "I own a list", tap a name, enter the PIN. Then on the welcome screen use 
 ### R6c · Admin (FG-603)
 
 ### 16. Members and lists
-- Add a member with a picture and a PIN, and one with no PIN ("PIN not set"). Reset PIN shows the sign-in links. Rename (with a new picture), Archive, Restore and Deactivate work and the family page follows.
+- Add a member with a picture and a PIN, and one with no PIN ("PIN not set", red Set PIN). Reset PIN opens a dialog and shows the sign-in links after saving; the link with the PIN fills the owner sign-in form, and the old PIN stops working. Rename (with a new picture), Archive list (per list), Restore (on the Lists tab) and Deactivate work, ask first where they should, and the family page follows. Copy link puts the full address on the clipboard. `/admin/members/<id>` goes to `/admin`.
 
 ### 17. Admin privacy
 - No page shows who reserved or planned anything.
@@ -152,7 +154,7 @@ Press "I own a list", tap a name, enter the PIN. Then on the welcome screen use 
 ### R7 · Polish and gates (FG-701)
 
 ### 18. Empty and error states
-- An empty list, a new member with no list, an empty planner and an unknown list link each show a friendly screen with a next step; a slow page shows "One moment…".
+- An empty list, a new member with no list, an empty planner, an empty Lists tab and an unknown list or year link each show a friendly screen; a slow page shows "One moment…". To see "Something went wrong" with Try again, stop the database briefly and open a page (the automated tests only check how it looks).
 
 ### 19. Phone and accessibility
 On a real phone run: welcome, reserve, planner, save access, owner add gift, import, admin.
@@ -174,6 +176,10 @@ On a real phone run: welcome, reserve, planner, save access, owner add gift, imp
 - **Currency:** GBP only, shown as a fixed pill.
 - **Countdown:** only for Christmas lists in the current year.
 - **No dark mode.**
+- **Admin phone tabs:** Members and Lists only. Sign out is in the top bar at every width.
+- **Archive is per list** on the admin member card, not one button per member.
+- **No warning** when leaving the import page with edits not added.
+- **No Content-Security-Policy** yet (a follow-up).
 
 ## Quick pass / fail summary
 

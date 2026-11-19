@@ -4,11 +4,14 @@ import { ADMIN_SECRET, createItem, createList, createMemberWithPin, ownerSignIn,
 let household: string;
 let alex: string;
 let list: { id: string; slug: string };
+let itemId: string;
 test.beforeEach(async () => {
   household = await resetAndSeed();
   alex = await createMemberWithPin(household, "Alex", "123456");
   list = await createList(alex);
-  await seedGuestActivity(household, await createItem(list.id, "Headphones", 12999));
+  itemId = await createItem(list.id, "Headphones", 12999);
+  await seedGuestActivity(household, itemId);
+  await createList(alex, "Christmas 2025", true, 2025);
 });
 
 async function adminSignIn(page: Page) {
@@ -41,12 +44,12 @@ test("owner and admin pages never contain guest activity, and no page or script 
   const grab = async (path: string) => (pages[path] = await (await page.request.get(path)).text());
 
   await ownerSignIn(page);
-  for (const path of ["/owner", `/owner/lists/${list.id}`]) await grab(path);
+  for (const path of ["/owner", "/owner/pin", `/owner/lists/${list.id}`, `/owner/lists/${list.id}/add`, `/owner/lists/${list.id}/import`, `/owner/lists/${list.id}/gifts/${itemId}`]) await grab(path);
   await page.context().clearCookies();
   await adminSignIn(page);
-  for (const path of ["/admin", `/admin/members/${alex}`]) await grab(path);
+  for (const path of ["/admin", "/admin/lists", `/admin/members/${alex}`]) await grab(path);
   await page.context().clearCookies();
-  for (const path of ["/", "/owner/login", "/admin/login", "/planner", "/recover"]) await grab(path);
+  for (const path of ["/", "/welcome", "/owner/login", "/admin/login", "/planner", "/planner/budget", "/access", "/earlier/2025", "/recover"]) await grab(path);
 
   for (const [path, html] of Object.entries(pages)) {
     for (const secret of [PRIVATE.guest, PRIVATE.note, PRIVATE.price, "7777", PRIVATE.token]) expect(html, `${secret} in ${path}`).not.toContain(secret);

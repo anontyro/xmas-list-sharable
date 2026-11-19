@@ -1,15 +1,17 @@
+import { cache } from "react";
 import { readSessionToken } from "./cookies";
 import { getSession, type PrincipalType } from "./session";
 import { can, type Principal } from "@/lib/permissions";
 import { UnauthorizedError } from "@/lib/result";
 
-async function principalFor(type: PrincipalType): Promise<Principal> {
+/** Cached per request, so a layout and its page asking "who is this?" cost one lookup between them. */
+const principalFor = cache(async (type: PrincipalType): Promise<Principal> => {
   const token = await readSessionToken(type);
   const s = token ? await getSession(type, token) : null;
   if (!s) return null;
   if (type === "admin") return { type };
   return type === "owner" ? { type, memberId: s.principalId } : { type, guestId: s.principalId };
-}
+});
 
 /** The signed-in admin, or null. For pages that redirect instead of throwing. */
 export const currentAdmin = () => principalFor("admin");

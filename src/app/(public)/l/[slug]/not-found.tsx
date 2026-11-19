@@ -1,13 +1,12 @@
-import Container from "@mui/material/Container";
-import Typography from "@mui/material/Typography";
-import AppLink from "@/components/ui/AppLink";
+import PageWrap from "@/components/sticker/PageWrap";
+import Empty from "@/components/sticker/Empty";
+import LinkButton from "@/components/ui/LinkButton";
 
 export default function ListNotFound() {
   return (
-    <Container maxWidth="sm" sx={{ py: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom>We couldn&apos;t find that list</Typography>
-      <Typography sx={{ mb: 2 }}>The link may be wrong or the list may have been removed.</Typography>
-      <AppLink href="/">Back to the family page</AppLink>
-    </Container>
+    <PageWrap>
+      <h1 style={{ margin: 0 }}>We couldn&apos;t find that list</h1>
+      <Empty sticker="gifttag" action={<LinkButton href="/" variant="contained">Back to the family page</LinkButton>}>The link may be wrong or the list may have been removed.</Empty>
+    </PageWrap>
   );
 }

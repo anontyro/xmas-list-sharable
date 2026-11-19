@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { expect, test, type Page } from "@playwright/test";
-import { createItem, createList, createMemberWithPin, guestPage, resetAndSeed } from "./helpers";
+import { createItem, createList, createMemberWithPin, gotoPlanner, guestPage, resetAndSeed, setGiftDetails, setTotalBudget } from "./helpers";
 
 let alexSlug: string;
 let sarahSlug: string;
@@ -19,12 +19,7 @@ test.beforeEach(async () => {
 });
 
 const press = (page: Page, name: RegExp) => page.getByRole("button", { name }).click();
-const tick = (page: Page, title: string) => page.getByLabel(`Include in export: ${title}`).check();
-
-async function openNav(page: Page) {
-  const menu = page.getByRole("button", { name: "Open menu" });
-  if (await menu.isVisible()) await menu.click();
-}
+const tick = (page: Page, title: string) => page.getByLabel(`Select ${title}`).check();
 
 /** Ann holds Headphones and a formula-looking gift, likes Novel, and has bought the Cookbook with a note. */
 async function plannedGuest(browser: Parameters<typeof guestPage>[0]) {
@@ -35,17 +30,9 @@ async function plannedGuest(browser: Parameters<typeof guestPage>[0]) {
   await g.page.goto(`/l/${sarahSlug}`);
   await press(g.page, /^Reserve: Cookbook/);
   await press(g.page, /^Mark purchased: Cookbook/);
-  await openNav(g.page);
-  await g.page.getByRole("link", { name: "My Planner", exact: true }).or(g.page.getByRole("menuitem", { name: "My Planner" })).click();
-  await g.page.getByRole("button", { name: "Set budgets" }).click();
-  await g.page.getByLabel("Total budget (£)").fill("250");
-  await g.page.getByRole("button", { name: "Save budgets" }).click();
-  const card = g.page.locator(".MuiPaper-root").filter({ has: g.page.getByRole("heading", { name: "Cookbook" }) }).first();
-  await card.getByRole("button", { name: /Notes and price paid/ }).click();
-  await card.getByLabel("Private note", { exact: true }).fill("gift wrap please");
-  await card.getByLabel("Price you paid (£)").fill("19.50");
-  await card.getByRole("button", { name: "Save", exact: true }).click();
-  await expect(card.getByText("Saved")).toBeVisible();
+  await gotoPlanner(g.page);
+  await setTotalBudget(g.page, "250");
+  await setGiftDetails(g.page, "Cookbook", { price: "19.50", note: "gift wrap please" });
   return g;
 }
 
@@ -53,7 +40,7 @@ test("copies a selected subset as a readable list, with notes only when asked", 
   const { page, context } = await plannedGuest(browser);
   await tick(page, "Headphones");
   await tick(page, "Cookbook");
-  await expect(page.getByText("2 selected")).toBeVisible();
+  await expect(page.getByText("2 of 4 selected")).toBeVisible();
   await press(page, /^Copy list$/);
   await expect(page.getByText("Copied", { exact: true })).toBeVisible();
 
@@ -75,7 +62,7 @@ test("copies a selected subset as a readable list, with notes only when asked", 
 test("downloads Markdown and a CSV that spreadsheets cannot run as formulas", async ({ browser }) => {
   const { page, context } = await plannedGuest(browser);
   await press(page, /^Select all$/);
-  await expect(page.getByText("4 selected")).toBeVisible();
+  await expect(page.getByText("4 of 4 selected")).toBeVisible();
 
   const [csvDownload] = await Promise.all([page.waitForEvent("download"), press(page, /^Download CSV$/)]);
   expect(csvDownload.suggestedFilename()).toBe("gift-planner-christmas-2026.csv");
@@ -99,9 +86,9 @@ test("downloads Markdown and a CSV that spreadsheets cannot run as formulas", as
 test("a gift that leaves the planner no longer counts as selected", async ({ browser }) => {
   const { page, context } = await plannedGuest(browser);
   await tick(page, "Headphones");
-  await expect(page.getByText("1 selected")).toBeVisible();
+  await expect(page.getByText("1 of 4 selected")).toBeVisible();
   await press(page, /^Release: Headphones/);
-  await expect(page.getByText("0 selected")).toBeVisible();
+  await expect(page.getByText("0 of 3 selected")).toBeVisible();
   await press(page, /^Copy list$/);
   await expect(page.getByText("Choose at least one gift")).toBeVisible();
   await context.close();
@@ -119,6 +106,6 @@ test("asks for a selection first and Clear empties it", async ({ browser }) => {
 
   await press(page, /^Select all$/);
   await press(page, /^Clear$/);
-  await expect(page.getByText("0 selected")).toBeVisible();
+  await expect(page.getByText("0 of 4 selected")).toBeVisible();
   await context.close();
 });

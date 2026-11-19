@@ -1,13 +1,13 @@
 "use client";
 
+import SectionTitle from "@/components/sticker/SectionTitle";
 import { useState } from "react";
-import Alert from "@mui/material/Alert";
+import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
-import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
+import Note from "@/components/sticker/Note";
+import StickerCard from "@/components/sticker/StickerCard";
 import { buildExport } from "../export/build";
 import { formatCsv } from "../export/csv";
 import { formatMarkdown } from "../export/markdown";
@@ -25,11 +25,11 @@ function download(filename: string, mime: string, content: string, bom = "") {
   URL.revokeObjectURL(url);
 }
 
-/** Copy, Markdown and CSV for the ticked entries. The files are built here from the planner data already on the page. */
+/** The "Shopping list" card: copy, Markdown and CSV for the ticked entries. The files are built here from the planner data already on the page. */
 export default function ExportMenu({ plan }: { plan: PlannerView }) {
   const { selected, setAll, clear } = useSelection();
   const [includeNotes, setIncludeNotes] = useState(false);
-  const [message, setMessage] = useState<{ severity: "success" | "warning" | "error"; text: string }>();
+  const [message, setMessage] = useState<{ tint: "mint" | "yellow" | "pink"; text: string }>();
   const allIds = plan.groups.flatMap((g) => g.entries.map((e) => e.itemId));
   // Ticked gifts that have since left the planner (released, say) must not count.
   const chosen = allIds.filter((id) => selected.has(id)).length;
@@ -38,7 +38,7 @@ export default function ExportMenu({ plan }: { plan: PlannerView }) {
   const base = `gift-planner-${plan.selected.occasion}-${plan.selected.year}`.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
   const run = (fn: (input: ExportInput) => void | Promise<void>) => {
-    if (chosen === 0) return setMessage({ severity: "warning", text: "Choose at least one gift" });
+    if (chosen === 0) return setMessage({ tint: "yellow", text: "Choose at least one gift" });
     setMessage(undefined);
     return fn(buildExport(plan, selected, includeNotes));
   };
@@ -47,28 +47,30 @@ export default function ExportMenu({ plan }: { plan: PlannerView }) {
     run(async (input) => {
       try {
         await navigator.clipboard.writeText(formatText(input));
-        setMessage({ severity: "success", text: "Copied" });
+        setMessage({ tint: "mint", text: "Copied" });
       } catch {
-        setMessage({ severity: "error", text: "Couldn't copy. Try a download instead." });
+        setMessage({ tint: "pink", text: "Couldn't copy. Try a download instead." });
       }
     });
 
   return (
-    <Paper component="section" aria-label="Export" sx={{ p: 2 }}>
-      <Typography variant="h6" component="h2" gutterBottom>Share my list</Typography>
-      <Typography color="text.secondary" sx={{ mb: 1 }}>Tick the gifts below, then copy or download them.</Typography>
-      <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap", mb: 1 }}>
-        <Button size="small" onClick={() => setAll(allIds)}>Select all</Button>
-        <Button size="small" onClick={clear}>Clear</Button>
-        <Typography sx={{ alignSelf: "center" }} aria-live="polite">{chosen} selected</Typography>
-      </Stack>
+    <StickerCard component="section" padded aria-label="Shopping list" sx={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+      <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
+        <SectionTitle>Shopping list</SectionTitle>
+        <Box component="p" aria-live="polite" sx={{ m: 0, fontWeight: 800, fontSize: 14, color: "text.secondary" }}>{chosen} of {allIds.length} selected</Box>
+      </Box>
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+        <Button size="small" variant="ghost" onClick={() => setAll(allIds)}>Select all</Button>
+        <Button size="small" variant="ghost" onClick={clear}>Clear</Button>
+      </Box>
       <FormControlLabel label="Include my private notes" control={<Checkbox checked={includeNotes} onChange={(e) => setIncludeNotes(e.target.checked)} />} />
-      <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap", mt: 1 }}>
-        <Button variant="contained" onClick={copy}>Copy list</Button>
-        <Button variant="outlined" onClick={() => run((i) => download(`${base}.md`, "text/markdown", formatMarkdown(i)))}>Download Markdown</Button>
-        <Button variant="outlined" onClick={() => run((i) => download(`${base}.csv`, "text/csv", formatCsv(i), "﻿"))}>Download CSV</Button>
-      </Stack>
-      {message && <Alert severity={message.severity} role="status" sx={{ mt: 2 }}>{message.text}</Alert>}
-    </Paper>
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+        <Button variant="contained" sx={{ flex: "1 1 120px" }} onClick={copy}>Copy list</Button>
+        <Button variant="contained" color="sky" sx={{ flex: "1 1 120px" }} aria-label="Download Markdown" onClick={() => run((i) => download(`${base}.md`, "text/markdown", formatMarkdown(i)))}>Markdown</Button>
+        <Button variant="contained" color="sky" sx={{ flex: "1 1 120px" }} aria-label="Download CSV" onClick={() => run((i) => download(`${base}.csv`, "text/csv", formatCsv(i), "﻿"))}>CSV</Button>
+      </Box>
+      {message && <Note tint={message.tint} role="status"><p>{message.text}</p></Note>}
+      <Box component="p" sx={{ m: 0, fontSize: 13, fontWeight: 700, color: "text.secondary" }}>Exports never include your recovery link or other people&apos;s plans.</Box>
+    </StickerCard>
   );
 }

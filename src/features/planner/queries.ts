@@ -27,6 +27,8 @@ export type PlannerView = {
   periods: Period[];
   selected: Period;
   budgetMinor: number | null;
+  /** Every person budget set for this period, including people with no gifts in the planner yet. */
+  recipientBudgets: { memberId: string; budgetMinor: number }[];
   groups: PlannerGroup[];
   totals: PlanTotals;
 };
@@ -44,7 +46,7 @@ const itemColumns = {
 };
 
 /** The signed-in guest's own planner. Every row is filtered by the session guest; nothing takes a planner id from the client. */
-export async function getPlanner(requested?: Partial<Period>): Promise<PlannerView> {
+export async function getPlanner(requested?: Partial<Period>, { exact = false }: { exact?: boolean } = {}): Promise<PlannerView> {
   const { guestId } = await requireGuest();
   const db = getDb();
 
@@ -72,7 +74,11 @@ export async function getPlanner(requested?: Partial<Period>): Promise<PlannerVi
   const periods = [...new Map([...rows.values()].map((r) => [periodKey(r), { occasion: r.occasion, year: r.year }])).values()].sort(
     (a, b) => b.year - a.year || a.occasion.localeCompare(b.occasion),
   );
-  const asked = requested?.occasion && requested.year ? periods.find((p) => p.occasion === requested.occasion && p.year === requested.year) : undefined;
+  // `exact`: a period with nothing in it yet is still the one asked for (the summary cards), not "whichever period has entries".
+  const asked =
+    requested?.occasion && requested.year
+      ? periods.find((p) => p.occasion === requested.occasion && p.year === requested.year) ?? (exact ? { occasion: requested.occasion, year: requested.year } : undefined)
+      : undefined;
   const selected = asked ?? periods[0] ?? { occasion: "Christmas", year: new Date().getFullYear() };
 
   const [planner] = await db
@@ -115,7 +121,15 @@ export async function getPlanner(requested?: Partial<Period>): Promise<PlannerVi
     periods,
     selected,
     budgetMinor: planner?.budgetMinor ?? null,
+    recipientBudgets: recipientBudgets.map((b) => ({ memberId: b.memberId, budgetMinor: b.budgetMinor })),
     groups: ordered,
     totals: computePlan(ordered.flatMap((g) => g.entries), planner?.budgetMinor ?? null),
   };
+}
+
+/** The three numbers on the planner card (family page, list page), taken from the planner page's own totals so the two never disagree (decision 0020). */
+export async function getPlannerSummary(period?: Period): Promise<{ plannedMinor: number; spentMinor: number; budgetMinor: number | null }> {
+  // With a period it is that period, empty or not; without one, the newest period the guest has entries in.
+  const { totals, budgetMinor } = await getPlanner(period, { exact: true });
+  return { plannedMinor: totals.plannedMinor, spentMinor: totals.spentMinor, budgetMinor };
 }

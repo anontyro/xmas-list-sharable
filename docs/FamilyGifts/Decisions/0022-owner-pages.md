@@ -1,0 +1,22 @@
+# 0022 · Owners edit on one page and add or change a gift on another, and owner pages still never touch claim or planner code
+
+**Status:** Agreed · **Work items:** FG-601 · **Spec:** `Docs/FamilyGifts/Specs/2026-11-17-FG-002-sticker-book-design.md` D76, D77, D78
+
+The owner's list page only arranges gifts; adding and editing a gift moved to their own pages. The server side (validation, `createItem`, `updateItem`, `deleteItem`, `moveItemAction`, the link-fetch throttle and its protections) did not change.
+
+- **Owner shell and nav (D76).** The owner top bar and bottom tabs show "My list" and "Add a gift". "My list" goes to the owner's newest list that is not archived (`newestOpenList`, once per request), or to `/owner` when there is none; "Add a gift" is only shown when there is such a list. "Add a gift" sits under "My list" in the address space, so the nav items gained an optional `exclude` list and only one of the two is ever current. With no list, `/owner` says "You don't have a list yet. Ask the family admin to create one."; the nav itself has no message (the spec had it in the nav). The lint rule stands: owner components cannot import `@/features/reservations/*` or `@/features/planner/*`, so the preview is its own component rather than `GiftRow`.
+- **Editor (D77).** `/owner/lists/[listId]`: mint hero "My Christmas list" with "2026 · 5 gifts · only you can edit", a ribbon per priority (`★ MOST WANTED` red, `WOULD LOVE` green, `NICE TO HAVE` sky, level 2 headings) and a row per gift in the owner's order: picture or sticker, title (level 3), price or "No price", and ↑ Up, ↓ Down and Edit. The buttons keep the accessible names `Move up: <title>`, `Move down: <title>` and `Edit <title>`; Up is disabled for the first gift of a group and Down for the last, and a move never leaves its priority group (`moveItemAction`). Inline editing and the Remove button are gone from the list.
+  Sidebar (below the gifts on phones): "Share your list" (the path in mono, a Copy link button that copies the full address, "Anyone with this link can see your list, so only send it to family."), "Add gifts" (+ Add a gift to `/add?mode=manual`, Add from a web link to `/add?mode=link`, and the existing "Import from an Amazon wishlist" dialog until R6b replaces it), and the mint note "The surprise is safe. You never see who has reserved or bought anything." An archived list shows a notice instead of the Add gifts card and has no Up, Down or Edit; its add and edit addresses go back to the list.
+- **Gift form (D78).** `/owner/lists/[listId]/add` and `/gifts/[itemId]` share `GiftForm`. A "Paste a link" / "Type it in" switch (`?mode=`; link by default when adding, typed when editing) only decides whether the "Product link" field has a "Fetch details" button beside it; every field is always usable, so a failed or blocked lookup never stops the owner typing the gift in. A fetch fills the fields, shows the mint note "Found the title, picture and price. Check them, then save." and a "What we found" card (Title, Picture, Price, Description, each a ✓ or – pill with "found" or "not found" in words); a failed fetch shows its pink message, which ends "You can still add it by hand.", and changes nothing. The product link that failed stays in its field, so saving with it shows the link error next to the field.
+  Fields: What is it?, Price (with a fixed "GBP" pill), "How much do you want it?" (three toggle buttons, Would Love by default), Picture link, Notes for the family. The sidebar's "How guests see it" updates as the owner types. "Save gift" and Cancel go back to the list; editing also has "Remove this gift", which asks first (the browser's confirm box) and soft-deletes (decision 0007).
+
+## Why
+
+A list is read and rearranged far more often than it is edited, so the page that rearranges has no forms on it. Giving the gift form a page of its own leaves room for the preview and the "what we found" card at phone width, and keeps the fallback honest: typing a gift in is always one tap away from the link box.
+
+## Consequences
+
+- An owner who edits many gifts goes list, edit, list each time; there is no inline edit.
+- The share link text shows `/l/<slug>` rather than the full address, because the server does not know the host; Copy link copies the full address.
+- The preview does not reuse `GiftRow`, so the two can drift apart visually.
+- Switching between "Paste a link" and "Type it in" does not change the address; a copied add address always opens in the mode it names.

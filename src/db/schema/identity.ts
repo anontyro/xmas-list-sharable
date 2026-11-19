@@ -14,6 +14,8 @@ export const member = pgTable(
     householdId: uuid("household_id").notNull().references(() => household.id),
     displayName: text("display_name").notNull(),
     pinHash: text("pin_hash"),
+    /** Optional picture: the name of one of the allowed stickers, checked in code (src/features/family/avatars.ts), not by the database. Null means initials. */
+    avatar: text("avatar"),
     active: boolean("active").notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },

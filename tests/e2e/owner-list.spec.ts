@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { createList, createMemberWithPin, ownerSignIn, resetAndSeed } from "./helpers";
+import { createList, createMemberWithPin, openAccountMenu, ownerSignIn, resetAndSeed } from "./helpers";
 
 let householdId: string;
 test.beforeEach(async () => {
@@ -12,13 +12,14 @@ test("owner adds a gift and a guest sees it read-only, then the owner removes it
   await ownerSignIn(page);
   await page.getByRole("link", { name: "Christmas 2026" }).click();
 
-  await page.getByRole("textbox", { name: /^Gift/ }).fill("Noise-cancelling headphones");
-  await page.getByLabel("Link (optional)", { exact: true }).fill("https://shop.example/headphones");
-  await page.getByLabel("Price in £ (optional)").fill("129.99");
-  await page.getByLabel("How much do you want it?").click();
-  await page.getByRole("option", { name: "Most Wanted" }).click();
-  await page.getByRole("button", { name: "Add gift" }).click();
-  await expect(page.getByRole("region", { name: "Most Wanted" }).getByText("Noise-cancelling headphones")).toBeVisible();
+  await page.getByRole("link", { name: "+ Add a gift" }).click();
+  await page.getByLabel("What is it?").fill("Noise-cancelling headphones");
+  await page.getByLabel("Product link (optional)").fill("https://shop.example/headphones");
+  await page.getByLabel("Price", { exact: true }).fill("129.99");
+  await page.getByRole("button", { name: "Most Wanted" }).click();
+  await page.getByRole("button", { name: "Save gift" }).click();
+  await expect(page.getByRole("heading", { level: 2, name: /MOST WANTED/ })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 3, name: "Noise-cancelling headphones" })).toBeVisible();
 
   const guest = await browser.newContext();
   const guestPage = await guest.newPage();
@@ -27,8 +28,9 @@ test("owner adds a gift and a guest sees it read-only, then the owner removes it
   await expect(guestPage.getByText("£129.99")).toBeVisible();
   await expect(guestPage.getByRole("button", { name: /add gift|edit|remove/i })).toHaveCount(0);
 
+  await page.getByRole("link", { name: "Edit Noise-cancelling headphones" }).click();
   page.once("dialog", (d) => d.accept());
-  await page.getByRole("button", { name: "Remove" }).click();
+  await page.getByRole("button", { name: "Remove this gift" }).click();
   await expect(page.getByText("No gifts yet")).toBeVisible();
   await guestPage.reload();
   await expect(guestPage.getByText("Nothing on this list yet.")).toBeVisible();
@@ -40,10 +42,12 @@ test("a bad link is rejected next to its field and nothing is saved", async ({ p
   await createList(alex);
   await ownerSignIn(page);
   await page.getByRole("link", { name: "Christmas 2026" }).click();
-  await page.getByRole("textbox", { name: /^Gift/ }).fill("Book");
-  await page.getByLabel("Link (optional)", { exact: true }).fill("javascript:alert(1)");
-  await page.getByRole("button", { name: "Add gift" }).click();
+  await page.getByRole("link", { name: "+ Add a gift" }).click();
+  await page.getByLabel("What is it?").fill("Book");
+  await page.getByLabel("Product link (optional)").fill("javascript:alert(1)");
+  await page.getByRole("button", { name: "Save gift" }).click();
   await expect(page.getByText("Enter a web address starting with http:// or https://")).toBeVisible();
+  await page.getByRole("link", { name: "Cancel" }).click();
   await expect(page.getByText("No gifts yet")).toBeVisible();
 });
 
@@ -63,7 +67,8 @@ test("signed-out visitors are sent to sign in, and sign-out ends the session", a
   await page.goto(`/owner/lists/${list.id}`);
   await expect(page).toHaveURL(/\/owner\/login$/);
   await ownerSignIn(page);
-  await page.getByRole("button", { name: "Sign out" }).click();
+  await openAccountMenu(page, "Alex");
+  await page.getByRole("menuitem", { name: "Sign out" }).click();
   await expect(page).toHaveURL(/\/owner\/login$/); // the refresh after sign-out bounces the page
   await page.goto("/owner");
   await expect(page).toHaveURL(/\/owner\/login$/);
@@ -76,7 +81,7 @@ test("family page, archived banner, unknown link and robots", async ({ page }) =
   const archived = await createList(sarah, "Sarah's old list", true);
 
   await page.goto("/");
-  await expect(page.getByRole("link", { name: "Alex's Christmas" })).toHaveAttribute("href", `/l/${active.slug}`);
+  await expect(page.getByRole("link", { name: "Open Alex's list" })).toHaveAttribute("href", `/l/${active.slug}`);
   await expect(page.getByText("Sarah's old list")).toHaveCount(0);
 
   await page.goto(`/l/${archived.slug}`);

@@ -8,7 +8,7 @@ import { wishlistItem } from "@/db/schema";
 import { requireOwner } from "@/lib/auth/require";
 import { action, fail, ok } from "@/lib/result";
 import { getListAccess, nextSortOrder, SORT_GAP } from "@/features/wishlists/owner-queries";
-import { itemInput, type OwnerItemInput } from "@/features/wishlists/schemas";
+import { itemInput, type OwnerItemInput, type Priority } from "@/features/wishlists/schemas";
 import { parseAmazon } from "./amazon";
 import { MAX_DRAFTS } from "./amazon/shared";
 import { asinFrom } from "./amazon/asin";
@@ -44,8 +44,11 @@ export async function previewAmazonImport(listId: string, input: string) {
   });
 }
 
-/** Adds the confirmed rows to the end of "Would Love", all or none. Blank titles are skipped; any invalid row adds nothing. */
-export async function commitBulkImport(listId: string, rows: Omit<OwnerItemInput, "priority">[]) {
+/**
+ * Adds the confirmed rows, each to the end of its own priority group in the order given (a row with no priority is "Would Love"),
+ * all or none. Blank titles are skipped; any invalid row, a bad priority included, adds nothing.
+ */
+export async function commitBulkImport(listId: string, rows: OwnerItemInput[]) {
   return action(async () => {
     const { error } = await ownList(listId);
     if (error) return error;
@@ -55,17 +58,25 @@ export async function commitBulkImport(listId: string, rows: Omit<OwnerItemInput
     const values = [];
     const problems: string[] = [];
     for (const row of wanted) {
-      const parsed = itemInput.safeParse({ ...row, priority: "would_love" });
+      const parsed = itemInput.safeParse(row);
       if (parsed.success) values.push(parsed.data);
       else problems.push(`"${String(row.title).slice(0, 40)}": ${parsed.error.issues[0].message}`);
     }
     if (problems.length) return fail("INVALID", `Nothing was added. Please fix: ${problems.join("; ")}`);
     if (!values.length) return ok({ added: 0, skipped: rows.length });
 
-    const start = await nextSortOrder(listId, "would_love");
+    // Each priority group continues from its own last item, so existing gifts keep their place.
+    const next = new Map<Priority, number>();
+    for (const p of new Set(values.map((v) => v.priority))) next.set(p, await nextSortOrder(listId, p));
     await getDb()
       .insert(wishlistItem)
-      .values(values.map((v, i) => ({ ...v, wishlistId: listId, sortOrder: start + i * SORT_GAP })));
+      .values(
+        values.map((v) => {
+          const sortOrder = next.get(v.priority)!;
+          next.set(v.priority, sortOrder + SORT_GAP);
+          return { ...v, wishlistId: listId, sortOrder };
+        }),
+      );
     revalidatePath("/owner", "layout");
     revalidatePath("/l/[slug]", "page");
     return ok({ added: values.length, skipped: rows.length - values.length });

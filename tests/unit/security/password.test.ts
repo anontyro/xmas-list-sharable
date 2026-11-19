@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { hashPin, InvalidPinError, verifyPin } from "@/lib/security/password";
+import { hashPin, InvalidPinError, verifyPin, verifyPinOrDummy } from "@/lib/security/password";
 
 describe("PIN hashing", () => {
   it("verifies the right PIN and rejects another", async () => {
@@ -18,5 +18,10 @@ describe("PIN hashing", () => {
   });
   it("treats a malformed stored hash as a failed login", async () => {
     expect(await verifyPin("123456", "not-a-hash")).toBe(false);
+  });
+  it("a missing hash always fails, even for the dummy's own PIN, and a real one still works", async () => {
+    expect(await verifyPinOrDummy("000000", null)).toBe(false);
+    expect(await verifyPinOrDummy("123456", undefined)).toBe(false);
+    expect(await verifyPinOrDummy("123456", await hashPin("123456"))).toBe(true);
   });
 });

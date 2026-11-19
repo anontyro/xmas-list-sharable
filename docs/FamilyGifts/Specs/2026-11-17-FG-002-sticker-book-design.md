@@ -18,7 +18,7 @@ Work item: FG-002 (the design handoff in `docs/family-gifts-design/`, whose `PRD
 Branch: one branch per release, `feature/FG-5xx-…`, each stacked on the last and each able to merge on its own.
 Toggle: none (D46). The app is not live yet, and a release that is merged but unfinished is not deployed.
 Design: `docs/family-gifts-design/` (`README.md`, `styles/sticker.css`, `reference/01-welcome.html` to `12-menu.html`, `icons/`). Cited below as screen `04-wishlist` and so on.
-Status: **draft 2026-11-17**. No open questions; waiting for approval.
+Status: **completed 2026-11-18** (approved 2026-11-17, build started with P0). No open questions.
 Manual testing: `Docs/FamilyGifts/Testing/MANUAL-TESTING-FG-002-sticker-book-design.md`
 Decisions: `Docs/FamilyGifts/Decisions/` (README lists every planned record, numbered from 0016, and the package that writes it).
 
@@ -81,7 +81,7 @@ Order is deliberate: R5a and R5b change no behaviour, R5c to R5f are the guest j
 
 ### R5a · Theme, plus decisions shared by every release
 
-> **R5a · task FG-501 · ~11 files: ~6 new, ~5 modified · packages P0–P1**
+> **R5a · task FG-501 · ~10 files: ~6 new, ~4 modified · packages P0–P1**
 >
 > Pages keep their layout but take on the Sticker Book look: cream dot-grid page, ink borders, hard shadows, red and green buttons, Lilita One headings, a visible focus ring.
 > In code the MUI theme is rebuilt from design tokens, the fonts are added, and a unit test guards the colour contrast. No behaviour changes.
@@ -107,8 +107,8 @@ Order is deliberate: R5a and R5b change no behaviour, R5c to R5f are the guest j
 
 - **D50 · Sticker pack.** The 36 PNGs are copied unchanged to `public/stickers/<name>.png` (flat names as in the design pack). `src/components/ui/Sticker.tsx` replaces `Icon.tsx`: `<Sticker name="tree" width={64} />` with `name` a string-literal union from `src/components/ui/sticker-names.ts` (which also holds each file's natural width and height so height follows width and nothing shifts).
   It renders `next/image` with the `.stk` look as styles (white 2 px outline and soft shadow via `filter: drop-shadow`), `alt=""` by default, and a required real `alt` when the sticker is the only label. `public/icons/`, `Icon.tsx` and `icon-names.ts` are deleted, and every use is switched in the same package.
-- **D51 · Components.** Under `src/components/sticker/`, each small and typed: `Pill` (tone default / yellow / mint / pink / sky), `Ribbon` (tone red / green / yellow / sky, rotated -1.5 degrees, text only so the label is read normally), `Note` (an Alert styled as the design's note, optional sticker),
-  `Hero` (tint, title, subtitle, optional back link, optional sticker, desktop and mobile sizes from the CSS), `Meter` (segments array, `role="img"` with an `aria-label` the caller supplies), `Stat`, `Thumb` (58 px circle on a tint), `MemberAvatar`, `GiftThumb`, `TwoColumn` (content plus 360 px sidebar, sidebar first on mobile), `SplitLayout` (brand panel plus form, used by the welcome and sign-in screens), `PageWrap` (max 1120 px, paddings from the CSS).
+- **D51 · Components.** Under `src/components/sticker/`, each small and typed: `Pill` (tone default / yellow / mint / pink / sky), `Ribbon` (tone red / green / yellow / sky, rotated -1.5 degrees, text only so the label is read normally), `Note` (a plain tinted box in the design's note style with an optional sticker; it announces itself only when given `role="alert"` or `"status"`),
+  `Hero` (a client component: tint, title, subtitle, optional back link, optional sticker or aside, desktop and mobile sizes from the CSS), `Meter` (segments array, `role="img"` with an `aria-label` the caller supplies), `Stat`, `Thumb` (58 px circle on a tint), `MemberAvatar`, `GiftThumb`, `TwoColumn` (content plus 360 px sidebar, sidebar first on mobile), `SplitLayout` (brand panel plus form, used by the welcome and sign-in screens), `PageWrap` (max 1120 px, paddings from the CSS).
   Cards themselves are MUI `Card` styled by the theme, with a `tint` prop wrapper `StickerCard` (white, yellow, mint, sky, pink, or cream dashed).
 - **D52 · Gift pictures.** `GiftThumb` shows the product picture when the gift has an `imageUrl` (a plain `<img>`, `loading="lazy"`, `referrerPolicy="no-referrer"`, `alt=""` because the title is beside it, rounded to the circle), and falls back to a sticker if it has none or the image fails to load.
   The sticker comes from `stickerForGift(title, id)` in `src/components/sticker/gift-sticker.ts`, a pure function: the first matching keyword group in the title (sock, glove, scarf, hat → `stocking`; book, novel, cookbook → `parcel`; candle, perfume, soap, bath → `sparkles`; mug, cup, dish, pan, kitchen → `box`; headphone, charger, speaker, tech → `box`; toy, game, puzzle, lego → `presentgreen`; voucher, card → `gifttag`),
@@ -117,7 +117,7 @@ Order is deliberate: R5a and R5b change no behaviour, R5c to R5f are the guest j
 
 ### R5c · Shells and navigation
 
-> **R5c · task FG-503 · ~24 files: ~16 new, ~8 modified · packages P5–P8**
+> **R5c · task FG-503 · ~32 files: ~19 new, ~13 modified · packages P5–P8**
 >
 > Every page gets the right top bar, bottom tabs and account menu for who is using it. Guests can change their name, open Save access, and sign out of the device from the menu.
 > In code the single `AppShell` is replaced by one shell per route group, guest sign-out is a server action, and the last list a guest opened is remembered for the Wishlist shortcut.
@@ -137,7 +137,7 @@ Order is deliberate: R5a and R5b change no behaviour, R5c to R5f are the guest j
 
 ### R5d · Welcome and sign-in
 
-> **R5d · task FG-504 · ~33 files: ~14 new, ~19 modified · packages P9–P12**
+> **R5d · task FG-504 · ~37 files: ~15 new, ~22 modified · packages P9–P12**
 >
 > First-time visitors meet a split welcome screen that asks for their name; list owners sign in by tapping their name and typing a PIN; the admin signs in on the same frame. Someone who already has a recovery link can paste it.
 > In code the sign-in pages move into a chrome-free `(welcome)` route group, the inline name form on the list page is replaced by a prompt that links here, and two small pure helpers validate the return path and read a pasted link.
@@ -324,7 +324,6 @@ Shared acceptance for every package:
   - `src/theme/tokens.ts` (new)
   - `src/theme/augment.d.ts` (new)
   - `src/theme/theme.ts`
-  - `src/theme/ThemeRegistry.tsx`
   - `src/app/fonts.ts` (new)
   - `src/app/layout.tsx`
   - `tests/unit/theme-contrast.test.ts` (new)
@@ -400,8 +399,10 @@ Shared acceptance for every package:
 - Lane: `repo`
 - ownedFiles:
   - `Docs/FamilyGifts/Decisions/0017-stickers-and-gift-pictures.md` (new)
+  - `Docs/FamilyGifts/Decisions/0001-stack-and-layout.md`
 - Acceptance criteria:
-  1. Decision 0017 exists with `Status: Agreed` and states D50 to D53 as built.
+  1. Decision 0017 exists with `Status: Agreed` and states D50 to D53 as built, including that `Note` is not an MUI Alert and `Hero` is a client component.
+  2. Decision 0001 is edited in place so its icon and installation statements match the code (stickers, and the font packages as the one later dependency change).
 
 ### P5 · server: guest sign-out and last-list helpers (R5c · FG-503, wave 6)
 - Lane: `server`
@@ -426,41 +427,53 @@ Shared acceptance for every package:
   - `src/components/layout/AdminShell.tsx` (new)
   - `src/components/layout/ChangeNameDialog.tsx` (new)
   - `src/components/layout/RememberList.tsx` (new)
+  - `src/components/layout/ShellFrame.tsx` (new)
+  - `src/components/layout/nav.ts` (new)
+  - `tests/unit/nav.test.ts` (new)
   - `src/components/layout/AppShell.tsx` (deleted)
   - `src/app/(public)/layout.tsx` (new)
   - `src/app/(owner)/layout.tsx` (new)
   - `src/app/(admin)/layout.tsx` (new)
   - `src/app/layout.tsx`
   - `src/app/(public)/l/[slug]/page.tsx`
+  - `src/app/(owner)/owner/page.tsx`
+  - `src/app/(admin)/admin/page.tsx`
+  - `tests/e2e/helpers.ts`
+  - `tests/e2e/planner.spec.ts`
+  - `tests/e2e/planner-export.spec.ts`
+  - `tests/e2e/recovery.spec.ts`
+  - `tests/e2e/mobile-a11y.spec.ts`
+  - `tests/e2e/welcome.spec.ts`
+  - `tests/e2e/navigation.spec.ts`
+  - `tests/e2e/owner-list.spec.ts`
 - Acceptance criteria:
   1. Guest, owner and admin pages show their own shell as D54 and D55 describe, with the top links from 860 px and the tabs below it, never both, and `aria-current="page"` on the active item.
   2. The account menu opens from the chip, closes on Escape and outside click, returns focus to the chip, and has the guest and owner items of D56 in order; the guest "Change my name" dialog renames through `renameGuest`; "Save access" opens the existing dialog.
   3. "Sign out of this device" signs out straight away when a recovery link exists and asks first when none does (both paths work by keyboard), then lands on `/`.
   4. Opening a list writes `fg_last_list`; the Wishlist link then goes to it; a tampered cookie value is ignored.
   5. Signed-out owner and admin pages show the brand only and still redirect to sign-in where they did before.
-  6. The existing suites pass after their locators are updated for the new nav.
+  6. The existing suites pass after their locators are updated for the new nav (the sign-out buttons that sat on the owner and admin pages move into the shells; owner sign-out is now a menu item).
 
 ### P7 · e2e: navigation and account menu (R5c · FG-503, wave 8)
 - Lane: `e2e`
 - ownedFiles:
   - `tests/e2e/navigation.spec.ts` (new)
-  - `tests/e2e/planner.spec.ts`
-  - `tests/e2e/recovery.spec.ts`
-  - `tests/e2e/claims.spec.ts`
-  - `tests/e2e/helpers.ts`
 - Acceptance criteria:
   1. At 375 px the tabs show and the top links do not; at 1280 px the reverse; the same destinations in both.
   2. A guest renames themselves from the menu and the new name shows beside their reservations.
   3. Sign-out without a recovery link asks first; after making a link and signing out, the link brings the guest back with the same reservation; the sign-out menu entry is not offered to an unnamed visitor.
   4. The Wishlist shortcut goes to the last list opened.
   5. The owner and admin menus and sign-out work, and an owner never sees a guest-only entry.
+  6. The menu and sign-out dialog work by keyboard alone, and a visitor with no name sees no account menu and only the Family link.
 
 ### P8 · repo: decision 0018 (R5c · FG-503, wave 9)
 - Lane: `repo`
 - ownedFiles:
   - `Docs/FamilyGifts/Decisions/0018-role-shells-and-navigation.md` (new)
+  - `Docs/FamilyGifts/Decisions/0001-stack-and-layout.md`
 - Acceptance criteria:
   1. Decision 0018 exists with `Status: Agreed` and states D54 to D58 as built.
+  2. Decision 0001's "Responsive shell" line is edited in place to match the code.
 
 ### P9 · server: safe return path and pasted-link parser (R5d · FG-504, wave 10)
 - Lane: `server`
@@ -476,7 +489,6 @@ Shared acceptance for every package:
 ### P10 · ui: welcome, sign-in frame and list prompt (R5d · FG-504, wave 11)
 - Lane: `ui`
 - ownedFiles:
-  - `src/app/(welcome)/layout.tsx` (new)
   - `src/app/(welcome)/welcome/page.tsx` (new)
   - `src/app/(welcome)/owner/login/page.tsx` (moved from `src/app/(owner)/owner/login/page.tsx`)
   - `src/app/(welcome)/admin/login/page.tsx` (moved from `src/app/(admin)/admin/login/page.tsx`)
@@ -491,6 +503,17 @@ Shared acceptance for every package:
   - `src/features/reservations/components/NamePrompt.tsx` (new)
   - `src/app/(public)/l/[slug]/page.tsx`
   - `src/components/layout/TopBar.tsx`
+  - `src/components/layout/GuestShell.tsx`
+  - `src/components/sticker/SplitLayout.tsx`
+  - `src/features/authentication/exchange-token.ts` (new)
+  - `src/features/authentication/components/RecoverExchange.tsx`
+  - `src/theme/theme.ts`
+  - `tests/unit/exchange-token.test.ts` (new)
+  - `tests/e2e/helpers.ts`
+  - `tests/e2e/claims.spec.ts`
+  - `tests/e2e/admin-setup.spec.ts`
+  - `tests/e2e/pin-links.spec.ts`
+  - `tests/e2e/navigation.spec.ts`
 - Acceptance criteria:
   1. `/welcome`, `/owner/login` and `/admin/login` render the split frame with no top bar or tabs, and the URLs are unchanged.
   2. A new visitor enters a name on `/welcome?next=/l/<slug>`, becomes a guest (throttle and one-guest-per-browser unchanged) and lands on the list; a hostile `next` lands on `/`; a named visitor is sent on without seeing the form.
@@ -498,24 +521,24 @@ Shared acceptance for every package:
   4. "Use recovery link" reveals a field; a pasted valid link or bare token signs the browser in as the original guest and goes to `/planner`; an invalid or revoked one shows the generic failure; the field is emptied and the token appears in no URL, request log or console output.
   5. Owner sign-in shows member names as a radio group with arrow-key selection, one PIN field with the help text, the lock-out message, "Lost your PIN? Ask the family admin.", and still honours `?name=` and `?pin=` (address bar cleaned).
   6. Admin sign-in works on the frame, with the existing throttle and generic failure message.
+  7. The `(welcome)` route group has no layout of its own (the pages bring their frame), so the pages stay chrome-free by living outside the shell groups.
+  8. Recovery-token exchange is one helper (`exchangeRecoveryToken`) used by `/recover` and the pasted-link field, sending the token only in the request body.
+  9. Floating text-field labels sit cleanly on the 3 px borders (the theme backs the label with white instead of notching the border).
+  10. The existing suites pass after their sign-in and naming locators are updated.
 
 ### P11 · e2e: welcome and sign-in (R5d · FG-504, wave 12)
 - Lane: `e2e`
 - ownedFiles:
   - `tests/e2e/welcome.spec.ts` (new)
-  - `tests/e2e/pin-links.spec.ts`
-  - `tests/e2e/admin-setup.spec.ts`
-  - `tests/e2e/owner-list.spec.ts`
-  - `tests/e2e/ordering.spec.ts`
-  - `tests/e2e/amazon-import.spec.ts`
-  - `tests/e2e/url-import.spec.ts`
-  - `tests/e2e/planner-export.spec.ts`
-  - `tests/e2e/security.spec.ts`
   - `tests/e2e/mobile-a11y.spec.ts`
+  - `tests/e2e/security.spec.ts`
+  - `src/features/authentication/components/OwnerSignIn.tsx`
 - Acceptance criteria:
-  1. The welcome journey (name, reserve, back to the list), the recovery-link paste, owner sign-in by tapping a name, and a wrong PIN with the generic message each pass at both widths.
-  2. Every existing spec that signs in or names a guest passes against the new sign-in and welcome screens, with its assertions unchanged in meaning.
-  3. The security spec's header check still holds for `/owner/login` and `/recover` (no referrer) and the isolation sweep still passes.
+  1. The welcome journey (list, prompt, name, back to the list, reserve), the Pick your name chip returning to the page the visitor was on, and the made-up return addresses, blank name and named-visitor skip each pass at both widths.
+  2. Pasting a recovery link (and a bare token) brings the same guest back with the same reservation; bad text, a wrong token and a turned-off link show the right messages; the field is emptied; the token appears in no request address, console line or page text.
+  3. Owner sign-in by tapping a name, a wrong PIN with the generic message, arrow-key selection and the links between the two doors pass; admin sign-in on the frame passes with a wrong and a right secret.
+  4. The accessibility scan and the leak sweep now include `/welcome`, `/owner/login`, `/admin/login` and `/recover`, and the header checks for `/owner/login` and `/recover` (no referrer) still hold.
+  5. The existing specs that sign in or name a guest pass against the new screens, with their assertions unchanged in meaning (their locators were updated with the screens in P10).
 
 ### P12 · repo: decision 0019 (R5d · FG-504, wave 13)
 - Lane: `repo`
@@ -548,6 +571,7 @@ Shared acceptance for every package:
   - `tests/unit/avatars.test.ts` (new)
   - `tests/integration/public-views.test.ts`
   - `tests/integration/projection-isolation.test.ts`
+  - `tests/integration/planner.test.ts`
 - Acceptance criteria:
   1. `AVATAR_STICKERS` has the eight names of D64 and every one is a sticker file; the zod schema rejects anything else.
   2. `getFamilyDashboard` returns `giftCount` (excluding soft-deleted gifts) and `avatar`; `getEarlierYears` returns archived lists grouped by occasion and year with counts for active members only.
@@ -560,9 +584,13 @@ Shared acceptance for every package:
 - ownedFiles:
   - `src/app/(public)/page.tsx`
   - `src/app/(public)/earlier/[year]/page.tsx` (new)
+  - `src/app/(public)/earlier/[year]/not-found.tsx` (new)
   - `src/features/wishlists/components/MemberCard.tsx` (new)
   - `src/features/planner/components/PlannerStrip.tsx` (new)
   - `src/features/wishlists/components/GiftRow.tsx` (new)
+  - `src/components/ui/LinkButton.tsx` (new)
+  - `tests/unit/planner-strip.test.ts` (new)
+  - `tests/e2e/owner-list.spec.ts`
   - `src/features/reservations/components/ClaimControls.tsx`
   - `src/features/reservations/components/StatusChip.tsx`
 - Acceptance criteria:
@@ -580,7 +608,7 @@ Shared acceptance for every package:
   - `src/features/wishlists/components/ListFilterDialog.tsx` (new)
   - `src/features/wishlists/components/SortFilterBar.tsx` (deleted)
   - `src/features/wishlists/components/PublicItemCard.tsx` (deleted)
-  - `src/features/wishlists/components/PriorityChip.tsx` (deleted)
+  - `tests/e2e/ordering.spec.ts`
 - Acceptance criteria:
   1. The list page matches screen 04: hero with back link and sticker, ribbons per priority in the owner's order, a `GiftRow` per gift, and the sidebar on desktop.
   2. Sort, priority, price and availability controls read and write the existing URL parameters through the existing pure functions; a copied filter link shows the same view; "Up to £N" at its maximum omits `max`; clearing restores a plain URL.
@@ -592,6 +620,7 @@ Shared acceptance for every package:
 - Lane: `e2e`
 - ownedFiles:
   - `tests/e2e/family-page.spec.ts` (new)
+  - `tests/e2e/helpers.ts`
   - `Docs/FamilyGifts/Decisions/0020-family-dashboard-and-countdown.md` (new)
   - `tests/e2e/ordering.spec.ts`
   - `tests/e2e/claims.spec.ts`
@@ -629,6 +658,13 @@ Shared acceptance for every package:
   - `src/features/planner/components/EntryNotes.tsx` (deleted)
   - `src/features/planner/components/PlannerGroup.tsx` (deleted)
   - `src/features/planner/components/TotalsPanel.tsx` (deleted)
+  - `src/features/planner/components/PickNameFirst.tsx` (new)
+  - `src/features/planner/components/SelectionContext.tsx`
+  - `src/features/planner/queries.ts`
+  - `tests/e2e/helpers.ts`
+  - `tests/e2e/planner.spec.ts`
+  - `tests/e2e/planner-export.spec.ts`
+  - `tests/e2e/recovery.spec.ts`
 - Acceptance criteria:
   1. The planner matches screen 05: mint hero, a card per recipient with ribbon, budget, rows with labelled checkboxes, pills, prices and paid amounts, a dashed private-note card with Edit note, the Shopping list card and the yellow total card with meter, three stats and the not-counted note.
   2. All totals equal `computePlan` for the same data (the existing planner e2e figures still hold), and the meter's `aria-label` states spent, planned and total in words.
@@ -643,6 +679,9 @@ Shared acceptance for every package:
   - `src/features/authentication/components/AccessPanel.tsx` (new)
   - `src/features/authentication/components/SaveAccessDialog.tsx` (deleted)
   - `src/components/layout/AccountMenu.tsx`
+  - `tests/unit/access-status.test.ts` (new)
+  - `tests/e2e/recovery.spec.ts`
+  - `tests/e2e/mobile-a11y.spec.ts`
 - Acceptance criteria:
   1. `/access` matches screen 07: sky hero with back link, status pill, the link card (only right after making a link), Copy link, Make a new link, Turn link off, the three-step "How it works" card, the warning note and the identity card.
   2. The link text appears only in the response to making it; reloading or leaving and returning shows the status and no link, and the help text says so; no link or token is in the server-rendered HTML.
@@ -676,8 +715,19 @@ Shared acceptance for every package:
   - `src/features/wishlists/components/ReorderControls.tsx`
   - `src/features/wishlists/components/ItemForm.tsx` (deleted)
   - `src/features/wishlists/components/OwnerItemList.tsx` (deleted)
+  - `src/features/wishlists/components/PriorityChip.tsx` (deleted; the owner list still uses it until here)
   - `src/features/imports/components/UrlImportPanel.tsx`
   - `src/components/layout/OwnerShell.tsx`
+  - `src/components/layout/nav.ts`
+  - `src/components/layout/TopBar.tsx`
+  - `src/components/layout/TabBar.tsx`
+  - `tests/unit/nav.test.ts`
+  - `tests/e2e/owner-list.spec.ts`
+  - `tests/e2e/url-import.spec.ts`
+  - `tests/e2e/amazon-import.spec.ts`
+  - `tests/e2e/ordering.spec.ts`
+  - `tests/e2e/mobile-a11y.spec.ts`
+  - `tests/e2e/claims.spec.ts`
 - Acceptance criteria:
   1. The editor matches screen 08: mint hero with count, ribbons, rows with up, down and edit, and the sidebar with share link, add shortcuts and the surprise note; up is disabled at the top of a group and down at the bottom, and reordering still persists and never changes another priority group.
   2. The add and edit pages match screen 09; both modes keep every field usable, a failed or blocked fetch shows the pink note and leaves the form usable, a successful one fills the fields and shows "What we found" with text and icons; the preview updates as the owner types.
@@ -725,6 +775,10 @@ Shared acceptance for every package:
   - `src/features/authentication/components/ChangePinForm.tsx`
   - `src/components/layout/OwnerShell.tsx`
   - `src/components/layout/AccountMenu.tsx`
+  - `src/app/(owner)/owner/lists/[listId]/page.tsx`
+  - `tests/e2e/amazon-import.spec.ts`
+  - `tests/e2e/pin-links.spec.ts`
+  - `tests/e2e/mobile-a11y.spec.ts`
 - Acceptance criteria:
   1. The import page matches screen 10: steps card, paste box with Find gifts and Clear, the best-effort note, "WE FOUND N GIFTS", cards with checkbox, thumbnail, editable title, price or price input, state pill, priority select and Remove, and the "Ready to add" sidebar with correct counts.
   2. Duplicates start unchecked and show "Skipped"; a row with no price can be given one; only ticked rows with a title are sent; nothing is saved by Find gifts, Clear or Start over.
@@ -736,6 +790,7 @@ Shared acceptance for every package:
 - ownedFiles:
   - `tests/e2e/amazon-import.spec.ts`
   - `tests/e2e/pin-links.spec.ts`
+  - `tests/e2e/helpers.ts`
 - Acceptance criteria:
   1. The import journey passes: paste the basic fixture, untick one, change a priority and a title, add a missing price, add the rest, and the list shows exactly those gifts in their groups; the duplicate row is skipped; unreadable and oversize input show the fallback.
   2. The owner changes their PIN on `/owner/pin` (wrong current PIN refused, mismatched new PINs refused, other sessions ended) and the admin can still reset it afterwards.
@@ -778,6 +833,9 @@ Shared acceptance for every package:
   - `src/features/family/components/MemberForm.tsx` (deleted)
   - `src/features/family/components/ListForm.tsx` (deleted)
   - `src/components/layout/AdminShell.tsx`
+  - `tests/e2e/admin-setup.spec.ts` (selectors updated for the new screens; P31 adds the full journeys)
+  - `tests/e2e/pin-links.spec.ts` (opens the Reset PIN dialog)
+  - `tests/e2e/mobile-a11y.spec.ts` and `tests/e2e/security.spec.ts` (add `/admin/lists`)
 - Acceptance criteria:
   1. `/admin` matches screen 11: cards with avatar, name, status pill, list links with Copy link, and the four buttons; Reset PIN becomes a red "Set PIN" when none is set; the sidebar has Add a member (with picture picker and optional PIN) and Create a list.
   2. Reset PIN and Rename open dialogs; Archive and Deactivate confirm; the reset dialog shows the sign-in links of decision 0004 after saving, and the PIN is never shown anywhere else.
@@ -815,6 +873,9 @@ Shared acceptance for every package:
   - `src/app/(admin)/error.tsx` (new)
   - `src/app/(public)/l/[slug]/not-found.tsx`
   - `src/theme/theme.ts`
+  - `src/components/sticker/RouteState.tsx` (new; the shared loading and error pieces the route files use)
+  - `tests/unit/sticker-components.test.ts` (Empty, loading and error)
+  - `src/app/(owner)/owner/lists/[listId]/page.tsx`, `src/app/(public)/planner/page.tsx`, `src/app/(public)/l/[slug]/page.tsx`, `src/app/(admin)/admin/page.tsx`, `src/app/(admin)/admin/lists/page.tsx` (use `Empty`)
 - Acceptance criteria:
   1. Every place a list can be empty uses `Empty`, with the wording the page had before (so existing text assertions still hold) and a sensible next action.
   2. `loading.tsx` shows a sticker and "One moment…" with `role="status"`; `error.tsx` shows "Something went wrong" and a Try again button and logs nothing sensitive.
@@ -827,6 +888,7 @@ Shared acceptance for every package:
   - `tests/e2e/mobile-a11y.spec.ts`
   - `tests/e2e/security.spec.ts`
   - `tests/e2e/helpers.ts`
+  - `tests/e2e/ordering.spec.ts`, `tests/e2e/owner-gift.spec.ts`, `tests/e2e/amazon-import.spec.ts` (wait for streamed pages with `settled`, since `loading.tsx` now shows first)
 - Acceptance criteria:
   1. For each of guest, owner and admin, every route in the app is visited at 375 px and 1280 px with no horizontal scroll and no serious or critical axe violation, including each dialog, the account menu open, the phone filter dialog and an error state.
   2. Reserve, mark purchased, add a gift, import and sign in complete by keyboard alone, and with reduced motion on no interactive element transitions or animates.
@@ -838,10 +900,17 @@ Shared acceptance for every package:
   - `Docs/FamilyGifts/Testing/MANUAL-TESTING-FG-002-sticker-book-design.md`
   - `README.md`
   - `Docs/FamilyGifts/Runbook.md`
+  - `Docs/FamilyGifts/Testing/MANUAL-TESTING-FG-001-family-gifts.md` (a note that it predates the re-skin)
 - Acceptance criteria:
   1. The manual testing document covers every release with a case per screen at a real phone width and on a desktop, and the change checklist is ticked or annotated with what could not be run.
   2. The README links the design pack and the new decisions folder entries; the Runbook's first-deploy check mentions the new `/welcome` flow and `fg_last_list` cookie.
   3. Decisions 0016 to 0024 are listed in the decisions README with their statuses.
+
+## Audit fixes after R5c
+
+The branch review and the whole-repo audit after R5c found small defects, fixed outside any package: the sticker outline colours moved into `tokens.ts` and the colour guard test now covers all of `src/`; "My list" picks the newest open list (`newestOpenList`);
+a long name is truncated in the account chip; the session and guest lookups are cached per request (`src/lib/auth/require.ts`, `guest-session.ts`); budgets save in one transaction; marking a gift purchased is refused on an archived list;
+`clientIp` prefers `x-real-ip` and otherwise the last `x-forwarded-for` entry; e2e tests use their own database (`E2E_DATABASE_URL`); and `scripts/cleanup.sh` removes finished sessions and throttle rows.
 
 ## Follow-ups
 
@@ -859,3 +928,59 @@ Shared acceptance for every package:
 ## Open questions
 
 - None.
+
+## Completion
+
+- Completed: 2026-11-18
+- Range: `fb2e6b9..5aca907`
+- Rating: 4/5 (the user)
+- Packages: 35/36 done
+- Acceptance criteria: 133/134 verified
+- Deviations: 10
+- Files outside ownedFiles: 26
+- Owned files untouched: 1
+
+### Summary
+
+The whole app is now the Sticker Book: a themed MUI base with 36 stickers, a shell and account menu for each role, a welcome and sign-in flow, the family page with counts and a countdown, the list page with filters, the planner with budgets and exports, owner pages, an Amazon import page with ticking and priorities, an admin screen with pictures and PINs, and shared empty, loading and error states. In code that is 36 packages over releases R5a to R7, decisions 0016 to 0024, and 178 end-to-end tests at 375 px and 1280 px.
+
+Checks at the final commit: `pnpm lint` and `pnpm typecheck` clean, 368 unit tests, 158 integration tests, 178 e2e tests, `pnpm audit --prod` clean, and the validator at 0 errors with 4 release-size warnings (R5b, R5c, R5d, R5e).
+
+### Changes by package
+
+| Package | Status | Notes |
+|---|---|---|
+| P0 to P5 | done | Theme, tokens, stickers, shared components, gift pictures, decisions 0016 and 0017. |
+| P6 to P12 | done | Shells, nav, account menu, sign-out, last list, welcome and owner sign-in, recovery paste, decisions 0018 and 0019. |
+| P13 to P17 | done | Member avatar column and migration, family page, countdown, earlier years, decision 0020. |
+| P18 to P21 | done | List page with ribbons, filters and a phone filter dialog; planner, budget and notes page, Save access page, decision 0021. |
+| P22 to P24 | done | Owner editor, gift form and preview, decision 0022. |
+| P25 to P28 | done | Per-row priority on bulk import, import page, owner PIN page and list picker, import e2e, decision 0023 and the edit to 0014. |
+| P29 to P32 | done | `createMember` with picture and PIN, admin queries, members and lists screens, admin e2e, decision 0024. |
+| P33 | done | `Empty`, loading and error screens for all three route groups, theme hover and focus states. |
+| P34 | partial | Route sweep, dialogs, keyboard and security coverage all in; the error screen is only rendered in a unit test, not scanned by axe in the browser. |
+| P35 | done | Manual testing document, README, runbook, decision list; the cases that need a real phone are marked as not run. |
+
+### Deviations
+
+- **P35 / Paths.** Spec: owned files are written `Docs/...`. Built: the repo folder is `docs/...`. Why: the completion tool matches case-sensitively, so 12 decision and doc files show as untouched and 15 as outside the list although they were changed. They are counted as owned here.
+- **P34 / Error state.** Spec: an error state is visited at both widths with axe. Built: it is checked as rendered markup in a unit test only. Why: nothing in the app throws on demand, and adding a test-only route was not worth it.
+- **D84 / Archive.** Spec: one "Archive list" per member card. Built: one per open list. Why: a member can have several open lists.
+- **D83 / Admin tab bar.** Spec: tabs Members, Lists and Sign out. Built: Members and Lists; Sign out stays in the top bar. Why: the tab bar only holds links and `ShellFrame` was not in the package.
+- **D84 / No picture.** Spec: eight picture buttons. Built: plus a "No picture" button. Why: without it a picture could not be cleared.
+- **D79 / Import.** Spec: a found price is editable. Built: only a missing price can be filled in. Why: the page edits what was not found; a wrong found price is fixed on the gift.
+- **D80 / Bad priority message.** Spec: the validator's message for a bad priority. Built: the page sends only valid priorities, so that message only appears to a direct caller of the action.
+- **R5c audit / Fixes.** Spec: none. Built: sticker outline colours into tokens, newest open list, per-request session cache, budget transaction, archived purchase refusal, client address order, separate e2e database, `scripts/cleanup.sh`, and later fixes for price limits, planner card year, countdown, the removal of `@mui/icons-material`, and R7's dead queries, unknown-member results, label id, copy failure, year check, sign-in timing and picker keys. Why: found by the branch reviews and audits and recorded in the spec's "Audit fixes" section and decisions.
+- **P33 / Shared pieces.** Spec: `Empty`, `loading.tsx`, `error.tsx` per group. Built: plus `RouteState.tsx` holding the shared loading and error pieces. Why: three identical copies would have to change together.
+- **P34 / Wait helper.** Spec: a route sweep. Built: also a `settled()` helper and edits to the ordering, owner-gift and import tests. Why: `loading.tsx` makes pages stream in, so tests that read a page straight after load saw the loading screen.
+
+### Follow-ups
+
+- A real phone, real Supabase, Vercel image handling, iOS home-bar spacing and a screen reader have not been tried; the manual testing document lists them.
+- A Content-Security-Policy (Next's inline scripts and MUI styles need a nonce setup first); recorded in the spec's follow-ups and decision 0016.
+- Third-party picture hosts see guests' addresses (accepted, decision 0017).
+- Mark decisions 0016 to 0024 Accepted once the branch is in master.
+
+### Rating notes
+
+The spec held up well: every package was built in the planned order and the decisions needed few edits. It was weaker on file lists, which needed repeated additions as the real files became clear, and on release sizes, where R5b to R5e stayed over the limit.

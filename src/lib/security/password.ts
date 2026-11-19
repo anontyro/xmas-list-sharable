@@ -25,3 +25,12 @@ export async function verifyPin(pin: string, pinHash: string): Promise<boolean> 
     return false; // a malformed stored hash is a failed login, not a crash
   }
 }
+
+// Hashed once, so a member with no PIN costs the same time to check as one with a PIN and sign-in timing does not tell them apart.
+const dummyHash = hash("000000");
+
+/** Like `verifyPin`, but a missing hash (no such member, or no PIN set yet) is still checked against a dummy and always fails. */
+export async function verifyPinOrDummy(pin: string, pinHash: string | null | undefined): Promise<boolean> {
+  const ok = await verifyPin(pin, pinHash ?? (await dummyHash));
+  return Boolean(pinHash) && ok;
+}

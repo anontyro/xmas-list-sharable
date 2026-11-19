@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { eq } from "drizzle-orm";
 import { db } from "./db-harness";
 import { household, member, wishlist, wishlistItem } from "@/db/schema";
-import { getFamilyDashboard, getListBySlug } from "@/features/wishlists/public-queries";
+import { getEarlierYears, getFamilyDashboard, getListBySlug } from "@/features/wishlists/public-queries";
 
 async function world() {
   const [h] = await db.insert(household).values({ name: "F" }).returning();
@@ -70,5 +71,49 @@ describe("getFamilyDashboard", () => {
   it("is empty when there are no lists", async () => {
     await world();
     expect(await getFamilyDashboard()).toEqual({ members: [] });
+  });
+  it("counts each list's gifts without the deleted ones, and gives 0 for an empty list", async () => {
+    const { alex, sarah, mk } = await world();
+    const full = await mk(alex.id, "alexslug001");
+    await mk(sarah.id, "sarahslug01");
+    await db.insert(wishlistItem).values([
+      { wishlistId: full.id, title: "A" },
+      { wishlistId: full.id, title: "B" },
+      { wishlistId: full.id, title: "Gone", deletedAt: new Date() },
+    ]);
+    const dash = await getFamilyDashboard();
+    expect(dash.members.map((m) => [m.displayName, m.lists[0].giftCount])).toEqual([["Alex", 2], ["Sarah", 0]]);
+  });
+  it("carries the member's picture, null when none or no longer allowed", async () => {
+    const { alex, sarah, mk } = await world();
+    await db.update(member).set({ avatar: "reindeer" }).where(eq(member.id, alex.id));
+    await db.update(member).set({ avatar: "not-a-sticker" }).where(eq(member.id, sarah.id));
+    await mk(alex.id, "alexslug001");
+    await mk(sarah.id, "sarahslug01");
+    expect(Object.fromEntries((await getFamilyDashboard()).members.map((m) => [m.displayName, m.avatar]))).toEqual({ Alex: "reindeer", Sarah: null });
+  });
+});
+
+describe("getEarlierYears", () => {
+  it("groups archived lists by occasion and year, newest first, with gift counts", async () => {
+    const { alex, sarah, mk } = await world();
+    const old = await mk(alex.id, "alexold2025", { year: 2025, title: "Christmas 2025", archivedAt: new Date() });
+    await mk(sarah.id, "sarahold025", { year: 2025, title: "Christmas 2025", archivedAt: new Date() });
+    await mk(alex.id, "alexold2024", { year: 2024, title: "Christmas 2024", archivedAt: new Date() });
+    await mk(alex.id, "alexcurrent");
+    await db.insert(wishlistItem).values([{ wishlistId: old.id, title: "A" }, { wishlistId: old.id, title: "Gone", deletedAt: new Date() }]);
+    const years = await getEarlierYears();
+    expect(years.map((g) => [g.occasion, g.year, g.lists.map((l) => [l.memberName, l.giftCount])])).toEqual([
+      ["Christmas", 2025, [["Alex", 1], ["Sarah", 0]]],
+      ["Christmas", 2024, [["Alex", 0]]],
+    ]);
+    expect(JSON.stringify(years)).not.toContain("alexcurrent");
+  });
+  it("leaves out an inactive member's archived list, and is empty with none", async () => {
+    const { alex, mk } = await world();
+    expect(await getEarlierYears()).toEqual([]);
+    await mk(alex.id, "alexold2025", { year: 2025, archivedAt: new Date() });
+    await db.update(member).set({ active: false }).where(eq(member.id, alex.id));
+    expect(await getEarlierYears()).toEqual([]);
   });
 });

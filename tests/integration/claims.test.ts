@@ -79,6 +79,19 @@ describe("claim lifecycle", () => {
     expect(await reserve(a.id, "00000000-0000-0000-0000-000000000000")).toMatchObject({ error: { code: "ITEM_UNAVAILABLE" } });
     expect(await db.select().from(itemClaim)).toHaveLength(0);
   });
+
+  it("refuses to mark a gift purchased once its list is archived, but still lets a guest buy a held gift the owner deleted", async () => {
+    const { item, a } = await world();
+    await reserve(a.id, item.id);
+
+    await db.update(wishlist).set({ archivedAt: new Date() });
+    expect(await markPurchased(a.id, item.id)).toMatchObject({ error: { code: "ITEM_UNAVAILABLE" } });
+    expect((await db.select().from(itemClaim))[0].status).toBe("reserved"); // unchanged
+
+    await db.update(wishlist).set({ archivedAt: null });
+    await db.update(wishlistItem).set({ deletedAt: new Date() }); // decision 0007: the guest still holds it
+    expect(state(await markPurchased(a.id, item.id))).toBe("purchased_by_you");
+  });
 });
 
 describe("interest", () => {

@@ -86,6 +86,25 @@ describe("recovery links", () => {
     expect(await recoveryLinkStatus()).toMatchObject({ ok: true, data: { active: true } });
   });
 
+  it("reports whether a link is active and when it was made, never the token", async () => {
+    const { a, b, signIn } = await world();
+    await signIn(a);
+    expect(await recoveryLinkStatus()).toEqual({ ok: true, data: { active: false, createdAt: null } });
+    const made = await createRecoveryLink();
+    if (!made.ok) throw new Error("expected ok");
+    const status = await recoveryLinkStatus();
+    if (!status.ok) throw new Error("expected ok");
+    expect(status.data.active).toBe(true);
+    expect(Math.abs(Date.now() - Date.parse(status.data.createdAt!))).toBeLessThan(60_000);
+    expect(JSON.stringify(status)).not.toContain(tokenOf(made.data.path));
+    // Turning it off reports no link; another guest sees only their own.
+    await revokeRecoveryLink();
+    expect(await recoveryLinkStatus()).toEqual({ ok: true, data: { active: false, createdAt: null } });
+    resetRequest();
+    await signIn(b);
+    expect(await recoveryLinkStatus()).toEqual({ ok: true, data: { active: false, createdAt: null } });
+  });
+
   it("ten simultaneous makes leave exactly one active link and no failures", async () => {
     const { a, signIn } = await world();
     await signIn(a);

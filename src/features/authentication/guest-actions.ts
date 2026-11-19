@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getDb } from "@/db/client";
 import { guest } from "@/db/schema";
-import { setSessionCookie } from "@/lib/auth/cookies";
+import { endSession, setSessionCookie } from "@/lib/auth/cookies";
 import { currentGuest, requireGuest } from "@/lib/auth/require";
 import { createSession } from "@/lib/auth/session";
 import { action, fail, ok } from "@/lib/result";
@@ -42,6 +42,18 @@ export async function renameGuest(displayName: string) {
     if (!name.success) return fail("INVALID", name.error.issues[0].message);
     await getDb().update(guest).set({ displayName: name.data }).where(eq(guest.id, guestId));
     revalidatePath("/l/[slug]", "page");
+    return ok(null);
+  });
+}
+
+/**
+ * Signs this browser out of its guest identity. Nothing is deleted: the guest, their claims, planner and recovery link stay,
+ * and other devices stay signed in. With no session it does nothing.
+ */
+export async function signOutGuest() {
+  return action(async () => {
+    await endSession("guest");
+    revalidatePath("/", "layout");
     return ok(null);
   });
 }

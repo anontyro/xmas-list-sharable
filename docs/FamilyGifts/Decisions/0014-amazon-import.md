@@ -1,6 +1,6 @@
 # 0014 · Pasted Amazon content is parsed as inert data into drafts that need explicit confirmation
 
-**Status:** Agreed · **Work items:** FG-304 · **Spec:** `Docs/FamilyGifts/Specs/2026-11-15-FG-001-family-gifts.md` D41, D42
+**Status:** Agreed · **Work items:** FG-304, FG-602 · **Spec:** `Docs/FamilyGifts/Specs/2026-11-15-FG-001-family-gifts.md` D41, D42; edited by `Docs/FamilyGifts/Specs/2026-11-17-FG-002-sticker-book-design.md` D79, D80
 
 An owner can paste an Amazon wishlist page (View source) or copied wishlist text and add the gifts it contains in one go. It is best effort: Amazon changes its markup, and manual entry always works.
 
@@ -8,10 +8,10 @@ An owner can paste an Amazon wishlist page (View source) or copied wishlist text
 - **Parser** (`src/features/imports/amazon/`). `parseAmazonHtml` and `parseAmazonText` return drafts, and `parseAmazon` picks one by what was pasted and enforces the limits. A product is any link containing `/dp/<ASIN>` or `/gp/product/<ASIN>`; its link is rewritten to `https://www.amazon.co.uk/dp/<ASIN>` and each ASIN appears once. HTML mode takes the title, the price (`.a-offscreen`, else the first £ amount) and the image from the same list row. Text mode gives each link the nearest earlier non-empty line as its title (or the words before it on the same line) and picks up a price line in between.
 - **Inert.** HTML is parsed with cheerio as data: scripts are dropped and every field is plain text. Image links must be http(s).
 - **Uncertain drafts.** A draft with no title or no price gets a warning and `uncertain: true`. The preview shows the warning under the row.
-- **Limits.** Input over 500 KB is refused with `INPUT_TOO_LARGE`. At most 100 gifts are read or added at a time. Input with no products gives a message ending "You can still add them by hand." and never an error page. The dialog checks the 500 KB limit itself before sending, because the server never sees a paste over the request size limit.
-- **Never auto-saved.** `previewAmazonImport` returns drafts only. `commitBulkImport` runs when the owner presses "Add selected items".
-- **Commit.** Owner-only, refuses archived lists, skips rows with a blank title, and checks every row with the same schema as the item form. If any row is invalid, nothing is added. All rows go in as one insert at the end of "Would Love", in preview order.
-- **Duplicates.** A product already on the list (same link once tracking is ignored, or the same ASIN) is flagged in the preview. It never blocks adding.
+- **Limits.** Input over 500 KB is refused with `INPUT_TOO_LARGE`. At most 100 gifts are read or added at a time. Input with no products gives a message ending "You can still add them by hand." and never an error page. The import page checks the 500 KB limit itself before sending, because the server never sees a paste over the request size limit.
+- **Never auto-saved.** `previewAmazonImport` returns drafts only. `commitBulkImport` runs when the owner presses "Add N gifts" on the import page (decision 0023). Finding, clearing, editing and starting over save nothing.
+- **Commit.** Owner-only, refuses archived lists, skips rows with a blank title, and checks every row with the same schema as the item form, which includes an optional `priority` per row (`most_wanted`, `would_love` or `nice_to_have`; none means `would_love`, and any other value is invalid). If any row is invalid, nothing is added. All rows go in as one insert, each at the end of its own priority group in preview order, so existing gifts keep their place.
+- **Duplicates.** A product already on the list (same link once tracking is ignored, or the same ASIN) is flagged in the preview as "Already on your list". The row starts unticked and reads "Skipped", and the owner can tick it to add it again. It never blocks adding.
 
 ## Why
 

@@ -1,8 +1,9 @@
-import { and, asc, eq, isNull } from "drizzle-orm";
+import { and, asc, count, desc, eq, isNotNull, isNull } from "drizzle-orm";
 import { getDb } from "@/db/client";
 import { member, wishlist, wishlistItem } from "@/db/schema";
+import { toAvatar } from "@/features/family/avatars";
 import { getItemStates, type ClaimedGuestItem } from "@/features/reservations/guest-claim-view";
-import { itemOrderBy, toGuestItem, type FamilyDashboardView, type GuestWishlistView } from "./views";
+import { itemOrderBy, toGuestItem, type EarlierYearView, type FamilyDashboardView, type GuestWishlistView } from "./views";
 
 /** The shared list page. Null for an unknown slug or a deactivated member's list. */
 export async function getListBySlug(slug: string): Promise<GuestWishlistView | null> {
@@ -39,29 +40,49 @@ export async function getListBySlug(slug: string): Promise<GuestWishlistView | n
   };
 }
 
-/** Active members with their non-archived lists. Members with no list are left out. */
-export async function getFamilyDashboard(): Promise<FamilyDashboardView> {
-  const rows = await getDb()
+/** Counts a list's gifts that have not been deleted (a left join, so an empty list still counts 0). */
+const giftCounts = (db: ReturnType<typeof getDb>, archived: boolean) =>
+  db
     .select({
       memberId: member.id,
       displayName: member.displayName,
+      avatar: member.avatar,
       title: wishlist.title,
       occasion: wishlist.occasion,
       year: wishlist.year,
       slug: wishlist.slug,
+      giftCount: count(wishlistItem.id),
     })
     .from(wishlist)
     .innerJoin(member, eq(member.id, wishlist.memberId))
-    .where(and(eq(member.active, true), isNull(wishlist.archivedAt)))
-    .orderBy(asc(member.displayName), asc(wishlist.year), asc(wishlist.title));
+    .leftJoin(wishlistItem, and(eq(wishlistItem.wishlistId, wishlist.id), isNull(wishlistItem.deletedAt)))
+    .where(and(eq(member.active, true), archived ? isNotNull(wishlist.archivedAt) : isNull(wishlist.archivedAt)))
+    .groupBy(member.id, wishlist.id);
+
+/** Active members with their non-archived lists and gift counts. Members with no list are left out. */
+export async function getFamilyDashboard(): Promise<FamilyDashboardView> {
+  const rows = await giftCounts(getDb(), false).orderBy(asc(member.displayName), asc(wishlist.year), asc(wishlist.title));
 
   const byMember = new Map<string, FamilyDashboardView["members"][number]>();
   for (const r of rows) {
-    const m = byMember.get(r.memberId) ?? { id: r.memberId, displayName: r.displayName, lists: [] };
-    m.lists.push({ title: r.title, occasion: r.occasion, year: r.year, slug: r.slug });
+    const m = byMember.get(r.memberId) ?? { id: r.memberId, displayName: r.displayName, avatar: toAvatar(r.avatar), lists: [] };
+    m.lists.push({ title: r.title, occasion: r.occasion, year: r.year, slug: r.slug, giftCount: r.giftCount });
     byMember.set(r.memberId, m);
   }
   return { members: [...byMember.values()] };
+}
+
+/** Archived lists of active members, newest year first, grouped by occasion and year. */
+export async function getEarlierYears(): Promise<EarlierYearView[]> {
+  const rows = await giftCounts(getDb(), true).orderBy(desc(wishlist.year), asc(wishlist.occasion), asc(member.displayName), asc(wishlist.title));
+  const groups = new Map<string, EarlierYearView>();
+  for (const r of rows) {
+    const key = `${r.occasion}|${r.year}`;
+    const g = groups.get(key) ?? { occasion: r.occasion, year: r.year, lists: [] };
+    g.lists.push({ title: r.title, slug: r.slug, memberId: r.memberId, memberName: r.displayName, avatar: toAvatar(r.avatar), giftCount: r.giftCount });
+    groups.set(key, g);
+  }
+  return [...groups.values()];
 }
 
 /** The list as one viewer sees it: every item carries its claim state (null viewer = no name given yet). */

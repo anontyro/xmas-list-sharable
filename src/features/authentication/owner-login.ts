@@ -9,7 +9,7 @@ import { endSession, setSessionCookie } from "@/lib/auth/cookies";
 import { createSession, revokeSessionsFor } from "@/lib/auth/session";
 import { fail, ok } from "@/lib/result";
 import { clientIp } from "@/lib/security/client-ip";
-import { hashPin, isValidPin, verifyPin } from "@/lib/security/password";
+import { hashPin, isValidPin, verifyPin, verifyPinOrDummy } from "@/lib/security/password";
 import { clearFailures, isBlocked, LOGIN_FAILED_MESSAGE, recordFailure } from "@/lib/security/rate-limit";
 
 const failed = () => fail("LOGIN_FAILED", LOGIN_FAILED_MESSAGE);
@@ -22,7 +22,7 @@ export async function ownerLogin(memberId: string, pin: string) {
     .select({ pinHash: member.pinHash })
     .from(member)
     .where(and(eq(member.id, memberId), eq(member.active, true)));
-  if (!m?.pinHash || !(await verifyPin(pin, m.pinHash))) {
+  if (!(await verifyPinOrDummy(pin, m?.pinHash))) {
     await recordFailure(key);
     return failed();
   }

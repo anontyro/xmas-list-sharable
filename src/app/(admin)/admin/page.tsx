@@ -1,14 +1,11 @@
-import Box from "@mui/material/Box";
-import Chip from "@mui/material/Chip";
-import Container from "@mui/material/Container";
-import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
+import Empty from "@/components/sticker/Empty";
 import { redirect } from "next/navigation";
-import ActionButton from "@/components/ui/ActionButton";
-import AppLink from "@/components/ui/AppLink";
-import { adminLogout } from "@/features/authentication/admin-login";
-import MemberForm from "@/features/family/components/MemberForm";
+import Hero from "@/components/sticker/Hero";
+import PageWrap from "@/components/sticker/PageWrap";
+import TwoColumn from "@/components/sticker/TwoColumn";
+import AddMemberForm from "@/features/family/components/AddMemberForm";
+import AdminMemberCard from "@/features/family/components/AdminMemberCard";
+import CreateListForm from "@/features/family/components/CreateListForm";
 import { listMembersForAdmin } from "@/features/family/queries";
 import { currentAdmin } from "@/lib/auth/require";
 
@@ -17,32 +14,27 @@ export const metadata = { title: "Admin · Family Gifts", robots: { index: false
 export default async function AdminPage() {
   if (!(await currentAdmin())) redirect("/admin/login");
   const members = await listMembersForAdmin();
+  const active = members.filter((m) => m.active);
   return (
-    <Container maxWidth="sm" sx={{ py: 4 }}>
-      <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-        <Typography variant="h4" component="h1">Family admin</Typography>
-        <ActionButton onAction={adminLogout} variant="outlined">Sign out</ActionButton>
-      </Stack>
-      <Paper sx={{ p: 2, mb: 3 }}>
-        <MemberForm />
-      </Paper>
-      <Typography variant="h6" component="h2" gutterBottom>Members</Typography>
-      <Stack spacing={1}>
-        {members.length === 0 && <Typography>No members yet. Add the first one above.</Typography>}
-        {members.map((m) => (
-          <Paper key={m.id} sx={{ p: 2 }}>
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
-              <AppLink href={`/admin/members/${m.id}`} variant="subtitle1">
-                {m.displayName}
-              </AppLink>
-              <Stack direction="row" spacing={1}>
-                {!m.active && <Chip label="Inactive" size="small" />}
-                {!m.hasPin && <Chip label="No PIN yet" size="small" color="warning" />}
-              </Stack>
-            </Box>
-          </Paper>
-        ))}
-      </Stack>
-    </Container>
+    <>
+      <Hero title="Family admin" subtitle="Members, lists and owner PINs. Gift plans stay private." tint="sky" sticker={{ name: "bookmark", width: 64, rotate: 6 }} />
+      <PageWrap>
+        <TwoColumn
+          main={
+            members.length === 0 ? (
+              <Empty sticker="family">No members yet. Add the first one.</Empty>
+            ) : (
+              members.map((m) => <AdminMemberCard key={m.id} member={m} />)
+            )
+          }
+          side={
+            <>
+              <AddMemberForm />
+              <CreateListForm members={active} year={new Date().getFullYear()} />
+            </>
+          }
+        />
+      </PageWrap>
+    </>
   );
 }

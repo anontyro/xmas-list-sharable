@@ -35,7 +35,18 @@ export async function reserve(guestId: string, itemId: string): Promise<Outcome>
   return done(guestId, itemId);
 }
 
+/** An archived list is read-only, so nothing on it can be bought. (A gift the owner deleted but a guest still holds can be: decision 0007.) */
+async function isOnArchivedList(itemId: string): Promise<boolean> {
+  const [row] = await getDb()
+    .select({ archivedAt: wishlist.archivedAt })
+    .from(wishlistItem)
+    .innerJoin(wishlist, eq(wishlist.id, wishlistItem.wishlistId))
+    .where(eq(wishlistItem.id, itemId));
+  return row?.archivedAt != null;
+}
+
 export async function markPurchased(guestId: string, itemId: string): Promise<Outcome> {
+  if (await isOnArchivedList(itemId)) return claimError("ITEM_UNAVAILABLE");
   const updated = await getDb()
     .update(itemClaim)
     .set({ status: "purchased", updatedAt: new Date() })

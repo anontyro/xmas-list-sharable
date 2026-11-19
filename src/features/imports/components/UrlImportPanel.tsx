@@ -1,39 +1,53 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import Alert from "@mui/material/Alert";
+import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
-import Typography from "@mui/material/Typography";
+import Note from "@/components/sticker/Note";
 import { previewUrlImport } from "@/features/imports/url-actions";
 import type { ImportDraft } from "@/features/imports/types";
 
-/** Paste a product link to pre-fill the item form. Nothing is saved here, and the form is always usable without it. */
-export default function UrlImportPanel({ listId, onDraft }: { listId: string; onDraft: (draft: ImportDraft, duplicateOf: string | null) => void }) {
-  const [url, setUrl] = useState("");
+/**
+ * The product link field with "Fetch details" beside it. A fetch only fills in the form (nothing is saved here), and the
+ * form is always usable without it: a failed fetch shows its message and leaves everything as it was.
+ */
+export default function UrlImportPanel({ listId, url, onUrlChange, fieldError, onDraft }: {
+  listId: string;
+  url: string;
+  onUrlChange: (url: string) => void;
+  fieldError?: string;
+  onDraft: (draft: ImportDraft, duplicateOf: string | null) => void;
+}) {
   const [error, setError] = useState<string>();
   const [pending, start] = useTransition();
 
-  const fetchDetails = (e: React.FormEvent) => {
-    e.preventDefault();
+  const fetchDetails = () => {
     setError(undefined);
     start(async () => {
       const r = await previewUrlImport(listId, url);
       if (!r.ok) return setError(r.error.message);
       onDraft(r.data.draft, r.data.duplicateOf);
-      setUrl("");
     });
   };
 
   return (
-    <Stack component="form" spacing={1} onSubmit={fetchDetails} aria-label="Fill in from a link">
-      <Typography variant="subtitle2" component="h3">Have a link? Fill it in for me</Typography>
-      <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-        <TextField label="Product link" type="url" size="small" value={url} onChange={(e) => setUrl(e.target.value)} sx={{ flexGrow: 1 }} />
-        <Button type="submit" variant="outlined" disabled={pending || url.trim() === ""}>{pending ? "Looking…" : "Fetch details"}</Button>
-      </Stack>
-      {error && <Alert severity="warning">{error}</Alert>}
-    </Stack>
+    <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "flex-start" }}>
+        <TextField
+          label="Product link"
+          type="url"
+          size="small"
+          value={url}
+          onChange={(e) => onUrlChange(e.target.value)}
+          error={Boolean(fieldError)}
+          helperText={fieldError}
+          onKeyDown={(e) => { if (e.key === "Enter" && url.trim() !== "" && !pending) { e.preventDefault(); fetchDetails(); } }}
+          sx={{ flex: "1 1 220px" }}
+        />
+        <Button variant="contained" disabled={pending || url.trim() === ""} onClick={fetchDetails} sx={{ flex: "0 0 auto", mt: "1px" }}>{pending ? "Looking…" : "Fetch details"}</Button>
+      </Box>
+      {error && <Note tint="pink" role="alert"><p>{error}</p></Note>}
+    </Box>
   );
 }
