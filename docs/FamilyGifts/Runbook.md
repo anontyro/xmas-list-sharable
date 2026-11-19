@@ -2,6 +2,8 @@
 
 How to run, deploy, back up and restore Family Gifts. Decisions behind it: `Decisions/`. Spec: `Specs/`.
 
+First time? Follow `Supabase-and-Vercel-setup.md`. This runbook is for running it afterwards.
+
 ## Environment variables
 
 | Name | What it is |

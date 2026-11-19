@@ -29,7 +29,7 @@ export default function TopBar({ brandHref, items, right }: { brandHref: string;
               const active = isActive(pathname, item.match, item.exclude);
               return (
                 <Box
-                  key={item.href}
+                  key={item.label}
                   component={NextLink}
                   href={item.href}
                   aria-current={active ? "page" : undefined}

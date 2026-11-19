@@ -28,7 +28,7 @@ export default function TabBar({ items }: { items: NavItem[] }) {
         const active = isActive(pathname, item.match, item.exclude);
         return (
           <Box
-            key={item.href}
+            key={item.label}
             component={NextLink}
             href={item.href}
             aria-current={active ? "page" : undefined}

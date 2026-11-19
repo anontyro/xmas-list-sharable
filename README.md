@@ -30,4 +30,4 @@ Integration tests use `TEST_DATABASE_URL` and e2e tests use `E2E_DATABASE_URL`; 
 | `pnpm db:seed` | Create the household (`--demo` adds sample members and lists) |
 | `scripts/backup.sh`, `restore.sh`, `row-counts.sh` | Back up, restore and compare the database (see the runbook) |
 
-Running, deploying, backing up and restoring: `docs/FamilyGifts/Runbook.md`.
+First-time Supabase and Vercel setup: `docs/FamilyGifts/Supabase-and-Vercel-setup.md`. Running, deploying, backing up and restoring: `docs/FamilyGifts/Runbook.md`.

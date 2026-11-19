@@ -18,7 +18,7 @@ Work item: FG-002 (the design handoff in `docs/family-gifts-design/`, whose `PRD
 Branch: one branch per release, `feature/FG-5xx-…`, each stacked on the last and each able to merge on its own.
 Toggle: none (D46). The app is not live yet, and a release that is merged but unfinished is not deployed.
 Design: `docs/family-gifts-design/` (`README.md`, `styles/sticker.css`, `reference/01-welcome.html` to `12-menu.html`, `icons/`). Cited below as screen `04-wishlist` and so on.
-Status: **approved 2026-11-17** (build started with P0). No open questions.
+Status: **completed 2026-11-18** (approved 2026-11-17, build started with P0). No open questions.
 Manual testing: `Docs/FamilyGifts/Testing/MANUAL-TESTING-FG-002-sticker-book-design.md`
 Decisions: `Docs/FamilyGifts/Decisions/` (README lists every planned record, numbered from 0016, and the package that writes it).
 
@@ -928,3 +928,59 @@ a long name is truncated in the account chip; the session and guest lookups are 
 ## Open questions
 
 - None.
+
+## Completion
+
+- Completed: 2026-11-18
+- Range: `fb2e6b9..5aca907`
+- Rating: 4/5 (the user)
+- Packages: 35/36 done
+- Acceptance criteria: 133/134 verified
+- Deviations: 10
+- Files outside ownedFiles: 26
+- Owned files untouched: 1
+
+### Summary
+
+The whole app is now the Sticker Book: a themed MUI base with 36 stickers, a shell and account menu for each role, a welcome and sign-in flow, the family page with counts and a countdown, the list page with filters, the planner with budgets and exports, owner pages, an Amazon import page with ticking and priorities, an admin screen with pictures and PINs, and shared empty, loading and error states. In code that is 36 packages over releases R5a to R7, decisions 0016 to 0024, and 178 end-to-end tests at 375 px and 1280 px.
+
+Checks at the final commit: `pnpm lint` and `pnpm typecheck` clean, 368 unit tests, 158 integration tests, 178 e2e tests, `pnpm audit --prod` clean, and the validator at 0 errors with 4 release-size warnings (R5b, R5c, R5d, R5e).
+
+### Changes by package
+
+| Package | Status | Notes |
+|---|---|---|
+| P0 to P5 | done | Theme, tokens, stickers, shared components, gift pictures, decisions 0016 and 0017. |
+| P6 to P12 | done | Shells, nav, account menu, sign-out, last list, welcome and owner sign-in, recovery paste, decisions 0018 and 0019. |
+| P13 to P17 | done | Member avatar column and migration, family page, countdown, earlier years, decision 0020. |
+| P18 to P21 | done | List page with ribbons, filters and a phone filter dialog; planner, budget and notes page, Save access page, decision 0021. |
+| P22 to P24 | done | Owner editor, gift form and preview, decision 0022. |
+| P25 to P28 | done | Per-row priority on bulk import, import page, owner PIN page and list picker, import e2e, decision 0023 and the edit to 0014. |
+| P29 to P32 | done | `createMember` with picture and PIN, admin queries, members and lists screens, admin e2e, decision 0024. |
+| P33 | done | `Empty`, loading and error screens for all three route groups, theme hover and focus states. |
+| P34 | partial | Route sweep, dialogs, keyboard and security coverage all in; the error screen is only rendered in a unit test, not scanned by axe in the browser. |
+| P35 | done | Manual testing document, README, runbook, decision list; the cases that need a real phone are marked as not run. |
+
+### Deviations
+
+- **P35 / Paths.** Spec: owned files are written `Docs/...`. Built: the repo folder is `docs/...`. Why: the completion tool matches case-sensitively, so 12 decision and doc files show as untouched and 15 as outside the list although they were changed. They are counted as owned here.
+- **P34 / Error state.** Spec: an error state is visited at both widths with axe. Built: it is checked as rendered markup in a unit test only. Why: nothing in the app throws on demand, and adding a test-only route was not worth it.
+- **D84 / Archive.** Spec: one "Archive list" per member card. Built: one per open list. Why: a member can have several open lists.
+- **D83 / Admin tab bar.** Spec: tabs Members, Lists and Sign out. Built: Members and Lists; Sign out stays in the top bar. Why: the tab bar only holds links and `ShellFrame` was not in the package.
+- **D84 / No picture.** Spec: eight picture buttons. Built: plus a "No picture" button. Why: without it a picture could not be cleared.
+- **D79 / Import.** Spec: a found price is editable. Built: only a missing price can be filled in. Why: the page edits what was not found; a wrong found price is fixed on the gift.
+- **D80 / Bad priority message.** Spec: the validator's message for a bad priority. Built: the page sends only valid priorities, so that message only appears to a direct caller of the action.
+- **R5c audit / Fixes.** Spec: none. Built: sticker outline colours into tokens, newest open list, per-request session cache, budget transaction, archived purchase refusal, client address order, separate e2e database, `scripts/cleanup.sh`, and later fixes for price limits, planner card year, countdown, the removal of `@mui/icons-material`, and R7's dead queries, unknown-member results, label id, copy failure, year check, sign-in timing and picker keys. Why: found by the branch reviews and audits and recorded in the spec's "Audit fixes" section and decisions.
+- **P33 / Shared pieces.** Spec: `Empty`, `loading.tsx`, `error.tsx` per group. Built: plus `RouteState.tsx` holding the shared loading and error pieces. Why: three identical copies would have to change together.
+- **P34 / Wait helper.** Spec: a route sweep. Built: also a `settled()` helper and edits to the ordering, owner-gift and import tests. Why: `loading.tsx` makes pages stream in, so tests that read a page straight after load saw the loading screen.
+
+### Follow-ups
+
+- A real phone, real Supabase, Vercel image handling, iOS home-bar spacing and a screen reader have not been tried; the manual testing document lists them.
+- A Content-Security-Policy (Next's inline scripts and MUI styles need a nonce setup first); recorded in the spec's follow-ups and decision 0016.
+- Third-party picture hosts see guests' addresses (accepted, decision 0017).
+- Mark decisions 0016 to 0024 Accepted once the branch is in master.
+
+### Rating notes
+
+The spec held up well: every package was built in the planned order and the decisions needed few edits. It was weaker on file lists, which needed repeated additions as the real files became clear, and on release sizes, where R5b to R5e stayed over the limit.
