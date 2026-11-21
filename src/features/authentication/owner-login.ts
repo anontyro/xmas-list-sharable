@@ -7,6 +7,7 @@ import { member } from "@/db/schema";
 import { currentOwner } from "@/lib/auth/require";
 import { endSession, setSessionCookie } from "@/lib/auth/cookies";
 import { createSession, revokeSessionsFor } from "@/lib/auth/session";
+import { ensureLinkedGuest } from "./linked-guest";
 import { fail, ok } from "@/lib/result";
 import { clientIp } from "@/lib/security/client-ip";
 import { hashPin, isValidPin, verifyPin, verifyPinOrDummy } from "@/lib/security/password";
@@ -19,7 +20,7 @@ export async function ownerLogin(memberId: string, pin: string) {
   const key = `owner:${memberId}:${await clientIp()}`;
   if (await isBlocked(key)) return failed();
   const [m] = await getDb()
-    .select({ pinHash: member.pinHash })
+    .select({ pinHash: member.pinHash, approvedAt: member.approvedAt })
     .from(member)
     .where(and(eq(member.id, memberId), eq(member.active, true)));
   if (!(await verifyPinOrDummy(pin, m?.pinHash))) {
@@ -27,6 +28,11 @@ export async function ownerLogin(memberId: string, pin: string) {
     return failed();
   }
   await clearFailures(key);
+  // A member is also a viewer (decision 0025): the same PIN signs this browser in as their linked guest.
+  const viewer = await createSession("guest", await ensureLinkedGuest(memberId));
+  await setSessionCookie("guest", viewer.token, viewer.expiresAt);
+  // Until the admin approves them they can browse and reserve but not edit (decision 0026).
+  if (!m.approvedAt) return fail("PENDING_APPROVAL", "You're signed in to browse. The admin will approve you before you can make a list.");
   const { token, expiresAt } = await createSession("owner", memberId);
   await setSessionCookie("owner", token, expiresAt);
   return ok(null);

@@ -12,7 +12,7 @@ if (process.argv.includes("--demo")) {
   for (const name of names) {
     const [m] = await db
       .insert(member)
-      .values({ householdId: hh.id, displayName: name })
+      .values({ householdId: hh.id, displayName: name, approvedAt: new Date() })
       .onConflictDoNothing()
       .returning();
     // Demo only: the real slug generator arrives with the owner-list release. Owner PINs are set from the admin page.

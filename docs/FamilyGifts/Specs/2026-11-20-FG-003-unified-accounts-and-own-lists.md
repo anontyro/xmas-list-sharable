@@ -189,6 +189,10 @@ Shared acceptance for every package:
   - `tests/integration/guest-signout.test.ts`
   - `tests/integration/family.test.ts`
   - `tests/e2e/welcome.spec.ts`
+  - `tests/e2e/helpers.ts` (members made by the helper are approved)
+  - `tests/e2e/budget.spec.ts` (an owner now has a planner of their own)
+  - `tests/integration/change-pin.test.ts` (fixture member is approved)
+  - `src/db/seed.ts` (seeded members are approved)
 - Acceptance criteria:
   1. A correct PIN for an approved member sets `fg_owner` and `fg_guest`; for a waiting member only `fg_guest`, with the waiting message; a wrong PIN sets neither and counts against the existing throttle; a deactivated member cannot sign in.
   2. `createGuest(name)` with no PIN behaves exactly as before; `createGuest(name, pin)` creates an active member with `approved_at` null, a hashed PIN, a linked guest and the guest session only (no `fg_owner`); an invalid PIN creates nothing.

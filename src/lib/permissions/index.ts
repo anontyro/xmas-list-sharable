@@ -1,7 +1,7 @@
 export type Principal =
   | { type: "admin" }
   | { type: "owner"; memberId: string }
-  | { type: "guest"; guestId: string }
+  | { type: "guest"; guestId: string; memberId: string | null } // memberId: the member this guest is the viewer side of
   | null; // anonymous visitor
 
 export type Action =

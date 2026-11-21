@@ -153,7 +153,7 @@ test("a gift that is malformed, not in this planner or someone else's is ignored
   await context.close();
 });
 
-test("visitors without a name and owners are shown the pick-a-name page on both routes", async ({ browser, page }) => {
+test("visitors without a name are shown the pick-a-name page on both routes, and a signed-in owner gets their own empty planner", async ({ browser, page }) => {
   const visitor = await browser.newContext();
   const vp = await visitor.newPage();
   for (const path of ["/planner", "/planner/budget"]) {
@@ -162,10 +162,10 @@ test("visitors without a name and owners are shown the pick-a-name page on both 
   }
   await visitor.close();
 
-  await ownerSignIn(page); // Alex: an owner has no planner
+  await ownerSignIn(page); // Alex: an owner is also a viewer (decision 0025), so has a planner of their own, still empty
   for (const path of ["/planner", "/planner/budget"]) {
     await page.goto(path);
-    await expect(page.getByText("Pick a name on someone's list first")).toBeVisible();
-    expect(await page.content()).not.toMatch(/Cookbook|Headphones/);
+    await expect(page.getByText("Pick a name on someone's list first")).toHaveCount(0);
+    expect(await page.content()).not.toMatch(/Cookbook|Headphones/); // nothing of anyone else's
   }
 });

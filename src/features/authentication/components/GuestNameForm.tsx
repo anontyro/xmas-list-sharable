@@ -12,6 +12,7 @@ import { createGuest } from "@/features/authentication/guest-actions";
 export default function GuestNameForm({ next }: { next: string }) {
   const router = useRouter();
   const [name, setName] = useState("");
+  const [pin, setPin] = useState("");
   const [error, setError] = useState<string>();
   const [pending, start] = useTransition();
 
@@ -19,7 +20,7 @@ export default function GuestNameForm({ next }: { next: string }) {
     e.preventDefault();
     setError(undefined);
     start(async () => {
-      const r = await createGuest(name);
+      const r = await createGuest(name, pin);
       if (!r.ok) return setError(r.error.message);
       router.push(next);
       router.refresh();
@@ -37,6 +38,15 @@ export default function GuestNameForm({ next }: { next: string }) {
         autoComplete="given-name"
         slotProps={{ htmlInput: { maxLength: 40 } }}
         helperText="The family sees this next to gifts you reserve. No password needed."
+      />
+      <TextField
+        label="PIN (optional)"
+        type="password"
+        value={pin}
+        onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
+        autoComplete="new-password"
+        slotProps={{ htmlInput: { maxLength: 12, inputMode: "numeric" } }}
+        helperText="6 to 12 digits. Add one to make your own list; the admin approves you first."
       />
       {error && <Alert severity="error">{error}</Alert>}
       <Button type="submit" variant="contained" size="large" fullWidth disabled={pending}>Let&apos;s go</Button>

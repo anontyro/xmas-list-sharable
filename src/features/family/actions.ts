@@ -3,7 +3,7 @@
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getDb } from "@/db/client";
-import { member, wishlist } from "@/db/schema";
+import { guest, member, wishlist } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth/require";
 import { revokeSessionsFor } from "@/lib/auth/session";
 import { action, fail, ok } from "@/lib/result";
@@ -33,7 +33,7 @@ export async function createMember(input: NewMemberInput) {
     try {
       const [m] = await getDb()
         .insert(member)
-        .values({ householdId: hh.id, displayName, avatar: avatar ?? null, pinHash: newPin ? await hashPin(newPin) : null })
+        .values({ householdId: hh.id, displayName, avatar: avatar ?? null, pinHash: newPin ? await hashPin(newPin) : null, approvedAt: new Date() })
         .returning({ id: member.id });
       revalidatePath("/admin");
       return ok({ id: m.id });
@@ -53,11 +53,16 @@ export async function renameMember(memberId: string, displayName: string, avatar
     const picture = avatar === undefined || avatar === null ? { success: true as const, data: avatar } : avatarSchema.safeParse(avatar);
     if (!picture.success) return fail("INVALID", "Pick one of the pictures");
     try {
-      const updated = await getDb()
-        .update(member)
-        .set({ displayName: name.data, ...(picture.data === undefined ? {} : { avatar: picture.data }) })
-        .where(eq(member.id, memberId))
-        .returning({ id: member.id });
+      // The linked guest is renamed in the same transaction, so reservation labels and list titles agree (decision 0025).
+      const updated = await getDb().transaction(async (tx) => {
+        const rows = await tx
+          .update(member)
+          .set({ displayName: name.data, ...(picture.data === undefined ? {} : { avatar: picture.data }) })
+          .where(eq(member.id, memberId))
+          .returning({ id: member.id });
+        if (rows.length > 0) await tx.update(guest).set({ displayName: name.data }).where(eq(guest.memberId, memberId));
+        return rows;
+      });
       if (updated.length === 0) return NOT_FOUND;
       revalidatePath("/admin");
       return ok(null);
@@ -74,8 +79,22 @@ export async function deactivateMember(memberId: string) {
     const updated = await getDb().update(member).set({ active: false }).where(eq(member.id, memberId)).returning({ id: member.id });
     if (updated.length === 0) return NOT_FOUND;
     await revokeSessionsFor("owner", memberId);
+    const [linked] = await getDb().select({ id: guest.id }).from(guest).where(eq(guest.memberId, memberId));
+    if (linked) await revokeSessionsFor("guest", linked.id); // disabling the person also ends their viewer sessions (decision 0026)
     revalidatePath("/admin");
     revalidatePath("/");
+    return ok(null);
+  });
+}
+
+/** Lets a member who signed themselves up create and edit lists. They sign in with their PIN again to get the editor session. Safe to repeat. */
+export async function approveMember(memberId: string) {
+  return action(async () => {
+    await requireAdmin();
+    const [m] = await getDb().select({ approvedAt: member.approvedAt, active: member.active }).from(member).where(eq(member.id, memberId));
+    if (!m) return NOT_FOUND;
+    if (!m.approvedAt) await getDb().update(member).set({ approvedAt: new Date() }).where(eq(member.id, memberId));
+    revalidatePath("/admin");
     return ok(null);
   });
 }

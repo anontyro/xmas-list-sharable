@@ -87,3 +87,25 @@ describe("member picture", () => {
     expect(constraints.map((c) => c.def).join(" ")).not.toContain("avatar");
   });
 });
+
+describe("linked accounts and list state (FG-003)", () => {
+  it("links at most one guest to a member", async () => {
+    const { h, m } = await world();
+    const [linked] = await db.insert(guest).values({ householdId: h.id, displayName: "Alex", memberId: m.id }).returning();
+    expect(linked.memberId).toBe(m.id);
+    await rejects(db.insert(guest).values({ householdId: h.id, displayName: "Alex again", memberId: m.id }), "23505");
+    await db.insert(guest).values([{ householdId: h.id, displayName: "A" }, { householdId: h.id, displayName: "B" }]); // unlinked guests are many
+  });
+
+  it("only links to a member that exists", async () => {
+    const { h } = await world();
+    await rejects(db.insert(guest).values({ householdId: h.id, displayName: "X", memberId: "00000000-0000-0000-0000-000000000000" }), "23503");
+  });
+
+  it("defaults: a member waits for approval, a list is a draft and ranked", async () => {
+    const { m, l } = await world();
+    expect(m.approvedAt).toBeNull();
+    expect(l.publishedAt).toBeNull();
+    expect(l.ranked).toBe(true);
+  });
+});

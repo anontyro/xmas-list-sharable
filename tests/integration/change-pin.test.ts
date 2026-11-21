@@ -19,7 +19,7 @@ beforeEach(() => {
 
 async function alex() {
   const [h] = await db.insert(household).values({ name: "F" }).returning();
-  const [m] = await db.insert(member).values({ householdId: h.id, displayName: "Alex", pinHash: await hashPin("123456") }).returning();
+  const [m] = await db.insert(member).values({ householdId: h.id, displayName: "Alex", pinHash: await hashPin("123456"), approvedAt: new Date() }).returning();
   return { h, id: m.id };
 }
 const signedIn = async (id: string) => cookieJar.set(COOKIE_NAMES.owner, (await createSession("owner", id)).token);
