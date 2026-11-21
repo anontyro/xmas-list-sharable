@@ -25,6 +25,7 @@ export type OwnerWishlistView = {
   occasion: string;
   year: number;
   archived: boolean;
+  published: boolean;
   items: OwnerItem[];
 };
 

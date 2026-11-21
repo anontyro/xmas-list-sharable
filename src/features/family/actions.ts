@@ -8,7 +8,7 @@ import { requireAdmin } from "@/lib/auth/require";
 import { revokeSessionsFor } from "@/lib/auth/session";
 import { action, fail, ok } from "@/lib/result";
 import { hashPin } from "@/lib/security/password";
-import { generateSlug } from "@/features/wishlists/slug";
+import { insertList } from "@/features/wishlists/insert-list";
 import { avatarSchema, type AvatarSticker } from "./avatars";
 import { listInput, memberName, newMemberInput, pin, type ListInput, type NewMemberInput } from "./schemas";
 import { getHousehold } from "./queries";
@@ -117,18 +117,13 @@ export async function createList(input: ListInput) {
     await requireAdmin();
     const parsed = listInput.safeParse(input);
     if (!parsed.success) return fail("INVALID", parsed.error.issues[0].message);
-    for (let attempt = 0; attempt < 5; attempt++) {
-      try {
-        const [l] = await getDb().insert(wishlist).values({ ...parsed.data, slug: generateSlug() }).returning({ id: wishlist.id, slug: wishlist.slug });
-        revalidatePath("/admin");
-        revalidatePath("/");
-        return ok(l);
-      } catch (e) {
-        if (pgCode(e) === "23503") return NOT_FOUND; // no such member
-        if (!isUniqueViolation(e)) throw e; // a slug collision: draw another
-      }
+    const { memberId, ...fields } = parsed.data;
+    const r = await insertList(memberId, fields, true);
+    if (r.ok) {
+      revalidatePath("/admin");
+      revalidatePath("/");
     }
-    return fail("SLUG_COLLISION", "Could not create the list, please try again");
+    return r;
   });
 }
 

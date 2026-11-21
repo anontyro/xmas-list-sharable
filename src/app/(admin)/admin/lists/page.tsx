@@ -31,11 +31,11 @@ export default async function AdminListsPage() {
               return (
                 <StickerCard key={l.id} component="article" aria-label={who} sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px", flexWrap: "wrap" }}>
                   <Box>
-                    <Box component="p" sx={{ m: 0, fontWeight: 800 }}>{l.memberName} · {l.title} {l.archivedAt && <Pill>Archived</Pill>}</Box>
+                    <Box component="p" sx={{ m: 0, fontWeight: 800 }}>{l.memberName} · {l.title} {l.archivedAt && <Pill>Archived</Pill>} {!l.publishedAt && <Pill tone="yellow">Draft</Pill>}</Box>
                     <Box component="span" sx={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontSize: 13, fontWeight: 700 }}>/l/{l.slug}</Box>
                   </Box>
                   <Box sx={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                    <CopyLinkButton path={`/l/${l.slug}`} what={who} />
+                    {l.publishedAt && <CopyLinkButton path={`/l/${l.slug}`} what={who} />}
                     {l.archivedAt ? (
                       <ActionButton onAction={restoreList.bind(null, l.id)} size="small" variant="ghost" aria-label={`Restore: ${who}`}>Restore</ActionButton>
                     ) : (

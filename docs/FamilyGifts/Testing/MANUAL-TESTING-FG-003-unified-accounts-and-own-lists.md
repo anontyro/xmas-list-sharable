@@ -25,6 +25,7 @@
 
 - **New list.** A member creates a list and saves it as a private draft or publishes it.
 - **Publish.** A draft is invisible to everyone else until published.
+- **Menu shows where you are.** The account menu highlights the current page.
 
 ### R8d · Unordered lists (FG-804)
 
@@ -93,9 +94,10 @@ As Sarah, on an owner page and on a family page press the top-left logo.
 
 ### 7. The menu
 Open the name chip as Sarah, then as an unnamed-PIN guest (Mia's browser).
-- Sarah: My list, All my lists, Browse family lists, My planner, Change my name, Save access, Change my PIN, Sign out, in that order.
+- Sarah: My list, New list, All my lists, Browse family lists, My planner, Change my name, Save access, Change my PIN, Sign out, in that order.
 - The guest has today's items and Set a PIN. Setting a PIN turns the menu into the member menu with no second sign-in.
 - Sarah's Sign out signs out of both with no recovery-link prompt.
+- The item for the page you are on is highlighted (and announced as current) in the menu: try My list, All my lists, New list, Browse family lists and My planner.
 - On a phone there is exactly one navigation (the tab bar) and it has four tabs.
 
 ### 8. Home

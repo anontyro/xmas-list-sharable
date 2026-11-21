@@ -11,6 +11,7 @@ import PlannerStrip from "@/features/planner/components/PlannerStrip";
 import { getPlannerSummary } from "@/features/planner/queries";
 import MemberCard from "@/features/wishlists/components/MemberCard";
 import { daysUntilChristmas, isChristmas, londonYear } from "@/features/wishlists/countdown";
+import { listOwnLists } from "@/features/wishlists/owner-queries";
 import { getEarlierYears, getFamilyDashboard } from "@/features/wishlists/public-queries";
 
 export const dynamic = "force-dynamic";
@@ -21,6 +22,7 @@ const gifts = (n: number) => `${n} ${n === 1 ? "gift" : "gifts"}`;
 export default async function HomePage() {
   const now = new Date();
   const [{ members }, earlier, guest] = await Promise.all([getFamilyDashboard(), getEarlierYears(), getGuestIdentity()]);
+  const drafts = guest?.memberId ? (await listOwnLists()).filter((l) => !l.published && !l.archived) : []; // empty without the editor session
   const year = londonYear(now);
   const christmasList = members.flatMap((m) => m.lists).find((l) => isChristmas(l.occasion) && l.year === year);
   const christmas = Boolean(christmasList);
@@ -64,6 +66,20 @@ export default async function HomePage() {
                   href={`/l/${l.slug}`}
                   label={mine ? `Edit your ${l.title} list` : m.lists.length === 1 ? `Open ${m.displayName}'s list` : `Open ${m.displayName}'s ${l.title} list`}
                 />
+            ))}
+          </Box>
+        )}
+        {drafts.length > 0 && (
+          <Box component="section" aria-label="Your drafts" sx={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            <Ribbon tone="yellow">Your drafts</Ribbon>
+            {drafts.map((l) => (
+              <StickerCard key={l.id} component="article" padded sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "12px" }}>
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Box component="h3" sx={{ m: 0, fontSize: 18, fontWeight: 800, overflowWrap: "anywhere" }}>{l.title}</Box>
+                  <Pill tone="yellow">Draft · only you</Pill>
+                </Box>
+                <LinkButton href={`/owner/lists/${l.id}`} size="small" variant="contained" aria-label={`Edit draft ${l.title}`}>Edit</LinkButton>
+              </StickerCard>
             ))}
           </Box>
         )}

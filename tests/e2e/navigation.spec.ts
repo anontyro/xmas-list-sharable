@@ -140,7 +140,7 @@ test("sign-out and the menu work by keyboard alone", async ({ browser }) => {
   await context.close();
 });
 
-const MEMBER_MENU = ["My list", "All my lists", "Browse family lists", "My planner", "Change my name", "Save access (recovery link)", "Change my PIN", "Sign out"];
+const MEMBER_MENU = ["My list", "New list", "All my lists", "Browse family lists", "My planner", "Change my name", "Save access (recovery link)", "Change my PIN", "Sign out"];
 
 test("a member's menu is the member menu in order, My list skips an archived list, and Sign out ends both sessions", async ({ page }) => {
   await createList(alexId, "Christmas 2025", true); // archived: "My list" must not point at it

@@ -13,11 +13,11 @@ export async function listOwnLists() {
   const owner = await currentOwner();
   if (!owner) return [];
   const rows = await getDb()
-    .select({ id: wishlist.id, title: wishlist.title, occasion: wishlist.occasion, year: wishlist.year, archivedAt: wishlist.archivedAt, createdAt: wishlist.createdAt })
+    .select({ id: wishlist.id, title: wishlist.title, occasion: wishlist.occasion, year: wishlist.year, archivedAt: wishlist.archivedAt, publishedAt: wishlist.publishedAt, createdAt: wishlist.createdAt })
     .from(wishlist)
     .where(eq(wishlist.memberId, owner.memberId))
     .orderBy(desc(wishlist.year), wishlist.title);
-  return rows.map(({ archivedAt, ...l }) => ({ ...l, archived: archivedAt !== null }));
+  return rows.map(({ archivedAt, publishedAt, ...l }) => ({ ...l, archived: archivedAt !== null, published: publishedAt !== null }));
 }
 
 /** The list "My list" opens: the newest one that is not archived (latest year, then most recently created). Null when there is none. */
@@ -31,7 +31,7 @@ export async function getOwnList(listId: string): Promise<OwnerWishlistView | nu
   if (!owner || !z.string().uuid().safeParse(listId).success) return null;
   const db = getDb();
   const [list] = await db
-    .select({ id: wishlist.id, slug: wishlist.slug, title: wishlist.title, occasion: wishlist.occasion, year: wishlist.year, archivedAt: wishlist.archivedAt })
+    .select({ id: wishlist.id, slug: wishlist.slug, title: wishlist.title, occasion: wishlist.occasion, year: wishlist.year, archivedAt: wishlist.archivedAt, publishedAt: wishlist.publishedAt })
     .from(wishlist)
     .where(and(eq(wishlist.id, listId), eq(wishlist.memberId, owner.memberId)));
   if (!list) return null;
@@ -40,7 +40,7 @@ export async function getOwnList(listId: string): Promise<OwnerWishlistView | nu
     .from(wishlistItem)
     .where(and(eq(wishlistItem.wishlistId, list.id), isNull(wishlistItem.deletedAt)))
     .orderBy(...itemOrderBy);
-  return { id: list.id, slug: list.slug, title: list.title, occasion: list.occasion, year: list.year, archived: list.archivedAt !== null, items: items.map(toOwnerItem) };
+  return { id: list.id, slug: list.slug, title: list.title, occasion: list.occasion, year: list.year, archived: list.archivedAt !== null, published: list.publishedAt !== null, items: items.map(toOwnerItem) };
 }
 
 /** Owner and archive status of a list, for the actions' permission checks. */

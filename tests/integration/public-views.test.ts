@@ -9,7 +9,7 @@ async function world() {
   const [alex] = await db.insert(member).values({ householdId: h.id, displayName: "Alex" }).returning();
   const [sarah] = await db.insert(member).values({ householdId: h.id, displayName: "Sarah" }).returning();
   const mk = async (memberId: string, slug: string, extra: Partial<typeof wishlist.$inferInsert> = {}) =>
-    (await db.insert(wishlist).values({ memberId, title: "Christmas 2026", occasion: "Christmas", year: 2026, slug, ...extra }).returning())[0];
+    (await db.insert(wishlist).values({ publishedAt: new Date(), memberId, title: "Christmas 2026", occasion: "Christmas", year: 2026, slug, ...extra }).returning())[0];
   return { alex, sarah, mk };
 }
 

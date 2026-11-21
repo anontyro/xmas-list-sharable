@@ -5,12 +5,15 @@ import { notFound, redirect } from "next/navigation";
 import Hero from "@/components/sticker/Hero";
 import Note from "@/components/sticker/Note";
 import PageWrap from "@/components/sticker/PageWrap";
+import Pill from "@/components/sticker/Pill";
 import PriorityRibbon from "@/components/sticker/PriorityRibbon";
 import StickerCard from "@/components/sticker/StickerCard";
 import TwoColumn from "@/components/sticker/TwoColumn";
+import ActionButton from "@/components/ui/ActionButton";
 import CopyLinkButton from "@/components/ui/CopyLinkButton";
 import LinkButton from "@/components/ui/LinkButton";
 import OwnerGiftRow from "@/features/wishlists/components/OwnerGiftRow";
+import { publishList } from "@/features/wishlists/list-actions";
 import { getOwnList } from "@/features/wishlists/owner-queries";
 import { PRIORITIES } from "@/features/wishlists/schemas";
 import { currentOwner } from "@/lib/auth/require";
@@ -28,7 +31,7 @@ export default async function OwnerListPage({ params }: { params: Promise<{ list
     <>
       <Hero
         title={`My ${list.occasion} list`}
-        subtitle={`${list.year} · ${list.items.length === 1 ? "1 gift" : `${list.items.length} gifts`} · only you can edit`}
+        subtitle={`${list.year} · ${list.items.length === 1 ? "1 gift" : `${list.items.length} gifts`} · only you can edit${list.published ? "" : " · Draft"}`}
         tint="mint"
         sticker={{ name: "gifttag", width: 62, rotate: 8 }}
       />
@@ -56,12 +59,21 @@ export default async function OwnerListPage({ params }: { params: Promise<{ list
           }
           side={
             <>
-              <StickerCard component="section" padded aria-label="Share your list" sx={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                <SectionTitle>Share your list</SectionTitle>
-                <StickerCard tint="cream" sx={{ p: "10px 12px", fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontSize: 14, fontWeight: 700, overflowWrap: "anywhere" }}>/l/{list.slug}</StickerCard>
-                <CopyLinkButton path={`/l/${list.slug}`} />
-                <Box component="p" sx={{ m: 0, fontSize: 13, fontWeight: 700, color: "text.secondary" }}>Anyone with this link can see your list, so only send it to family.</Box>
-              </StickerCard>
+              {list.published ? (
+                <StickerCard component="section" padded aria-label="Share your list" sx={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  <SectionTitle>Share your list</SectionTitle>
+                  <StickerCard tint="cream" sx={{ p: "10px 12px", fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontSize: 14, fontWeight: 700, overflowWrap: "anywhere" }}>/l/{list.slug}</StickerCard>
+                  <CopyLinkButton path={`/l/${list.slug}`} />
+                  <Box component="p" sx={{ m: 0, fontSize: 13, fontWeight: 700, color: "text.secondary" }}>Anyone with this link can see your list, so only send it to family.</Box>
+                </StickerCard>
+
+              ) : (
+                <StickerCard component="section" padded aria-label="Publish your list" sx={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  <SectionTitle>Draft <Pill tone="yellow">Only you</Pill></SectionTitle>
+                  <Box component="p" sx={{ m: 0, fontSize: 13, fontWeight: 700, color: "text.secondary" }}>Only you can see this until you publish it. Add your gifts first, then share it with the family.</Box>
+                  <ActionButton onAction={publishList.bind(null, list.id)} variant="contained">Publish</ActionButton>
+                </StickerCard>
+              )}
               {!list.archived && (
                 <StickerCard component="section" padded aria-label="Add gifts" sx={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                   <SectionTitle>Add gifts</SectionTitle>

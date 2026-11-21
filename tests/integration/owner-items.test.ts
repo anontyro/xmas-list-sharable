@@ -16,8 +16,8 @@ async function world() {
   const [h] = await db.insert(household).values({ name: "F" }).returning();
   const [a] = await db.insert(member).values({ householdId: h.id, displayName: "Alex" }).returning();
   const [b] = await db.insert(member).values({ householdId: h.id, displayName: "Sarah" }).returning();
-  const [la] = await db.insert(wishlist).values({ memberId: a.id, title: "A", occasion: "Christmas", year: 2026, slug: "alexslug001" }).returning();
-  const [lb] = await db.insert(wishlist).values({ memberId: b.id, title: "B", occasion: "Christmas", year: 2026, slug: "sarahslug01" }).returning();
+  const [la] = await db.insert(wishlist).values({ publishedAt: new Date(), memberId: a.id, title: "A", occasion: "Christmas", year: 2026, slug: "alexslug001" }).returning();
+  const [lb] = await db.insert(wishlist).values({ publishedAt: new Date(), memberId: b.id, title: "B", occasion: "Christmas", year: 2026, slug: "sarahslug01" }).returning();
   const signIn = async (m: { id: string }) => cookieJar.set(COOKIE_NAMES.owner, (await createSession("owner", m.id)).token);
   return { a, b, la, lb, signIn };
 }

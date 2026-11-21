@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import ButtonBase from "@mui/material/ButtonBase";
@@ -18,6 +18,7 @@ import { tintFor, TINT_COLOR } from "@/components/sticker/tint";
 import { signOutGuest, signOutMember } from "@/features/authentication/guest-actions";
 import { recoveryLinkStatus } from "@/features/authentication/recovery-actions";
 import { tokens } from "@/theme/tokens";
+import { isActive } from "./nav";
 import ChangeNameDialog from "./ChangeNameDialog";
 import SetPinDialog from "./SetPinDialog";
 
@@ -35,6 +36,7 @@ const dashed = { my: "4px", borderStyle: "dashed", borderColor: tokens.ink, bord
  */
 export default function AccountMenu({ id, name, member }: Props) {
   const router = useRouter();
+  const pathname = usePathname();
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const [dialog, setDialog] = useState<Dialogs>(null);
   const [, start] = useTransition();
@@ -71,7 +73,13 @@ export default function AccountMenu({ id, name, member }: Props) {
   };
 
   const initial = (Array.from(name.trim())[0] ?? "?").toUpperCase();
+  const hasList = member?.myListHref !== "/owner"; // with no list yet, "My list" just opens the lists page
   const item = { onClick: close };
+  // The page you are on is marked, for the eye (selected) and for screen readers (aria-current).
+  const here = (match: string[], exclude?: string[]) => {
+    const on = isActive(pathname, match, exclude);
+    return { selected: on, "aria-current": on ? ("page" as const) : undefined };
+  };
 
   return (
     <>
@@ -92,16 +100,17 @@ export default function AccountMenu({ id, name, member }: Props) {
           <Box component="p" sx={{ m: 0, color: tokens.muted, fontSize: 13, fontWeight: 700 }}>{!member ? "Shopping on this device" : member.pending ? "Waiting for admin approval" : "Member"}</Box>
         </li>
         <Divider component="li" sx={dashed} />
-        {member?.canEdit && <MenuItem component={NextLink} href={member.myListHref} {...item}>My list</MenuItem>}
-        {member?.canEdit && <MenuItem component={NextLink} href="/owner" {...item}>All my lists</MenuItem>}
-        {member && !member.pending && !member.canEdit && <MenuItem component={NextLink} href="/owner/login" {...item}>Sign in to edit</MenuItem>}
-        {member && <MenuItem component={NextLink} href="/" {...item}>Browse family lists</MenuItem>}
-        <MenuItem component={NextLink} href="/planner" {...item}>My planner</MenuItem>
+        {member?.canEdit && <MenuItem component={NextLink} href={member.myListHref} {...item} {...here(hasList ? [member.myListHref] : [])}>My list</MenuItem>}
+        {member?.canEdit && <MenuItem component={NextLink} href="/owner/lists/new" {...item} {...here(["/owner/lists/new"])}>New list</MenuItem>}
+        {member?.canEdit && <MenuItem component={NextLink} href="/owner" {...item} {...here(["/owner"], [...(hasList ? [member.myListHref] : []), "/owner/lists/new", "/owner/pin", "/owner/login"])}>All my lists</MenuItem>}
+        {member && !member.pending && !member.canEdit && <MenuItem component={NextLink} href="/owner/login" {...item} {...here(["/owner/login"])}>Sign in to edit</MenuItem>}
+        {member && <MenuItem component={NextLink} href="/" {...item} {...here(["/", "/l"])}>Browse family lists</MenuItem>}
+        <MenuItem component={NextLink} href="/planner" {...item} {...here(["/planner"])}>My planner</MenuItem>
         <MenuItem onClick={open("name")}>Change my name</MenuItem>
-        <MenuItem component={NextLink} href="/access" {...item} sx={{ backgroundColor: tokens.sky, "&:hover": { backgroundColor: tokens.sky } }}>Save access (recovery link)</MenuItem>
+        <MenuItem component={NextLink} href="/access" {...item} {...here(["/access"])}>Save access (recovery link)</MenuItem>
         {!member && <MenuItem onClick={open("pin")}>Set a PIN</MenuItem>}
-        {!member && <MenuItem component={NextLink} href="/owner/login" {...item}>I own a list (PIN)</MenuItem>}
-        {member?.canEdit && <MenuItem component={NextLink} href="/owner/pin" {...item}>Change my PIN</MenuItem>}
+        {!member && <MenuItem component={NextLink} href="/owner/login" {...item} {...here(["/owner/login"])}>I own a list (PIN)</MenuItem>}
+        {member?.canEdit && <MenuItem component={NextLink} href="/owner/pin" {...item} {...here(["/owner/pin"])}>Change my PIN</MenuItem>}
         <Divider component="li" sx={dashed} />
         <MenuItem onClick={member ? signOutMemberDevice : signOutGuestDevice} sx={{ color: tokens.danger }}>
           {member ? "Sign out" : "Sign out of this device"}

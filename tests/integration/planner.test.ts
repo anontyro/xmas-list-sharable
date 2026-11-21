@@ -16,9 +16,9 @@ beforeEach(resetRequest);
 async function world() {
   const [h] = await db.insert(household).values({ name: "F" }).returning();
   const [alex, sarah] = await db.insert(member).values([{ householdId: h.id, displayName: "Alex" }, { householdId: h.id, displayName: "Sarah" }]).returning();
-  const [la] = await db.insert(wishlist).values({ memberId: alex.id, title: "A", occasion: "Christmas", year: 2026, slug: "alexslug001" }).returning();
-  const [ls] = await db.insert(wishlist).values({ memberId: sarah.id, title: "S", occasion: "Christmas", year: 2026, slug: "sarahslug01" }).returning();
-  const [lb] = await db.insert(wishlist).values({ memberId: sarah.id, title: "B", occasion: "Birthday", year: 2026, slug: "sarahbday01" }).returning();
+  const [la] = await db.insert(wishlist).values({ publishedAt: new Date(), memberId: alex.id, title: "A", occasion: "Christmas", year: 2026, slug: "alexslug001" }).returning();
+  const [ls] = await db.insert(wishlist).values({ publishedAt: new Date(), memberId: sarah.id, title: "S", occasion: "Christmas", year: 2026, slug: "sarahslug01" }).returning();
+  const [lb] = await db.insert(wishlist).values({ publishedAt: new Date(), memberId: sarah.id, title: "B", occasion: "Birthday", year: 2026, slug: "sarahbday01" }).returning();
   const mk = async (listId: string, title: string, priceMinor: number | null) => (await db.insert(wishlistItem).values({ wishlistId: listId, title, priceMinor }).returning())[0];
   const [ann, bob] = await db.insert(guest).values([{ householdId: h.id, displayName: "Ann" }, { householdId: h.id, displayName: "Bob" }]).returning();
   const signIn = async (g: { id: string }) => {
@@ -106,7 +106,7 @@ describe("getPlanner", () => {
 
   it("gives the summary for the period asked for, even one with nothing in it, not the newest period with entries", async () => {
     const { alex, mk, ann, signIn } = await world();
-    const [old] = await db.insert(wishlist).values({ memberId: alex.id, title: "Old", occasion: "Christmas", year: 2025, slug: "alexold2025" }).returning();
+    const [old] = await db.insert(wishlist).values({ publishedAt: new Date(), memberId: alex.id, title: "Old", occasion: "Christmas", year: 2025, slug: "alexold2025" }).returning();
     const oldGift = await mk(old.id, "Old gift", 1000);
     await db.insert(itemClaim).values({ itemId: oldGift.id, guestId: ann.id, status: "reserved" });
     await signIn(ann);

@@ -25,7 +25,7 @@ async function setup(asAdmin: boolean) {
 describe("without an admin session", () => {
   it("every action is unauthorized and changes nothing", async () => {
     const { m } = await setup(false);
-    const [l] = await db.insert(wishlist).values({ memberId: m.id, title: "x", occasion: "Christmas", year: 2026, slug: "aaaaaaaaaa" }).returning();
+    const [l] = await db.insert(wishlist).values({ publishedAt: new Date(), memberId: m.id, title: "x", occasion: "Christmas", year: 2026, slug: "aaaaaaaaaa" }).returning();
     const results = [
       await createMember({ displayName: "Sam" }),
       await renameMember(m.id, "Changed"),

@@ -11,7 +11,7 @@ export async function getListOwnerTarget(slug: string): Promise<{ id: string; me
   return row ?? null;
 }
 
-/** The shared list page. Null for an unknown slug or a deactivated member's list. */
+/** The shared list page. Null for an unknown slug, a draft, or a deactivated member's list. */
 export async function getListBySlug(slug: string): Promise<GuestWishlistView | null> {
   const db = getDb();
   const [list] = await db
@@ -26,7 +26,7 @@ export async function getListBySlug(slug: string): Promise<GuestWishlistView | n
     })
     .from(wishlist)
     .innerJoin(member, eq(member.id, wishlist.memberId))
-    .where(and(eq(wishlist.slug, slug), eq(member.active, true)));
+    .where(and(eq(wishlist.slug, slug), eq(member.active, true), isNotNull(wishlist.publishedAt)));
   if (!list) return null;
 
   const items = await db
@@ -62,7 +62,7 @@ const giftCounts = (db: ReturnType<typeof getDb>, archived: boolean) =>
     .from(wishlist)
     .innerJoin(member, eq(member.id, wishlist.memberId))
     .leftJoin(wishlistItem, and(eq(wishlistItem.wishlistId, wishlist.id), isNull(wishlistItem.deletedAt)))
-    .where(and(eq(member.active, true), archived ? isNotNull(wishlist.archivedAt) : isNull(wishlist.archivedAt)))
+    .where(and(eq(member.active, true), isNotNull(wishlist.publishedAt), archived ? isNotNull(wishlist.archivedAt) : isNull(wishlist.archivedAt)))
     .groupBy(member.id, wishlist.id);
 
 /** Active members with their non-archived lists and gift counts. Members with no list are left out. */
