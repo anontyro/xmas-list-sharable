@@ -17,7 +17,7 @@ export default async function ImportPage({ params }: { params: Promise<{ listId:
     <>
       <Hero title="Paste from Amazon" subtitle="Nothing is saved until you say so" tint="sky" back={{ label: "My list", href: back }} sticker={{ name: "box", width: 88, rotate: -6 }} />
       <PageWrap>
-        <ImportWizard listId={list.id} backHref={back} addHref={`${back}/add?mode=manual`} />
+        <ImportWizard listId={list.id} backHref={back} addHref={`${back}/add?mode=manual`} ranked={list.ranked} />
       </PageWrap>
     </>
   );

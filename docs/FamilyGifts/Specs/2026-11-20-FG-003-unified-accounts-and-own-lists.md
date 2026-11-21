@@ -322,6 +322,10 @@ Shared acceptance for every package:
   - `src/features/wishlists/list-actions.ts`
   - `src/features/wishlists/reorder.ts`
   - `src/features/wishlists/reorder-actions.ts`
+  - `src/features/wishlists/insert-list.ts`
+  - `src/features/wishlists/owner-actions.ts`
+  - `src/features/imports/bulk-actions.ts`
+  - `tests/integration/public-views.test.ts`
   - `src/features/wishlists/sort-filter.ts`
   - `tests/unit/wishlists/schemas.test.ts`
   - `tests/unit/wishlists/sort-filter.test.ts`
@@ -343,6 +347,9 @@ Shared acceptance for every package:
   - `src/app/(owner)/owner/lists/[listId]/page.tsx`
   - `src/features/wishlists/components/GiftForm.tsx`
   - `src/features/imports/components/ImportWizard.tsx`
+  - `src/app/(owner)/owner/lists/[listId]/add/page.tsx`
+  - `src/app/(owner)/owner/lists/[listId]/gifts/[itemId]/page.tsx`
+  - `src/app/(owner)/owner/lists/[listId]/import/page.tsx`
   - `src/features/wishlists/components/NewListForm.tsx`
   - `src/features/wishlists/components/ListSettingsDialog.tsx` (new)
   - `tests/e2e/ordering.spec.ts`

@@ -27,8 +27,10 @@ export async function createItem(listId: string, input: OwnerItemInput) {
     if (list.archivedAt) return ARCHIVED;
     const parsed = itemInput.safeParse(input);
     if (!parsed.success) return fail("INVALID", "Please fix the highlighted fields", fieldErrors(parsed.error));
-    const sortOrder = await nextSortOrder(listId, parsed.data.priority);
-    const [row] = await getDb().insert(wishlistItem).values({ ...parsed.data, wishlistId: listId, sortOrder }).returning({ id: wishlistItem.id });
+    // An unranked list has no priority: new gifts take the default and go last in the whole list (decision 0030).
+    const priority = list.ranked ? parsed.data.priority : "would_love";
+    const sortOrder = await nextSortOrder(listId, list.ranked ? priority : null);
+    const [row] = await getDb().insert(wishlistItem).values({ ...parsed.data, priority, wishlistId: listId, sortOrder }).returning({ id: wishlistItem.id });
     refresh();
     return ok({ id: row.id });
   });
@@ -43,9 +45,11 @@ export async function updateItem(itemId: string, input: OwnerItemInput) {
     const parsed = itemInput.safeParse(input);
     if (!parsed.success) return fail("INVALID", "Please fix the highlighted fields", fieldErrors(parsed.error));
     // Moving to another priority group puts the item last in it.
-    const moved = parsed.data.priority !== item.priority;
-    const sortOrder = moved ? await nextSortOrder(item.wishlistId, parsed.data.priority) : undefined;
-    await getDb().update(wishlistItem).set({ ...parsed.data, ...(moved && { sortOrder }) }).where(eq(wishlistItem.id, itemId));
+    // On an unranked list the stored priority is left alone, so switching back to ranked restores the old groups.
+    const { priority, ...rest } = parsed.data;
+    const moved = item.ranked && priority !== item.priority;
+    const sortOrder = moved ? await nextSortOrder(item.wishlistId, priority) : undefined;
+    await getDb().update(wishlistItem).set({ ...rest, ...(item.ranked && { priority }), ...(moved && { sortOrder }) }).where(eq(wishlistItem.id, itemId));
     refresh();
     return ok(null);
   });

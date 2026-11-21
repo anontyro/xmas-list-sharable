@@ -18,7 +18,7 @@ export default async function AddGiftPage({ params, searchParams }: { params: Pr
     <>
       <Hero title="Add a gift" subtitle="Paste a link and we'll fill in what we can" tint="yellow" back={{ label: "My list", href: back }} sticker={{ name: "presentgold", width: 80, rotate: 6 }} />
       <PageWrap>
-        <GiftForm listId={list.id} initialMode={mode === "manual" ? "manual" : "link"} backHref={back} />
+        <GiftForm listId={list.id} initialMode={mode === "manual" ? "manual" : "link"} backHref={back} ranked={list.ranked} />
       </PageWrap>
     </>
   );

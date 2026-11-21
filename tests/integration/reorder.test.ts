@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { cookieJar, resetRequest } from "./request-context";
 import { db } from "./db-harness";
@@ -106,5 +107,35 @@ describe("moveItemAction", () => {
     expect(await moveItemAction("nope", "down")).toMatchObject({ error: { code: "NOT_FOUND" } });
     await db.update(wishlist).set({ archivedAt: new Date() });
     expect(await moveItemAction(x.id, "up")).toMatchObject({ error: { code: "LIST_ARCHIVED" } });
+  });
+});
+
+describe("an unranked list", () => {
+  it("moves a gift across the whole list, whatever its priority, and keeps every priority", async () => {
+    const { a, l, add, signIn, order } = await world();
+    await db.update(wishlist).set({ ranked: false }).where(eq(wishlist.id, l.id));
+    const x = await add("x", "most_wanted", 10);
+    const y = await add("y", "nice_to_have", 20);
+    await add("z", "would_love", 30);
+    await signIn(a);
+    expect(await order()).toEqual(["x", "y", "z"]); // by sort_order, not by priority
+    expect((await moveItemAction(y.id, "up")).ok).toBe(true);
+    expect(await order()).toEqual(["y", "x", "z"]);
+    expect(await moveItem(x.id, "down")).toBe(true);
+    expect(await order()).toEqual(["y", "z", "x"]);
+    expect((await getOwnList(l.id))!.items.map((i) => i.priority).sort()).toEqual(["most_wanted", "nice_to_have", "would_love"]);
+  });
+
+  it("adds new gifts last in the list with the default priority, and edits leave the stored priority alone", async () => {
+    const { a, l, add, signIn, order } = await world();
+    await db.update(wishlist).set({ ranked: false }).where(eq(wishlist.id, l.id));
+    const top = await add("top", "most_wanted", 10);
+    await add("low", "nice_to_have", 20);
+    await signIn(a);
+    expect((await createItem(l.id, { title: "new", priority: "most_wanted" })).ok).toBe(true);
+    expect(await order()).toEqual(["top", "low", "new"]);
+    expect((await getOwnList(l.id))!.items.find((i) => i.title === "new")!.priority).toBe("would_love");
+    expect((await updateItem(top.id, { title: "top renamed" })).ok).toBe(true); // the form sends no priority: the default must not overwrite it
+    expect((await getOwnList(l.id))!.items.find((i) => i.id === top.id)).toMatchObject({ title: "top renamed", priority: "most_wanted" });
   });
 });

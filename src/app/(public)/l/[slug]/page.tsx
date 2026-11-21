@@ -39,9 +39,9 @@ export default async function ListPage({ params, searchParams }: { params: Promi
   if (!list) notFound();
   const dearest = Math.max(0, ...list.items.map((i) => i.priceMinor ?? 0));
   const maxPounds = Math.ceil(dearest / 500) * 5; // the slider's top: the dearest gift rounded up to £5
-  const { sort, filters: asked } = parseViewParams(await searchParams);
+  const { sort, filters: asked } = parseViewParams(await searchParams, list.ranked);
   const filters = normaliseMax(asked, maxPounds); // a stale or hand-edited price limit shows what it really does
-  const visible = filterItems(sortItems(list.items, sort), filters);
+  const visible = filterItems(sortItems(list.items, sort, list.ranked), filters);
   const summary = guest ? await getPlannerSummary({ occasion: list.occasion, year: list.year }) : null; // this list's own year, not the guest's newest
   const canAct = Boolean(guest) && !list.archived;
   const canFilter = list.items.length > 1;
@@ -60,9 +60,10 @@ export default async function ListPage({ params, searchParams }: { params: Promi
       <PageWrap>
         {list.archived && <Note tint="sky" sticker="bookmark"><p>Archived: this list is no longer being updated.</p></Note>}
         {!list.archived && !guest && <NamePrompt slug={list.slug} />}
+        {!list.ranked && list.items.length > 0 && <Note tint="sky" sticker="sparkles"><p>Gifts on this list are in no particular order.</p></Note>}
         {canFilter && (
           <Box sx={{ display: { xs: "block", md: "none" } }}>
-            <ListFilterDialog sort={sort} filters={filters} maxPounds={maxPounds} />
+            <ListFilterDialog sort={sort} filters={filters} maxPounds={maxPounds} ranked={list.ranked} />
           </Box>
         )}
         <TwoColumn
@@ -74,7 +75,7 @@ export default async function ListPage({ params, searchParams }: { params: Promi
               <StickerCard tint="cream" padded>
                 No gifts match these filters. <AppLink href={`/l/${list.slug}`}>Clear filters</AppLink>
               </StickerCard>
-            ) : sort === "priority" ? (
+            ) : sort === "priority" && list.ranked ? (
               // The owner's order, in groups. Another sort has no groups: they would break the order.
               PRIORITIES.map((p) => {
                 const group = visible.filter((i) => i.priority === p);
@@ -96,7 +97,7 @@ export default async function ListPage({ params, searchParams }: { params: Promi
                 <Box sx={{ display: { xs: "none", md: "block" } }}>
                   <StickerCard component="section" padded>
                     <SectionTitle sx={{ mb: "12px" }}>Sort and filter</SectionTitle>
-                    <ListFilters sort={sort} filters={filters} maxPounds={maxPounds} />
+                    <ListFilters sort={sort} filters={filters} maxPounds={maxPounds} ranked={list.ranked} />
                   </StickerCard>
                 </Box>
               )}

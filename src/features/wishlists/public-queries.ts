@@ -22,6 +22,7 @@ export async function getListBySlug(slug: string): Promise<GuestWishlistView | n
       occasion: wishlist.occasion,
       year: wishlist.year,
       archivedAt: wishlist.archivedAt,
+      ranked: wishlist.ranked,
       memberName: member.displayName,
     })
     .from(wishlist)
@@ -33,7 +34,7 @@ export async function getListBySlug(slug: string): Promise<GuestWishlistView | n
     .select()
     .from(wishlistItem)
     .where(and(eq(wishlistItem.wishlistId, list.id), isNull(wishlistItem.deletedAt)))
-    .orderBy(...itemOrderBy);
+    .orderBy(...itemOrderBy(list.ranked));
 
   return {
     slug: list.slug,
@@ -42,6 +43,7 @@ export async function getListBySlug(slug: string): Promise<GuestWishlistView | n
     year: list.year,
     memberName: list.memberName,
     archived: list.archivedAt !== null,
+    ranked: list.ranked,
     items: items.map(toGuestItem),
   };
 }

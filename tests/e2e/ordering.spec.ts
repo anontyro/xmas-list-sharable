@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { createItem, createList, createMemberWithPin, ownerSignIn, resetAndSeed, settled } from "./helpers";
+import { createItem, createList, createMemberWithPin, guestPage, listSlug, ownerSignIn, resetAndSeed, settled } from "./helpers";
 
 let slug: string;
 let listId: string;
@@ -154,3 +154,49 @@ test("a price limit at or above the dearest gift is no limit, and one with pence
   expect(await guestOrder(page)).toEqual(["Alpha"]);
   await context.close();
 });
+
+test("a list with no particular order is flat for everyone, moves across the old groups, and switching back restores them", async ({ page, browser }) => {
+  await ownerSignIn(page);
+  await page.goto("/owner/lists/new");
+  await page.getByLabel("Title").fill("Flat list");
+  await page.getByRole("button", { name: "No particular order" }).click();
+  await page.getByRole("button", { name: "Create and publish" }).click();
+  await expect(page).toHaveURL(/\/owner\/lists\/[0-9a-f-]+$/);
+  const flatId = page.url().split("/").pop()!;
+  await createItem(flatId, "Nice one", null, "nice_to_have");
+  await createItem(flatId, "Top one", null, "most_wanted");
+  await createItem(flatId, "Love one", null, "would_love");
+
+  // The editor: no ribbons, one list in the order they were added, and an arrow moves a gift across the old groups.
+  await page.reload();
+  await expect(page.getByRole("heading", { level: 2, name: /MOST WANTED/ })).toHaveCount(0);
+  const order = () => ownerOrder(page);
+  expect(await order()).toEqual(["Nice one", "Top one", "Love one"]);
+  await page.getByRole("button", { name: "Move down: Nice one" }).click();
+  await expect.poll(order).toEqual(["Top one", "Nice one", "Love one"]);
+
+  // A family member sees the same flat list, with the note and no priority sort or ribbons.
+  const guest = await guestPage(browser, await listSlug("Flat list"), "Sam");
+  expect(await guestOrder2(guest.page)).toEqual(["Top one", "Nice one", "Love one"]);
+  await expect(guest.page.getByText("Gifts on this list are in no particular order.")).toBeVisible();
+  await expect(guest.page.getByRole("heading", { level: 2, name: /MOST WANTED/ })).toHaveCount(0);
+  await expect(guest.page.getByRole("button", { name: "Priority", exact: true })).toHaveCount(0);
+  await guest.context.close();
+
+  // The gift form has no priority question on an unranked list.
+  await page.goto(`/owner/lists/${flatId}/add?mode=manual`);
+  await expect(page.getByText("How much do you want it?")).toHaveCount(0);
+
+  // Back to ranked: the groups return exactly as the stored priorities say.
+  await page.goto(`/owner/lists/${flatId}`);
+  await page.getByRole("button", { name: "List settings" }).click();
+  await page.getByRole("button", { name: "Most wanted first" }).click();
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByRole("heading", { level: 2, name: /MOST WANTED/ })).toBeVisible();
+  expect(await order()).toEqual(["Top one", "Love one", "Nice one"]);
+});
+
+const guestOrder2 = async (page: Page) => {
+  await settled(page);
+  return (await page.getByRole("heading", { level: 3 }).allInnerTexts()).filter((t) => ["Top one", "Nice one", "Love one"].includes(t));
+};

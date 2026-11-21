@@ -3,7 +3,7 @@ import { wishlist } from "@/db/schema";
 import { fail, ok } from "@/lib/result";
 import { generateSlug } from "./slug";
 
-type ListFields = { title: string; occasion: string; year: number };
+type ListFields = { title: string; occasion: string; year: number; ranked?: boolean };
 
 const pgCode = (e: unknown) => {
   const err = e as { code?: string; cause?: { code?: string } };

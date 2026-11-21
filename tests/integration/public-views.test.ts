@@ -52,7 +52,7 @@ describe("getListBySlug", () => {
     expect(Object.keys(view!.items[0]).sort()).toEqual(
       ["createdAt", "currency", "description", "id", "imageUrl", "priceMinor", "priority", "productUrl", "sortOrder", "title"],
     );
-    expect(Object.keys(view!).sort()).toEqual(["archived", "items", "memberName", "occasion", "slug", "title", "year"]);
+    expect(Object.keys(view!).sort()).toEqual(["archived", "items", "memberName", "occasion", "ranked", "slug", "title", "year"]);
   });
 });
 

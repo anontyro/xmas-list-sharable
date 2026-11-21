@@ -12,6 +12,7 @@ import TwoColumn from "@/components/sticker/TwoColumn";
 import ActionButton from "@/components/ui/ActionButton";
 import CopyLinkButton from "@/components/ui/CopyLinkButton";
 import LinkButton from "@/components/ui/LinkButton";
+import ListSettingsDialog from "@/features/wishlists/components/ListSettingsDialog";
 import OwnerGiftRow from "@/features/wishlists/components/OwnerGiftRow";
 import { publishList } from "@/features/wishlists/list-actions";
 import { getOwnList } from "@/features/wishlists/owner-queries";
@@ -43,12 +44,12 @@ export default async function OwnerListPage({ params }: { params: Promise<{ list
             list.items.length === 0 ? (
               <Empty sticker="presentgold">No gifts yet.{!list.archived && " Add your first one with + Add a gift."}</Empty>
             ) : (
-              PRIORITIES.map((p) => {
-                const group = list.items.filter((i) => i.priority === p);
+              (list.ranked ? PRIORITIES : [null]).map((p) => {
+                const group = p === null ? list.items : list.items.filter((i) => i.priority === p);
                 if (group.length === 0) return null;
                 return (
-                  <Box key={p} sx={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                    <PriorityRibbon priority={p} />
+                  <Box key={p ?? "all"} sx={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                    {p && <PriorityRibbon priority={p} />}
                     {group.map((item, index) => (
                       <OwnerGiftRow key={item.id} listId={list.id} item={item} isFirst={index === 0} isLast={index === group.length - 1} readOnly={list.archived} />
                     ))}
@@ -82,6 +83,8 @@ export default async function OwnerListPage({ params }: { params: Promise<{ list
                   <LinkButton href={`${base}/import`} variant="contained" color="sky">Paste Amazon wishlist</LinkButton>
                 </StickerCard>
               )}
+              {!list.archived && <ListSettingsDialog listId={list.id} title={list.title} ranked={list.ranked} />}
+              {!list.ranked && <Note tint="sky" sticker="sparkles"><p>This list is in no particular order. Use the arrows to move gifts around.</p></Note>}
               <Note tint="mint" sticker="sparkles"><p>The surprise is safe. You never see who has reserved or bought anything.</p></Note>
             </>
           }

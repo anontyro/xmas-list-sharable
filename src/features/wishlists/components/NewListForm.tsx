@@ -6,6 +6,7 @@ import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
+import Choice from "@/components/sticker/Choice";
 import StickerCard from "@/components/sticker/StickerCard";
 import { createOwnList } from "../list-actions";
 
@@ -15,6 +16,7 @@ export default function NewListForm({ year }: { year: number }) {
   const [occasion, setOccasion] = useState("Christmas");
   const [listYear, setListYear] = useState(String(year));
   const [title, setTitle] = useState("");
+  const [ranked, setRanked] = useState(true);
   const [error, setError] = useState<string>();
   const [pending, start] = useTransition();
 
@@ -25,7 +27,7 @@ export default function NewListForm({ year }: { year: number }) {
     if (!occasion.trim()) return setError("Enter an occasion");
     if (!Number.isInteger(yearNumber) || yearNumber < 2000 || yearNumber > 2100) return setError("Enter a year like 2026");
     start(async () => {
-      const r = await createOwnList({ title, occasion, year: yearNumber, draft });
+      const r = await createOwnList({ title, occasion, year: yearNumber, draft, ranked });
       if (!r.ok) return setError(r.error.message);
       router.push(`/owner/lists/${r.data.id}`);
       router.refresh();
@@ -38,6 +40,12 @@ export default function NewListForm({ year }: { year: number }) {
         <TextField label="Title" value={title} onChange={(e) => setTitle(e.target.value)} required slotProps={{ htmlInput: { maxLength: 80 } }} />
         <TextField label="Occasion" value={occasion} onChange={(e) => setOccasion(e.target.value)} required slotProps={{ htmlInput: { maxLength: 40 } }} />
         <TextField label="Year" value={listYear} onChange={(e) => setListYear(e.target.value)} required slotProps={{ htmlInput: { inputMode: "numeric" } }} />
+        <div role="group" aria-label="Order">
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+            <Choice on={ranked} onClick={() => setRanked(true)}>Most wanted first</Choice>
+            <Choice on={!ranked} onClick={() => setRanked(false)}>No particular order</Choice>
+          </Box>
+        </div>
         <Box component="p" sx={{ m: 0, fontSize: 13, fontWeight: 700 }}>A draft is only visible to you until you publish it. A published list is shared with the family.</Box>
         {error && <Alert severity="error">{error}</Alert>}
         <Button type="submit" variant="contained" size="large" disabled={pending}>Create and publish</Button>

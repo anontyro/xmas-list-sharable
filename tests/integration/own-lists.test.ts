@@ -2,10 +2,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { eq } from "drizzle-orm";
 import { cookieJar, resetRequest } from "./request-context";
 import { db } from "./db-harness";
-import { household, member, wishlist } from "@/db/schema";
+import { household, member, wishlist, wishlistItem } from "@/db/schema";
 import { createList } from "@/features/family/actions";
 import { listAllListsForAdmin } from "@/features/family/queries";
-import { createOwnList, publishList } from "@/features/wishlists/list-actions";
+import { createOwnList, publishList, updateListSettings } from "@/features/wishlists/list-actions";
 import { getOwnList, listOwnLists } from "@/features/wishlists/owner-queries";
 import { getEarlierYears, getFamilyDashboard, getListBySlug } from "@/features/wishlists/public-queries";
 import { COOKIE_NAMES } from "@/lib/auth/cookies";
@@ -116,5 +116,38 @@ describe("a draft", () => {
     expect(await publishList(draft.id)).toMatchObject(unauthorized);
     expect(await publishList("not-a-uuid")).toMatchObject({ ok: false, error: { code: "NOT_FOUND" } });
     expect((await db.select().from(wishlist).where(eq(wishlist.id, draft.id)))[0].publishedAt).toBeNull();
+  });
+});
+
+describe("the ranked setting", () => {
+  it("defaults to ranked, can start unranked, and is shown on the owner and family views", async () => {
+    const { alex } = await world();
+    await signInOwner(alex.id);
+    await createOwnList({ title: "Ranked", year: 2026 });
+    await createOwnList({ title: "Flat", year: 2026, ranked: false });
+    const rows = await db.select().from(wishlist);
+    expect(rows.find((r) => r.title === "Ranked")!.ranked).toBe(true);
+    const flat = rows.find((r) => r.title === "Flat")!;
+    expect(flat.ranked).toBe(false);
+    expect(await getOwnList(flat.id)).toMatchObject({ ranked: false });
+    expect(await getListBySlug(flat.slug)).toMatchObject({ ranked: false });
+  });
+
+  it("is changed, with the title, by the owner only, and never rewrites a gift", async () => {
+    const { alex, sarah } = await world();
+    await signInOwner(alex.id);
+    await createOwnList({ title: "Mine", year: 2026 });
+    const [l] = await db.select().from(wishlist);
+    const [g] = await db.insert(wishlistItem).values({ wishlistId: l.id, title: "Book", priority: "most_wanted", sortOrder: 30 }).returning();
+    expect((await updateListSettings(l.id, { title: "Mine, flat", ranked: false })).ok).toBe(true);
+    expect(await db.select().from(wishlist)).toMatchObject([{ title: "Mine, flat", ranked: false }]);
+    await updateListSettings(l.id, { title: "Mine, flat", ranked: true });
+    expect((await db.select().from(wishlistItem).where(eq(wishlistItem.id, g.id)))[0]).toMatchObject({ priority: "most_wanted", sortOrder: 30 });
+
+    expect(await updateListSettings(l.id, { title: " ", ranked: true })).toMatchObject({ ok: false, error: { code: "INVALID" } });
+    resetRequest();
+    await signInOwner(sarah.id);
+    expect(await updateListSettings(l.id, { title: "Hijack", ranked: false })).toMatchObject(unauthorized);
+    expect((await db.select().from(wishlist))[0].title).toBe("Mine, flat");
   });
 });

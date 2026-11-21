@@ -11,7 +11,7 @@ import { action, fail, ok, UnauthorizedError } from "@/lib/result";
 import { insertList } from "./insert-list";
 import { getListAccess } from "./owner-queries";
 
-const ownListInput = listInput.omit({ memberId: true }).extend({ draft: z.boolean().optional() });
+const ownListInput = listInput.omit({ memberId: true }).extend({ draft: z.boolean().optional(), ranked: z.boolean().optional() });
 export type OwnListInput = z.input<typeof ownListInput>;
 
 const refresh = () => {
@@ -40,6 +40,24 @@ export async function publishList(listId: string) {
     if (!list) return fail("NOT_FOUND", "That list no longer exists");
     await requireOwner(list.memberId);
     await getDb().update(wishlist).set({ publishedAt: new Date() }).where(and(eq(wishlist.id, listId), isNull(wishlist.publishedAt)));
+    refresh();
+    revalidatePath("/l/[slug]", "page");
+    return ok(null);
+  });
+}
+
+const settingsInput = z.object({ title: ownListInput.shape.title, ranked: z.boolean() });
+
+/** The list's title and whether it is ranked. Turning ranking off or on never touches a gift's stored priority. */
+export async function updateListSettings(listId: string, input: z.input<typeof settingsInput>) {
+  return action(async () => {
+    const list = z.string().uuid().safeParse(listId).success ? await getListAccess(listId) : null;
+    if (!list) return fail("NOT_FOUND", "That list no longer exists");
+    await requireOwner(list.memberId);
+    if (list.archivedAt) return fail("LIST_ARCHIVED", "This list is archived and can't be changed");
+    const parsed = settingsInput.safeParse(input);
+    if (!parsed.success) return fail("INVALID", parsed.error.issues[0].message);
+    await getDb().update(wishlist).set(parsed.data).where(eq(wishlist.id, listId));
     refresh();
     revalidatePath("/l/[slug]", "page");
     return ok(null);
