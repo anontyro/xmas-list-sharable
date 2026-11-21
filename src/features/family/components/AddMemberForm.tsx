@@ -11,6 +11,7 @@ import StickerCard from "@/components/sticker/StickerCard";
 import { createMember } from "@/features/family/actions";
 import type { AvatarSticker } from "@/features/family/avatars";
 import AvatarPicker from "./AvatarPicker";
+import SignInLinks from "./SignInLinks";
 
 export default function AddMemberForm() {
   const router = useRouter();
@@ -18,6 +19,7 @@ export default function AddMemberForm() {
   const [avatar, setAvatar] = useState<AvatarSticker | null>(null);
   const [pin, setPin] = useState("");
   const [error, setError] = useState<string>();
+  const [created, setCreated] = useState<{ name: string; pin: string }>(); // kept only on this screen, so the admin can send a sign-in link with the PIN in it
   const [pending, start] = useTransition();
 
   const submit = (e: React.FormEvent) => {
@@ -26,6 +28,7 @@ export default function AddMemberForm() {
     start(async () => {
       const r = await createMember({ displayName: name, avatar, pin: pin || undefined });
       if (!r.ok) return setError(r.error.message);
+      setCreated(pin ? { name: name.trim(), pin } : undefined);
       setName("");
       setAvatar(null);
       setPin("");
@@ -51,6 +54,13 @@ export default function AddMemberForm() {
         {error && <Alert severity="error">{error}</Alert>}
         <Button type="submit" variant="contained" size="large" disabled={pending}>Add member</Button>
       </Box>
+      {created && (
+        <Alert severity="success" sx={{ mt: 1.5, display: "block" }}>
+          {created.name} was added.
+          <SignInLinks name={created.name} pin={created.pin} />
+          <Button size="small" onClick={() => setCreated(undefined)}>Done</Button>
+        </Alert>
+      )}
     </StickerCard>
   );
 }

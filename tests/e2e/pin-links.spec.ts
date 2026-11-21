@@ -115,3 +115,26 @@ test("changing the PIN ends the owner's other sessions, keeps this one, and only
   await expect(fresh.page).toHaveURL(/\/owner$/);
   for (const c of [phone, laptop, old, fresh]) await c.ctx.close();
 });
+
+test("adding a member with a PIN offers a sign-in link that fills in their name and PIN", async ({ page, browser }) => {
+  await adminSignIn(page);
+  const add = page.getByRole("region", { name: "Add a member" });
+  await add.getByLabel("Display name").fill("Zed");
+  await add.getByLabel("Owner PIN").fill("777777");
+  await add.getByRole("button", { name: "Add member" }).click();
+  await expect(add.getByText("Zed was added.")).toBeVisible();
+  const withPin = add.getByText("/owner/login?name=Zed&pin=777777");
+  await expect(withPin).toBeVisible();
+
+  const ctx = await browser.newContext();
+  const zed = await ctx.newPage();
+  await zed.goto("/owner/login?name=Zed&pin=777777");
+  await expect(zed.getByRole("radio", { name: "Zed" })).toBeChecked();
+  await expect(zed.getByLabel("PIN")).toHaveValue("777777");
+  await zed.getByRole("button", { name: "Open my list" }).click();
+  await expect(zed).toHaveURL(/\/owner$/);
+  await ctx.close();
+
+  await add.getByRole("button", { name: "Done" }).click();
+  await expect(add.getByText("Zed was added.")).toHaveCount(0);
+});
