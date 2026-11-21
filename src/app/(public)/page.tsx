@@ -52,18 +52,19 @@ export default async function HomePage() {
         ) : (
           <Box sx={{ display: "grid", gap: "14px", gridTemplateColumns: { xs: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))", md: "repeat(3, minmax(0, 1fr))" } }}>
             {members.flatMap((m) =>
-              m.lists.map((l) => (
+              m.lists.map((l) => ({ m, l, mine: guest?.memberId === m.id })),
+            ).sort((a, b) => Number(b.mine) - Number(a.mine)).map(({ m, l, mine }) => (
                 <MemberCard
                   key={l.slug}
+                  mine={mine}
                   memberId={m.id}
                   name={m.displayName}
                   avatar={m.avatar}
                   subtitle={`${l.occasion} ${l.year} · ${gifts(l.giftCount)}`}
                   href={`/l/${l.slug}`}
-                  label={m.lists.length === 1 ? `Open ${m.displayName}'s list` : `Open ${m.displayName}'s ${l.title} list`}
+                  label={mine ? `Edit your ${l.title} list` : m.lists.length === 1 ? `Open ${m.displayName}'s list` : `Open ${m.displayName}'s ${l.title} list`}
                 />
-              )),
-            )}
+            ))}
           </Box>
         )}
         {summary && <PlannerStrip summary={summary} />}

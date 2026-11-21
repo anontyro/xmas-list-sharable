@@ -15,19 +15,25 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import NextLink from "next/link";
 import { tintFor, TINT_COLOR } from "@/components/sticker/tint";
-import { ownerLogout } from "@/features/authentication/owner-login";
-import { signOutGuest } from "@/features/authentication/guest-actions";
+import { signOutGuest, signOutMember } from "@/features/authentication/guest-actions";
 import { recoveryLinkStatus } from "@/features/authentication/recovery-actions";
 import { tokens } from "@/theme/tokens";
 import ChangeNameDialog from "./ChangeNameDialog";
+import SetPinDialog from "./SetPinDialog";
 
-type Props = { kind: "guest" | "owner"; id: string; name: string; myListHref?: string };
-type Dialogs = "name" | "confirm" | null;
+/** `member` is set for someone with a PIN: waiting for the admin, or able to edit (`canEdit`, which needs the editor session as well as approval). Plain guests leave it out. */
+type Member = { pending: boolean; canEdit: boolean; myListHref: string };
+type Props = { id: string; name: string; member?: Member };
+type Dialogs = "name" | "pin" | "confirm" | null;
 
 const dashed = { my: "4px", borderStyle: "dashed", borderColor: tokens.ink, borderBottomWidth: 2, opacity: 1 } as const;
 
-/** The name chip in the top bar and its menu (screen 12). Guests: name, recovery link, planner, owner sign-in, sign out. Owners: their list, all lists, sign out. */
-export default function AccountMenu({ kind, id, name, myListHref = "/owner" }: Props) {
+/**
+ * The name chip in the top bar and its menu (screen 12), one for everyone (decision 0028).
+ * Plain guest: name, recovery link, planner, set a PIN, owner sign-in, sign out of this device.
+ * Member: their lists, browse family lists, planner, name, recovery link, PIN, sign out. Waiting for approval or without the editor session, the list entries give way to a note or "Sign in to edit".
+ */
+export default function AccountMenu({ id, name, member }: Props) {
   const router = useRouter();
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const [dialog, setDialog] = useState<Dialogs>(null);
@@ -55,11 +61,11 @@ export default function AccountMenu({ kind, id, name, myListHref = "/owner" }: P
     });
   };
 
-  const signOutOwner = () => {
+  const signOutMemberDevice = () => {
     close();
     start(async () => {
-      await ownerLogout();
-      router.push("/owner/login");
+      await signOutMember(); // the PIN gets them back, so no recovery-link question
+      router.push("/");
       router.refresh();
     });
   };
@@ -83,29 +89,33 @@ export default function AccountMenu({ kind, id, name, myListHref = "/owner" }: P
       <Menu anchorEl={anchor} open={Boolean(anchor)} onClose={close} slotProps={{ paper: { sx: { width: 290, mt: 1 } }, list: { "aria-label": "Account" } }}>
         <li role="presentation" style={{ padding: "6px 10px 6px", listStyle: "none" }}>
           <Box component="p" sx={{ m: 0, fontWeight: 800, fontSize: 17, lineHeight: 1.2, overflowWrap: "anywhere" }}>{name}</Box>
-          <Box component="p" sx={{ m: 0, color: tokens.muted, fontSize: 13, fontWeight: 700 }}>{kind === "guest" ? "Shopping on this device" : "List owner"}</Box>
+          <Box component="p" sx={{ m: 0, color: tokens.muted, fontSize: 13, fontWeight: 700 }}>{!member ? "Shopping on this device" : member.pending ? "Waiting for admin approval" : "Member"}</Box>
         </li>
         <Divider component="li" sx={dashed} />
-        {kind === "guest" && <MenuItem onClick={open("name")}>Change my name</MenuItem>}
-        {kind === "guest" && <MenuItem component={NextLink} href="/access" {...item} sx={{ backgroundColor: tokens.sky, "&:hover": { backgroundColor: tokens.sky } }}>Save access (recovery link)</MenuItem>}
-        {kind === "guest" && <MenuItem component={NextLink} href="/planner" {...item}>My planner</MenuItem>}
-        {kind === "guest" && <MenuItem component={NextLink} href="/owner/login" {...item}>I own a list (PIN)</MenuItem>}
-        {kind === "owner" && <MenuItem component={NextLink} href={myListHref} {...item}>My list</MenuItem>}
-        {kind === "owner" && <MenuItem component={NextLink} href="/owner" {...item}>All my lists</MenuItem>}
-        {kind === "owner" && <MenuItem component={NextLink} href="/owner/pin" {...item}>Change my PIN</MenuItem>}
+        {member?.canEdit && <MenuItem component={NextLink} href={member.myListHref} {...item}>My list</MenuItem>}
+        {member?.canEdit && <MenuItem component={NextLink} href="/owner" {...item}>All my lists</MenuItem>}
+        {member && !member.pending && !member.canEdit && <MenuItem component={NextLink} href="/owner/login" {...item}>Sign in to edit</MenuItem>}
+        {member && <MenuItem component={NextLink} href="/" {...item}>Browse family lists</MenuItem>}
+        <MenuItem component={NextLink} href="/planner" {...item}>My planner</MenuItem>
+        <MenuItem onClick={open("name")}>Change my name</MenuItem>
+        <MenuItem component={NextLink} href="/access" {...item} sx={{ backgroundColor: tokens.sky, "&:hover": { backgroundColor: tokens.sky } }}>Save access (recovery link)</MenuItem>
+        {!member && <MenuItem onClick={open("pin")}>Set a PIN</MenuItem>}
+        {!member && <MenuItem component={NextLink} href="/owner/login" {...item}>I own a list (PIN)</MenuItem>}
+        {member?.canEdit && <MenuItem component={NextLink} href="/owner/pin" {...item}>Change my PIN</MenuItem>}
         <Divider component="li" sx={dashed} />
-        <MenuItem onClick={kind === "guest" ? signOutGuestDevice : signOutOwner} sx={{ color: tokens.danger }}>
-          {kind === "guest" ? "Sign out of this device" : "Sign out"}
+        <MenuItem onClick={member ? signOutMemberDevice : signOutGuestDevice} sx={{ color: tokens.danger }}>
+          {member ? "Sign out" : "Sign out of this device"}
         </MenuItem>
-        {kind === "guest" && (
+        {!member && (
           <li role="presentation" style={{ listStyle: "none", padding: "0 10px 6px" }}>
             <Box component="p" sx={{ m: 0, color: tokens.muted, fontSize: 13, fontWeight: 700 }}>You&apos;ll need your recovery link to get back in.</Box>
           </li>
         )}
       </Menu>
 
-      {kind === "guest" && <ChangeNameDialog open={dialog === "name"} currentName={name} onClose={() => setDialog(null)} />}
-      {kind === "guest" && (
+      <ChangeNameDialog open={dialog === "name"} currentName={name} onClose={() => setDialog(null)} />
+      {!member && <SetPinDialog open={dialog === "pin"} onClose={() => setDialog(null)} />}
+      {!member && (
         <Dialog open={dialog === "confirm"} onClose={() => setDialog(null)} aria-labelledby="confirm-signout-title">
           <DialogTitle id="confirm-signout-title">Sign out without a recovery link?</DialogTitle>
           <DialogContent>

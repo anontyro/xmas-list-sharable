@@ -16,19 +16,22 @@ type Props = {
   /** The button's accessible name: "Open Sarah's list". */
   label: string;
   archived?: boolean;
+  /** The viewer's own list: marked, tinted and offered as Edit (the link redirects to the editor). */
+  mine?: boolean;
 };
 
 /** One list on the family page: avatar, name, what it is, and an Open button. */
-export default function MemberCard({ memberId, name, avatar, subtitle, href, label, archived }: Props) {
+export default function MemberCard({ memberId, name, avatar, subtitle, href, label, archived, mine }: Props) {
   return (
-    <StickerCard component="article" padded sx={{ display: "flex", alignItems: "center", gap: "12px" }}>
+    <StickerCard component="article" padded tint={mine ? "mint" : undefined} sx={{ display: "flex", alignItems: "center", gap: "12px" }}>
       <MemberAvatar id={memberId} name={name} avatar={avatar} />
       <Box sx={{ flex: 1, minWidth: 0 }}>
         <SectionTitle sx={{ overflowWrap: "anywhere" }}>{name}</SectionTitle>
         <Box component="p" sx={{ m: 0, fontWeight: 800, fontSize: 14, color: "text.secondary" }}>{subtitle}</Box>
         {archived && <Pill tone="mint">Archived · read-only</Pill>}
+        {mine && <Pill tone="yellow">Your list</Pill>}
       </Box>
-      <LinkButton href={href} size="small" color={archived ? "inherit" : "primary"} variant="contained" aria-label={label}>Open</LinkButton>
+      <LinkButton href={href} size="small" color={archived ? "inherit" : "primary"} variant="contained" aria-label={label}>{mine ? "Edit" : "Open"}</LinkButton>
     </StickerCard>
   );
 }

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { eq } from "drizzle-orm";
 import { db } from "./db-harness";
 import { household, member, wishlist, wishlistItem } from "@/db/schema";
-import { getEarlierYears, getFamilyDashboard, getListBySlug } from "@/features/wishlists/public-queries";
+import { getEarlierYears, getFamilyDashboard, getListBySlug, getListOwnerTarget } from "@/features/wishlists/public-queries";
 
 async function world() {
   const [h] = await db.insert(household).values({ name: "F" }).returning();
@@ -115,5 +115,20 @@ describe("getEarlierYears", () => {
     await mk(alex.id, "alexold2025", { year: 2025, archivedAt: new Date() });
     await db.update(member).set({ active: false }).where(eq(member.id, alex.id));
     expect(await getEarlierYears()).toEqual([]);
+  });
+});
+
+describe("getListOwnerTarget", () => {
+  it("names the list and its member for a slug, and nothing for an unknown one", async () => {
+    const { alex, mk } = await world();
+    const l = await mk(alex.id, "ownslug0001");
+    expect(await getListOwnerTarget("ownslug0001")).toEqual({ id: l.id, memberId: alex.id });
+    expect(await getListOwnerTarget("nope")).toBeNull();
+  });
+
+  it("carries no item or claim fields", async () => {
+    const { alex, mk } = await world();
+    await mk(alex.id, "ownslug0001");
+    expect(Object.keys((await getListOwnerTarget("ownslug0001"))!).sort()).toEqual(["id", "memberId"]);
   });
 });

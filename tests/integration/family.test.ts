@@ -206,3 +206,15 @@ describe("linked accounts (admin side)", () => {
     expect(await getSession("owner", editor.token)).toBeNull();
   });
 });
+
+describe("admin view of members waiting for approval", () => {
+  it("flags a member with no approval and not one the admin made or approved", async () => {
+    const { h } = await setup(true);
+    await createMember({ displayName: "Sarah" });
+    const [zed] = await db.insert(member).values({ householdId: h.id, displayName: "Zed" }).returning();
+    const flags = () => listMembersForAdmin().then((r) => Object.fromEntries(r.map((m) => [m.displayName, m.pending])));
+    expect(await flags()).toEqual({ Alex: true, Sarah: false, Zed: true }); // Alex was inserted without approval by setup()
+    await approveMember(zed.id);
+    expect((await flags()).Zed).toBe(false);
+  });
+});

@@ -69,7 +69,7 @@ A signed-in family member can browse everyone else's lists (and reserve gifts) w
 
 ### R8b · Navigation and home
 
-> **R8b · FG-802 · ~14 files: ~2 new, ~12 modified · packages P5–P7**
+> **R8b · FG-802 · ~16 files: ~3 new, ~13 modified · packages P5–P7**
 >
 > The top-left brand always goes to the family home, a member's menu gains "Browse family lists", and the home page shows a signed-in member as themselves with their own list marked as theirs and editable. The admin sees which members signed themselves up. In the code, both shells and the home page read `getViewer()`.
 
@@ -232,6 +232,7 @@ Shared acceptance for every package:
   - `src/components/layout/AccountMenu.tsx`
   - `src/components/layout/SetPinDialog.tsx` (new)
   - `tests/e2e/navigation.spec.ts`
+  - `tests/e2e/owner-list.spec.ts` (a member's sign-out now goes to `/`)
 - Acceptance criteria:
   1. The brand link is `/` in both shells and `/admin` in the admin shell.
   2. An approved member sees the D11 menu items in that order on both a family page and an owner page; a plain guest sees today's items plus "Set a PIN"; setting a PIN turns the chip into the waiting-member menu without a second sign-in, and the menu has no "My list" or "Add a gift" until approved.
@@ -249,6 +250,8 @@ Shared acceptance for every package:
   - `src/features/family/components/AdminMemberCard.tsx`
   - `tests/integration/public-views.test.ts`
   - `tests/e2e/family-page.spec.ts`
+  - `tests/integration/family.test.ts` (the admin `pending` flag)
+  - `tests/integration/own-list-page.test.ts` (new; the redirect and its no-claims guarantee)
 - Acceptance criteria:
   1. After PIN sign-in (approved or waiting), going to `/` shows "Hi {name}" and the member's chip, not "Pick your name".
   2. The member's own list card is first, has the "Your list" pill, and links to the editor; other cards are unchanged and still open `/l/{slug}`.
