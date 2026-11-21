@@ -15,6 +15,13 @@
       "when": 1794932994284,
       "tag": "0001_member_avatar",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795218773552,
+      "tag": "0002_unified_accounts",
+      "breakpoints": true
     }
   ]
 }

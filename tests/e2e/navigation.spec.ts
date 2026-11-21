@@ -140,21 +140,86 @@ test("sign-out and the menu work by keyboard alone", async ({ browser }) => {
   await context.close();
 });
 
-test("an owner's menu has their own entries and no guest ones, and My list skips an archived list", async ({ page }) => {
+const MEMBER_MENU = ["My list", "All my lists", "Browse family lists", "My planner", "Change my name", "Save access (recovery link)", "Change my PIN", "Sign out"];
+
+test("a member's menu is the member menu in order, My list skips an archived list, and Sign out ends both sessions", async ({ page }) => {
   await createList(alexId, "Christmas 2025", true); // archived: "My list" must not point at it
   await ownerSignIn(page); // Alex is first in the picker
 
-  await expect(page.getByText("Owner", { exact: true })).toBeVisible();
+  await expect(page.getByText("Owner", { exact: true })).toHaveCount(0); // the old pill is gone
   await openAccountMenu(page, "Alex");
+  const items = await page.getByRole("menu", { name: "Account" }).getByRole("menuitem").allInnerTexts();
+  expect(items.map((t) => t.trim())).toEqual(MEMBER_MENU);
   await expect(page.getByRole("menuitem", { name: "My list", exact: true })).toHaveAttribute("href", `/owner/lists/${alexList.id}`);
   await expect(page.getByRole("menuitem", { name: "All my lists" })).toHaveAttribute("href", "/owner");
-  for (const guestOnly of ["Change my name", "Save access (recovery link)", "My planner", "I own a list (PIN)", "Sign out of this device"]) {
+  await expect(page.getByRole("menuitem", { name: "Browse family lists" })).toHaveAttribute("href", "/");
+  for (const guestOnly of ["I own a list (PIN)", "Set a PIN", "Sign out of this device"]) {
     await expect(page.getByRole("menuitem", { name: guestOnly }), guestOnly).toHaveCount(0);
   }
   await page.getByRole("menuitem", { name: "Sign out", exact: true }).click();
-  await expect(page).toHaveURL(/\/owner\/login$/);
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole("dialog")).toHaveCount(0); // no recovery-link question: the PIN gets them back
+  await expect(page.getByRole("button", { name: "Alex", exact: true })).toHaveCount(0); // the viewer session ended too
   await page.goto("/owner");
   await expect(page).toHaveURL(/\/owner\/login$/); // really signed out
+});
+
+test("the brand goes to the family home for a member, and a member stays signed in there", async ({ page }) => {
+  await ownerSignIn(page);
+  await page.getByRole("banner").getByRole("link", { name: "Family Gifts" }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole("button", { name: "Alex", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Pick your name" })).toHaveCount(0);
+  await page.goto(`/l/${sarahList.slug}`);
+  await page.getByRole("banner").getByRole("link", { name: "Family Gifts" }).click();
+  await expect(page).toHaveURL(/\/$/);
+});
+
+test("Browse family lists takes a member from an owner page to the family home, still signed in, and they can reserve", async ({ page }) => {
+  await ownerSignIn(page);
+  await openAccountMenu(page, "Alex");
+  await page.getByRole("menuitem", { name: "Browse family lists" }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await page.getByRole("link", { name: /Sarah/ }).click();
+  await page.getByRole("button", { name: /^Reserve: Cookbook/ }).click();
+  await expect(page.getByText("Reserved by you")).toBeVisible();
+});
+
+test("a member sees the right links on owner pages and on family pages, with one Main navigation", async ({ page }, info) => {
+  const phone = info.project.name === "mobile";
+  const links = async () => (await page.getByRole("navigation", { name: "Main" }).getByRole("link").allInnerTexts()).map((n) => n.trim());
+  await ownerSignIn(page);
+  await expect(page.getByRole("navigation", { name: "Main" })).toHaveCount(1);
+  expect(await links()).toEqual(["Family", "My list", "Add a gift", "Import"]);
+  await page.goto("/");
+  await expect(page.getByRole("navigation", { name: "Main" })).toHaveCount(1);
+  expect(await links()).toEqual(phone ? ["Family", "My list", "Wishlist", "Planner"] : ["Family", "My list", "Wishlist", "My planner"]);
+});
+
+test("a guest sets a PIN from the menu, keeps what they reserved, and then has the waiting member menu", async ({ browser }) => {
+  const { context, page } = await guestPage(browser, alexList.slug, "Ann");
+  await page.getByRole("button", { name: /^Reserve: Headphones/ }).click();
+  await expect(page.getByText("Reserved by you")).toBeVisible();
+
+  await openAccountMenu(page, "Ann");
+  await page.getByRole("menuitem", { name: "Set a PIN" }).click();
+  await page.getByRole("dialog").getByLabel(/^PIN/).fill("12345");
+  await page.getByRole("button", { name: "Set PIN" }).click();
+  await expect(page.getByText("PIN must be 6 to 12 digits")).toBeVisible();
+  await page.getByRole("dialog").getByLabel(/^PIN/).fill("135790");
+  await page.getByRole("button", { name: "Set PIN" }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+
+  await openAccountMenu(page, "Ann");
+  await expect(page.getByText("Waiting for admin approval")).toBeVisible();
+  for (const hidden of ["My list", "All my lists", "Change my PIN", "Set a PIN", "I own a list (PIN)"]) {
+    await expect(page.getByRole("menuitem", { name: hidden, exact: true }), hidden).toHaveCount(0);
+  }
+  await expect(page.getByRole("menuitem", { name: "Browse family lists" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await page.reload();
+  await expect(page.getByText("Reserved by you")).toBeVisible(); // nothing lost
+  await context.close();
 });
 
 test("the admin bar shows who this is and a Sign out button at every width, and no account menu", async ({ page }) => {

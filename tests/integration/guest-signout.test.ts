@@ -4,7 +4,7 @@ import { cookieJar, requestHeaders, resetRequest } from "./request-context";
 import { db } from "./db-harness";
 import { guest, household, itemClaim, member, recoveryToken, session, wishlist, wishlistItem } from "@/db/schema";
 import { POST as exchange } from "@/app/api/recovery/exchange/route";
-import { createGuest, signOutGuest } from "@/features/authentication/guest-actions";
+import { createGuest, signOutGuest, signOutMember } from "@/features/authentication/guest-actions";
 import { getGuestIdentity } from "@/features/authentication/guest-session";
 import { createRecoveryLink } from "@/features/authentication/recovery-actions";
 import { COOKIE_NAMES } from "@/lib/auth/cookies";
@@ -71,7 +71,7 @@ describe("signOutGuest", () => {
     const res = await exchange(new Request("http://x/api/recovery/exchange", { method: "POST", body: JSON.stringify({ token: link.data.path.split("#t=")[1] }) }));
 
     expect(res.status).toBe(204);
-    expect(await getGuestIdentity()).toEqual({ guestId, displayName: "Sam" });
+    expect(await getGuestIdentity()).toEqual({ guestId, displayName: "Sam", memberId: null, pending: false });
     expect(await db.select().from(itemClaim).where(eq(itemClaim.itemId, itemId))).toMatchObject([{ guestId, status: "reserved" }]);
   });
 
@@ -85,5 +85,20 @@ describe("signOutGuest", () => {
 
     expect(cookieJar.has(COOKIE_NAMES.owner)).toBe(true);
     expect(await db.select().from(session)).toEqual(before);
+  });
+});
+
+describe("signOutMember", () => {
+  it("ends the owner and the guest session together and deletes nothing", async () => {
+    const { owner } = await world();
+    resetRequest();
+    cookieJar.set(COOKIE_NAMES.owner, (await createSession("owner", owner.id)).token);
+    cookieJar.set(COOKIE_NAMES.guest, (await createSession("guest", owner.id)).token);
+    const [o, g] = [cookieJar.get(COOKIE_NAMES.owner)!, cookieJar.get(COOKIE_NAMES.guest)!];
+    expect(await signOutMember()).toEqual({ ok: true, data: null });
+    expect(cookieJar.has(COOKIE_NAMES.owner) || cookieJar.has(COOKIE_NAMES.guest)).toBe(false);
+    expect(await getSession("owner", o)).toBeNull();
+    expect(await getSession("guest", g)).toBeNull();
+    expect(await db.select().from(member)).toHaveLength(1);
   });
 });

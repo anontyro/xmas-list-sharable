@@ -1,7 +1,7 @@
 import Empty from "@/components/sticker/Empty";
 import Box from "@mui/material/Box";
 import SectionTitle from "@/components/sticker/SectionTitle";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import AppLink from "@/components/ui/AppLink";
 import CopyLinkButton from "@/components/ui/CopyLinkButton";
 import RememberList from "@/components/layout/RememberList";
@@ -11,14 +11,14 @@ import PageWrap from "@/components/sticker/PageWrap";
 import PriorityRibbon from "@/components/sticker/PriorityRibbon";
 import StickerCard from "@/components/sticker/StickerCard";
 import TwoColumn from "@/components/sticker/TwoColumn";
-import { getGuestIdentity } from "@/features/authentication/guest-session";
+import { getViewer } from "@/features/authentication/guest-session";
 import PlannerStrip from "@/features/planner/components/PlannerStrip";
 import { getPlannerSummary } from "@/features/planner/queries";
 import NamePrompt from "@/features/reservations/components/NamePrompt";
 import GiftRow from "@/features/wishlists/components/GiftRow";
 import ListFilterDialog from "@/features/wishlists/components/ListFilterDialog";
 import ListFilters from "@/features/wishlists/components/ListFilters";
-import { getListForViewer } from "@/features/wishlists/public-queries";
+import { getListForViewer, getListOwnerTarget } from "@/features/wishlists/public-queries";
 import { PRIORITIES } from "@/features/wishlists/schemas";
 import { filterItems, normaliseMax, parseViewParams, sortItems } from "@/features/wishlists/sort-filter";
 
@@ -27,8 +27,15 @@ export const metadata = { robots: { index: false, follow: false } };
 
 
 export default async function ListPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  const guest = await getGuestIdentity();
-  const list = await getListForViewer((await params).slug, guest?.guestId ?? null);
+  const { slug } = await params;
+  const { guest, owner } = await getViewer();
+  // Your own list is the editor, never the family view: decided from the guest's link to its member (so a lapsed editor session
+  // goes to sign-in), and before any claim state is read (decision 0028).
+  if (guest?.memberId) {
+    const own = await getListOwnerTarget(slug);
+    if (own?.memberId === guest.memberId) redirect(owner?.memberId === own.memberId ? `/owner/lists/${own.id}` : "/owner/login");
+  }
+  const list = await getListForViewer(slug, guest?.guestId ?? null);
   if (!list) notFound();
   const dearest = Math.max(0, ...list.items.map((i) => i.priceMinor ?? 0));
   const maxPounds = Math.ceil(dearest / 500) * 5; // the slider's top: the dearest gift rounded up to £5

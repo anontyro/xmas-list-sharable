@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { cookieJar, resetRequest } from "./request-context";
 import { db } from "./db-harness";
-import { household, member, session, wishlist } from "@/db/schema";
-import { archiveList, createList, createMember, deactivateMember, renameMember, restoreList, setOwnerPin } from "@/features/family/actions";
+import { eq } from "drizzle-orm";
+import { guest, household, member, session, wishlist } from "@/db/schema";
+import { approveMember, archiveList, createList, createMember, deactivateMember, renameMember, restoreList, setOwnerPin } from "@/features/family/actions";
 import { listAllListsForAdmin, listLoginMembers, listMembersForAdmin } from "@/features/family/queries";
 import { COOKIE_NAMES } from "@/lib/auth/cookies";
 import { createSession, getSession } from "@/lib/auth/session";
@@ -154,5 +155,66 @@ describe("as admin", () => {
     expect(alex.lists[0].slug).toMatch(/^[0-9A-Za-z]{10}$/);
     const all = await listAllListsForAdmin();
     expect(all.map((l) => [l.year, l.memberName])).toEqual([[2026, "Alex"], [2025, "Alex"]]);
+  });
+});
+
+describe("linked accounts (admin side)", () => {
+  async function waiting(asAdmin = true) {
+    const { h } = await setup(asAdmin);
+    const [m] = await db.insert(member).values({ householdId: h.id, displayName: "Zed" }).returning();
+    const [g] = await db.insert(guest).values({ householdId: h.id, displayName: "Zed", memberId: m.id }).returning();
+    return { h, m, g };
+  }
+
+  it("members the admin creates are approved", async () => {
+    await setup(true);
+    await createMember({ displayName: "Sarah" });
+    expect((await db.select().from(member).where(eq(member.displayName, "Sarah")))[0].approvedAt).not.toBeNull();
+  });
+
+  it("approveMember sets approvedAt once and is safe to repeat", async () => {
+    const { m } = await waiting();
+    expect((await approveMember(m.id)).ok).toBe(true);
+    const first = (await db.select().from(member).where(eq(member.id, m.id)))[0].approvedAt;
+    expect(first).not.toBeNull();
+    await approveMember(m.id);
+    expect((await db.select().from(member).where(eq(member.id, m.id)))[0].approvedAt).toEqual(first);
+    expect(await approveMember("00000000-0000-0000-0000-000000000000")).toMatchObject({ error: { code: "NOT_FOUND" } });
+  });
+
+  it("approveMember is admin only", async () => {
+    const { m } = await waiting(false);
+    expect(await approveMember(m.id)).toMatchObject({ ok: false, error: { code: "UNAUTHORIZED" } });
+    expect((await db.select().from(member).where(eq(member.id, m.id)))[0].approvedAt).toBeNull();
+  });
+
+  it("renameMember renames the linked guest, and rolls back on a name clash", async () => {
+    const { m, h } = await waiting();
+    expect((await renameMember(m.id, "Zedd")).ok).toBe(true);
+    expect((await db.select().from(guest))[0].displayName).toBe("Zedd");
+    await db.insert(member).values({ householdId: h.id, displayName: "Sarah" });
+    expect(await renameMember(m.id, "Sarah")).toMatchObject({ error: { code: "NAME_TAKEN" } });
+    expect((await db.select().from(guest))[0].displayName).toBe("Zedd");
+  });
+
+  it("deactivating also ends the linked guest's sessions", async () => {
+    const { m, g } = await waiting();
+    const viewer = await createSession("guest", g.id);
+    const editor = await createSession("owner", m.id);
+    await deactivateMember(m.id);
+    expect(await getSession("guest", viewer.token)).toBeNull();
+    expect(await getSession("owner", editor.token)).toBeNull();
+  });
+});
+
+describe("admin view of members waiting for approval", () => {
+  it("flags a member with no approval and not one the admin made or approved", async () => {
+    const { h } = await setup(true);
+    await createMember({ displayName: "Sarah" });
+    const [zed] = await db.insert(member).values({ householdId: h.id, displayName: "Zed" }).returning();
+    const flags = () => listMembersForAdmin().then((r) => Object.fromEntries(r.map((m) => [m.displayName, m.pending])));
+    expect(await flags()).toEqual({ Alex: true, Sarah: false, Zed: true }); // Alex was inserted without approval by setup()
+    await approveMember(zed.id);
+    expect((await flags()).Zed).toBe(false);
   });
 });

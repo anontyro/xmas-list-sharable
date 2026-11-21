@@ -197,3 +197,22 @@ test("admin sign-in uses the same frame: a wrong secret gets the generic message
   await expect(page).toHaveURL(/\/admin$/);
   await expect(page.getByRole("heading", { name: "Family admin" })).toBeVisible();
 });
+
+test("signing up with a PIN lands signed in as a viewer who can reserve, and a taken name is refused", async ({ browser }) => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.goto(`/welcome?next=${encodeURIComponent(`/l/${slug}`)}`);
+  await nameField(page).fill("Sarah"); // an active member already has this name
+  await page.getByLabel("PIN (optional)").fill("246810");
+  await letsGo(page).click();
+  await expect(page.getByText("Someone with that name already exists. Pick another or sign in.")).toBeVisible();
+  await expect(page).toHaveURL(/\/welcome/);
+
+  await nameField(page).fill("Zed");
+  await letsGo(page).click();
+  await expect(page).toHaveURL(new RegExp(`/l/${slug}$`));
+  await expect(page.getByRole("button", { name: "Zed", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: /^Reserve: Headphones/ }).click();
+  await expect(page.getByText("Reserved by you")).toBeVisible();
+  await context.close();
+});

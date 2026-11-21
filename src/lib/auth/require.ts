@@ -1,4 +1,7 @@
+import { eq } from "drizzle-orm";
 import { cache } from "react";
+import { getDb } from "@/db/client";
+import { guest } from "@/db/schema";
 import { readSessionToken } from "./cookies";
 import { getSession, type PrincipalType } from "./session";
 import { can, type Principal } from "@/lib/permissions";
@@ -10,7 +13,9 @@ const principalFor = cache(async (type: PrincipalType): Promise<Principal> => {
   const s = token ? await getSession(type, token) : null;
   if (!s) return null;
   if (type === "admin") return { type };
-  return type === "owner" ? { type, memberId: s.principalId } : { type, guestId: s.principalId };
+  if (type === "owner") return { type, memberId: s.principalId };
+  const [g] = await getDb().select({ memberId: guest.memberId }).from(guest).where(eq(guest.id, s.principalId));
+  return { type, guestId: s.principalId, memberId: g?.memberId ?? null };
 });
 
 /** The signed-in admin, or null. For pages that redirect instead of throwing. */

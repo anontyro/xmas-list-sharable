@@ -69,7 +69,7 @@ test("signed-out visitors are sent to sign in, and sign-out ends the session", a
   await ownerSignIn(page);
   await openAccountMenu(page, "Alex");
   await page.getByRole("menuitem", { name: "Sign out" }).click();
-  await expect(page).toHaveURL(/\/owner\/login$/); // the refresh after sign-out bounces the page
+  await expect(page).toHaveURL(/\/$/); // a member signing out goes to the family home
   await page.goto("/owner");
   await expect(page).toHaveURL(/\/owner\/login$/);
 });

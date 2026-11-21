@@ -5,7 +5,7 @@ import SectionTitle from "@/components/sticker/SectionTitle";
 import StickerCard from "@/components/sticker/StickerCard";
 import ActionButton from "@/components/ui/ActionButton";
 import CopyLinkButton from "@/components/ui/CopyLinkButton";
-import { archiveList, deactivateMember } from "@/features/family/actions";
+import { approveMember, archiveList, deactivateMember } from "@/features/family/actions";
 import type { AvatarSticker } from "@/features/family/avatars";
 import RenameDialog from "./RenameDialog";
 import ResetPinDialog from "./ResetPinDialog";
@@ -16,6 +16,8 @@ export type AdminMember = {
   avatar: AvatarSticker | null;
   active: boolean;
   hasPin: boolean;
+  /** Signed themselves up and waiting for the admin (decision 0026). */
+  pending: boolean;
   lists: { id: string; title: string; slug: string; archivedAt: Date | null }[];
 };
 
@@ -24,7 +26,8 @@ const MONO = "ui-monospace, SFMono-Regular, Menlo, monospace";
 /** One member: picture, name, status, each open list with its link, and the four admin buttons (screen 11). */
 export default function AdminMemberCard({ member: m }: { member: AdminMember }) {
   const open = m.lists.filter((l) => l.archivedAt === null);
-  const status = !m.active ? <Pill>Inactive</Pill> : m.hasPin ? <Pill tone="mint">Active</Pill> : <Pill tone="pink">PIN not set</Pill>;
+  const waiting = m.active && m.pending;
+  const status = !m.active ? <Pill>Inactive</Pill> : m.pending ? <Pill tone="yellow">Waiting for approval</Pill> : m.hasPin ? <Pill tone="mint">Active</Pill> : <Pill tone="pink">PIN not set</Pill>;
   return (
     <StickerCard component="article" aria-label={m.displayName} padded sx={{ display: "flex", flexDirection: "column", gap: "10px" }}>
       <Box sx={{ display: "flex", alignItems: "center", gap: "12px" }}>
@@ -53,6 +56,11 @@ export default function AdminMemberCard({ member: m }: { member: AdminMember }) 
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
         <ResetPinDialog memberId={m.id} memberName={m.displayName} hasPin={m.hasPin} />
         <RenameDialog memberId={m.id} name={m.displayName} avatar={m.avatar} />
+        {waiting && (
+          <ActionButton onAction={approveMember.bind(null, m.id)} size="small" variant="contained" aria-label={`Approve ${m.displayName}`}>
+            Approve
+          </ActionButton>
+        )}
         {m.active && (
           <ActionButton onAction={deactivateMember.bind(null, m.id)} size="small" variant="ghost" aria-label={`Deactivate ${m.displayName}`} confirmText="Deactivate this member? They will be signed out and hidden from the family page.">
             Deactivate

@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { cookieJar, requestHeaders, resetRequest } from "./request-context";
 import { db } from "./db-harness";
-import { household, member, session } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { guest, household, member, session } from "@/db/schema";
 import { adminLogin, adminLogout } from "@/features/authentication/admin-login";
 import { ownerLogin } from "@/features/authentication/owner-login";
 import { COOKIE_NAMES } from "@/lib/auth/cookies";
@@ -18,7 +19,7 @@ beforeEach(() => {
 
 async function owner(active = true) {
   const [h] = await db.insert(household).values({ name: "F" }).returning();
-  const [m] = await db.insert(member).values({ householdId: h.id, displayName: "Alex", pinHash: await hashPin("123456"), active }).returning();
+  const [m] = await db.insert(member).values({ householdId: h.id, displayName: "Alex", pinHash: await hashPin("123456"), active, approvedAt: new Date() }).returning();
   return m.id;
 }
 
@@ -58,10 +59,31 @@ describe("owner login", () => {
     expect(await db.select().from(session)).toHaveLength(0);
   });
 
-  it("accepts the right PIN", async () => {
+  it("accepts the right PIN and signs in as the member and as their linked guest", async () => {
     const id = await owner();
     expect((await ownerLogin(id, "123456")).ok).toBe(true);
     expect(cookieJar.has(COOKIE_NAMES.owner)).toBe(true);
+    expect(cookieJar.has(COOKIE_NAMES.guest)).toBe(true);
+    expect(await db.select().from(guest)).toMatchObject([{ memberId: id, displayName: "Alex" }]);
+    await ownerLogin(id, "123456"); // a second sign-in reuses the guest
+    expect(await db.select().from(guest)).toHaveLength(1);
+  });
+
+  it("signs a member who is waiting for approval in as a viewer only", async () => {
+    const id = await owner();
+    await db.update(member).set({ approvedAt: null });
+    expect(await ownerLogin(id, "123456")).toMatchObject({ ok: false, error: { code: "PENDING_APPROVAL" } });
+    expect(cookieJar.has(COOKIE_NAMES.guest)).toBe(true);
+    expect(cookieJar.has(COOKIE_NAMES.owner)).toBe(false);
+    expect((await db.select().from(session)).map((s) => s.principalType)).toEqual(["guest"]);
+  });
+
+  it("a wrong PIN sets neither cookie and links nothing", async () => {
+    const id = await owner();
+    await ownerLogin(id, "000000");
+    expect([...cookieJar.keys()]).toEqual([]);
+    expect(await db.select().from(guest)).toHaveLength(0);
+    expect(await db.select().from(member).where(eq(member.id, id))).toHaveLength(1);
   });
 
   it("blocks the 7th attempt after six wrong PINs, even with the right PIN", async () => {

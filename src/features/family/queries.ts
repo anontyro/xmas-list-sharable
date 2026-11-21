@@ -28,12 +28,12 @@ const ADMIN_LIST_COLUMNS = {
   slug: wishlist.slug,
   archivedAt: wishlist.archivedAt,
 };
-const ADMIN_MEMBER_COLUMNS = { id: member.id, displayName: member.displayName, avatar: member.avatar, active: member.active, pinHash: member.pinHash };
+const ADMIN_MEMBER_COLUMNS = { id: member.id, displayName: member.displayName, avatar: member.avatar, active: member.active, pinHash: member.pinHash, approvedAt: member.approvedAt };
 
-type AdminMemberRow = { id: string; displayName: string; avatar: string | null; active: boolean; pinHash: string | null };
-const toAdminMember = ({ pinHash, avatar, ...m }: AdminMemberRow) => ({ ...m, avatar: toAvatar(avatar), hasPin: pinHash !== null });
+type AdminMemberRow = { id: string; displayName: string; avatar: string | null; active: boolean; pinHash: string | null; approvedAt: Date | null };
+const toAdminMember = ({ pinHash, avatar, approvedAt, ...m }: AdminMemberRow) => ({ ...m, avatar: toAvatar(avatar), hasPin: pinHash !== null, pending: approvedAt === null });
 
-/** Every member with their picture, whether a PIN is set, and their lists (newest year first). */
+/** Every member with their picture, whether a PIN is set, whether they wait for approval, and their lists (newest year first). */
 export async function listMembersForAdmin() {
   await requireAdmin();
   const rows = await getDb().select(ADMIN_MEMBER_COLUMNS).from(member).orderBy(asc(member.displayName));

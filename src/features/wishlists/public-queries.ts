@@ -5,6 +5,12 @@ import { toAvatar } from "@/features/family/avatars";
 import { getItemStates, type ClaimedGuestItem } from "@/features/reservations/guest-claim-view";
 import { itemOrderBy, toGuestItem, type EarlierYearView, type FamilyDashboardView, type GuestWishlistView } from "./views";
 
+/** Which list and member a slug belongs to, for the "this is your own list" redirect. Reads no items and no claims. */
+export async function getListOwnerTarget(slug: string): Promise<{ id: string; memberId: string } | null> {
+  const [row] = await getDb().select({ id: wishlist.id, memberId: wishlist.memberId }).from(wishlist).where(eq(wishlist.slug, slug));
+  return row ?? null;
+}
+
 /** The shared list page. Null for an unknown slug or a deactivated member's list. */
 export async function getListBySlug(slug: string): Promise<GuestWishlistView | null> {
   const db = getDb();

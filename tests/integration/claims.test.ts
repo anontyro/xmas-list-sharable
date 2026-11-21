@@ -4,7 +4,7 @@ import { db } from "./db-harness";
 import { guest, household, itemClaim, itemInterest, member, wishlist, wishlistItem } from "@/db/schema";
 import { markPurchased, release, reserve } from "@/features/reservations/claims";
 import { clearInterest, setInterest } from "@/features/reservations/interest";
-import { purchaseItem, releaseItem, reserveItem, showInterest } from "@/features/reservations/actions";
+import { purchaseItem, releaseItem, reserveItem, showInterest, withdrawInterest } from "@/features/reservations/actions";
 import { COOKIE_NAMES } from "@/lib/auth/cookies";
 import { createSession } from "@/lib/auth/session";
 
@@ -126,5 +126,43 @@ describe("guest actions", () => {
     cookieJar.set(COOKIE_NAMES.owner, (await createSession("owner", m.id)).token);
     cookieJar.set(COOKIE_NAMES.admin, (await createSession("admin", m.id)).token);
     expect(await reserveItem(item.id)).toMatchObject({ error: { code: "UNAUTHORIZED" } });
+  });
+});
+
+describe("a member never reserves on their own list", () => {
+  const actions = [
+    ["reserveItem", (id: string) => reserveItem(id)],
+    ["purchaseItem", (id: string) => purchaseItem(id)],
+    ["releaseItem", (id: string) => releaseItem(id, true)],
+    ["showInterest", (id: string) => showInterest(id)],
+    ["withdrawInterest", (id: string) => withdrawInterest(id)],
+  ] as const;
+
+  async function signedInAs(memberId: string | null, h: string, name: string) {
+    const [g] = await db.insert(guest).values({ householdId: h, displayName: name, memberId }).returning();
+    cookieJar.set(COOKIE_NAMES.guest, (await createSession("guest", g.id)).token);
+    return g;
+  }
+
+  it.each(actions)("%s is refused with OWN_LIST and writes nothing", async (_name, run) => {
+    const { m, item } = await world();
+    await signedInAs(m.id, m.householdId, "Alex");
+    expect(await run(item.id)).toMatchObject({ ok: false, error: { code: "OWN_LIST", message: "This is your own list" } });
+    expect(await db.select().from(itemClaim)).toHaveLength(0);
+    expect(await db.select().from(itemInterest)).toHaveLength(0);
+  });
+
+  it("still works on someone else's list for a linked guest", async () => {
+    const { m, item } = await world();
+    const [sarah] = await db.insert(member).values({ householdId: m.householdId, displayName: "Sarah", approvedAt: new Date() }).returning();
+    const g = await signedInAs(sarah.id, m.householdId, "Sarah");
+    expect(await reserveItem(item.id)).toMatchObject({ ok: true, data: { state: "reserved_by_you" } });
+    expect(await db.select().from(itemClaim)).toMatchObject([{ guestId: g.id }]);
+  });
+
+  it("still works for an unlinked guest", async () => {
+    const { m, item } = await world();
+    await signedInAs(null, m.householdId, "Pat");
+    expect(await showInterest(item.id)).toMatchObject({ ok: true });
   });
 });

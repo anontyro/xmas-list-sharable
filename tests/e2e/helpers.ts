@@ -29,7 +29,7 @@ export async function resetAndSeed() {
 }
 
 export async function createMemberWithPin(householdId: string, displayName: string, pin: string) {
-  const [m] = await db.insert(schema.member).values({ householdId, displayName, pinHash: await hashPin(pin) }).returning();
+  const [m] = await db.insert(schema.member).values({ householdId, displayName, pinHash: await hashPin(pin), approvedAt: new Date() }).returning();
   return m.id;
 }
 

@@ -3,7 +3,7 @@
 The rules Family Gifts is built on, one per file. Each file says what the code does and why. For how it does it, read
 the code.
 
-**Specs:** `Docs/FamilyGifts/Specs/2026-11-15-FG-001-family-gifts.md` (0001–0015) and `Docs/FamilyGifts/Specs/2026-11-17-FG-002-sticker-book-design.md` (0016–0024) · **Manual testing:** `../Testing/MANUAL-TESTING-FG-001-family-gifts.md`, `../Testing/MANUAL-TESTING-FG-002-sticker-book-design.md` · **Work items:** FG-001, FG-002
+**Specs:** `Docs/FamilyGifts/Specs/2026-11-15-FG-001-family-gifts.md` (0001–0015) and `Docs/FamilyGifts/Specs/2026-11-17-FG-002-sticker-book-design.md` (0016–0024) and `Docs/FamilyGifts/Specs/2026-11-20-FG-003-unified-accounts-and-own-lists.md` (0025–0030) · **Manual testing:** `../Testing/MANUAL-TESTING-FG-001-family-gifts.md`, `../Testing/MANUAL-TESTING-FG-002-sticker-book-design.md`, `../Testing/MANUAL-TESTING-FG-003-unified-accounts-and-own-lists.md` · **Work items:** FG-001, FG-002, FG-003
 
 ## How to use this folder
 
@@ -142,6 +142,32 @@ the code.
 | # | Decision |
 |---|---|
 | [0024](0024-admin-one-screen-and-avatars.md) | The admin manages members and lists on one screen, and a member's optional picture is validated in code |
+
+## R8a · Linked accounts (FG-801)
+
+| # | Decision |
+|---|---|
+| [0025](0025-member-is-a-linked-guest.md) | A member is a guest with a link, so one PIN sign-in is both an editor and a viewer, and claims and planners stay on guest ids |
+| [0026](0026-sign-up-with-a-pin.md) | Choosing a name and a PIN makes a member who can view at once and edit once the admin approves them |
+| [0027](0027-no-reserving-on-your-own-list.md) | The server refuses reservations on the caller's own list, so the surprise holds even for a signed-in member |
+
+## R8b · Navigation and home (FG-802)
+
+| # | Decision |
+|---|---|
+| [0028](0028-members-browse-and-edit-from-one-place.md) | The brand goes home, one account menu serves members, and a member's own list opens in the editor, never the family view |
+
+## R8c · Own lists and drafts (FG-803)
+
+| # | Decision |
+|---|---|
+| [0029](0029-own-lists-and-drafts.md) | Members create their own lists; a draft is `published_at is null` and invisible to everyone else until published |
+
+## R8d · Unordered lists (FG-804)
+
+| # | Decision |
+|---|---|
+| [0030](0030-unordered-lists.md) | A list can be unranked: flat, no priority groups, sort or filter, and stored priorities are kept |
 
 ## Open questions
 

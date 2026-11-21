@@ -3,7 +3,7 @@ import { can, type Principal } from "@/lib/permissions";
 
 const admin: Principal = { type: "admin" };
 const owner: Principal = { type: "owner", memberId: "m1" };
-const guest: Principal = { type: "guest", guestId: "g1" };
+const guest: Principal = { type: "guest", guestId: "g1", memberId: null };
 
 // Rows follow the PRD §3.1 matrix: [action, admin, owner (own list), guest, anonymous]
 describe("permission matrix", () => {
