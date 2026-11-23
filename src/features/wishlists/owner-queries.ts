@@ -13,11 +13,11 @@ export async function listOwnLists() {
   const owner = await currentOwner();
   if (!owner) return [];
   const rows = await getDb()
-    .select({ id: wishlist.id, title: wishlist.title, occasion: wishlist.occasion, year: wishlist.year, archivedAt: wishlist.archivedAt, createdAt: wishlist.createdAt })
+    .select({ id: wishlist.id, title: wishlist.title, occasion: wishlist.occasion, year: wishlist.year, archivedAt: wishlist.archivedAt, publishedAt: wishlist.publishedAt, createdAt: wishlist.createdAt })
     .from(wishlist)
     .where(eq(wishlist.memberId, owner.memberId))
     .orderBy(desc(wishlist.year), wishlist.title);
-  return rows.map(({ archivedAt, ...l }) => ({ ...l, archived: archivedAt !== null }));
+  return rows.map(({ archivedAt, publishedAt, ...l }) => ({ ...l, archived: archivedAt !== null, published: publishedAt !== null }));
 }
 
 /** The list "My list" opens: the newest one that is not archived (latest year, then most recently created). Null when there is none. */
@@ -31,7 +31,7 @@ export async function getOwnList(listId: string): Promise<OwnerWishlistView | nu
   if (!owner || !z.string().uuid().safeParse(listId).success) return null;
   const db = getDb();
   const [list] = await db
-    .select({ id: wishlist.id, slug: wishlist.slug, title: wishlist.title, occasion: wishlist.occasion, year: wishlist.year, archivedAt: wishlist.archivedAt })
+    .select({ id: wishlist.id, slug: wishlist.slug, title: wishlist.title, occasion: wishlist.occasion, year: wishlist.year, archivedAt: wishlist.archivedAt, publishedAt: wishlist.publishedAt, ranked: wishlist.ranked })
     .from(wishlist)
     .where(and(eq(wishlist.id, listId), eq(wishlist.memberId, owner.memberId)));
   if (!list) return null;
@@ -39,31 +39,31 @@ export async function getOwnList(listId: string): Promise<OwnerWishlistView | nu
     .select()
     .from(wishlistItem)
     .where(and(eq(wishlistItem.wishlistId, list.id), isNull(wishlistItem.deletedAt)))
-    .orderBy(...itemOrderBy);
-  return { id: list.id, slug: list.slug, title: list.title, occasion: list.occasion, year: list.year, archived: list.archivedAt !== null, items: items.map(toOwnerItem) };
+    .orderBy(...itemOrderBy(list.ranked));
+  return { id: list.id, slug: list.slug, title: list.title, occasion: list.occasion, year: list.year, archived: list.archivedAt !== null, published: list.publishedAt !== null, ranked: list.ranked, items: items.map(toOwnerItem) };
 }
 
 /** Owner and archive status of a list, for the actions' permission checks. */
 export async function getListAccess(listId: string) {
-  const [row] = await getDb().select({ memberId: wishlist.memberId, archivedAt: wishlist.archivedAt }).from(wishlist).where(eq(wishlist.id, listId));
+  const [row] = await getDb().select({ memberId: wishlist.memberId, archivedAt: wishlist.archivedAt, ranked: wishlist.ranked }).from(wishlist).where(eq(wishlist.id, listId));
   return row ?? null;
 }
 
 /** The list an item belongs to, with the item's current priority. Null for unknown or deleted items. */
 export async function getItemAccess(itemId: string) {
   const [row] = await getDb()
-    .select({ wishlistId: wishlistItem.wishlistId, priority: wishlistItem.priority, memberId: wishlist.memberId, archivedAt: wishlist.archivedAt })
+    .select({ wishlistId: wishlistItem.wishlistId, priority: wishlistItem.priority, memberId: wishlist.memberId, archivedAt: wishlist.archivedAt, ranked: wishlist.ranked })
     .from(wishlistItem)
     .innerJoin(wishlist, eq(wishlist.id, wishlistItem.wishlistId))
     .where(and(eq(wishlistItem.id, itemId), isNull(wishlistItem.deletedAt)));
   return row ? { ...row, priority: row.priority as Priority } : null;
 }
 
-/** sort_order that puts a new item last in its priority group. */
-export async function nextSortOrder(wishlistId: string, priority: Priority): Promise<number> {
+/** sort_order that puts a new item last in its priority group, or last in the whole list when `priority` is null (an unranked list). */
+export async function nextSortOrder(wishlistId: string, priority: Priority | null): Promise<number> {
   const [row] = await getDb()
     .select({ top: max(wishlistItem.sortOrder) })
     .from(wishlistItem)
-    .where(and(eq(wishlistItem.wishlistId, wishlistId), eq(wishlistItem.priority, priority), isNull(wishlistItem.deletedAt)));
+    .where(and(eq(wishlistItem.wishlistId, wishlistId), priority ? eq(wishlistItem.priority, priority) : undefined, isNull(wishlistItem.deletedAt)));
   return (row?.top ?? 0) + SORT_GAP;
 }

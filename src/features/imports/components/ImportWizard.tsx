@@ -26,7 +26,7 @@ type Row = { key: number; draft: AmazonDraft; title: string; price: string; dupl
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
 /** Paste an Amazon wishlist, tick the gifts to add, set each one's priority, fill in missing prices. Nothing is saved until "Add". */
-export default function ImportWizard({ listId, backHref, addHref }: { listId: string; backHref: string; addHref: string }) {
+export default function ImportWizard({ listId, backHref, addHref, ranked = true }: { listId: string; backHref: string; addHref: string; ranked?: boolean }) {
   const router = useRouter();
   const [text, setText] = useState("");
   const [rows, setRows] = useState<Row[]>([]);
@@ -124,9 +124,11 @@ export default function ImportWizard({ listId, backHref, addHref }: { listId: st
                           {row.draft.priceMinor === null && (
                             <TextField size="small" placeholder="Add a price (£)" value={row.price} onChange={(e) => change(row.key, { price: e.target.value })} slotProps={{ htmlInput: { inputMode: "decimal", "aria-label": `Price for ${label}` } }} sx={{ width: 150 }} />
                           )}
+                          {ranked && (
                           <TextField select size="small" value={row.priority} onChange={(e) => change(row.key, { priority: e.target.value as Priority })} slotProps={{ select: { native: true }, htmlInput: { "aria-label": `Priority for ${label}` } }}>
                             {PRIORITIES.map((p) => <option key={p} value={p}>{PRIORITY_LABELS[p]}</option>)}
                           </TextField>
+                          )}
                         </Box>
                       )}
                       <Button variant="ghost" size="small" onClick={() => setRows((rs) => rs.filter((r) => r.key !== row.key))} aria-label={`Remove ${label}`}>Remove</Button>

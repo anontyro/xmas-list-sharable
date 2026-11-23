@@ -16,7 +16,7 @@ if (process.argv.includes("--demo")) {
       .onConflictDoNothing()
       .returning();
     // Demo only: the real slug generator arrives with the owner-list release. Owner PINs are set from the admin page.
-    if (m) await db.insert(wishlist).values({ memberId: m.id, title: "Christmas 2026", occasion: "Christmas", year: 2026, slug: randomBytes(8).toString("base64url").slice(0, 10) });
+    if (m) await db.insert(wishlist).values({ memberId: m.id, title: "Christmas 2026", occasion: "Christmas", year: 2026, publishedAt: new Date(), slug: randomBytes(8).toString("base64url").slice(0, 10) });
   }
 }
 

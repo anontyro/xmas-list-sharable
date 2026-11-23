@@ -25,6 +25,9 @@ export type OwnerWishlistView = {
   occasion: string;
   year: number;
   archived: boolean;
+  published: boolean;
+  /** False: one flat list with no priority groups (decision 0030). Stored priorities are kept either way. */
+  ranked: boolean;
   items: OwnerItem[];
 };
 
@@ -37,6 +40,7 @@ export type GuestWishlistView = {
   year: number;
   memberName: string;
   archived: boolean;
+  ranked: boolean;
   items: GuestItem[];
 };
 
@@ -72,9 +76,9 @@ export const toOwnerItem = (r: ItemRow): OwnerItem => ({
 
 export const toGuestItem = (r: ItemRow): GuestItem => ({ ...toOwnerItem(r), createdAt: r.createdAt.toISOString() });
 
-/** Most Wanted, Would Love, Nice to Have, then the owner's order. */
-export const itemOrderBy = [
-  sql`case ${wishlistItem.priority} when 'most_wanted' then 0 when 'would_love' then 1 else 2 end`,
+/** Most Wanted, Would Love, Nice to Have, then the owner's order; an unranked list is the owner's order alone. */
+export const itemOrderBy = (ranked: boolean) => [
+  ...(ranked ? [sql`case ${wishlistItem.priority} when 'most_wanted' then 0 when 'would_love' then 1 else 2 end`] : []),
   wishlistItem.sortOrder,
   wishlistItem.createdAt,
 ];

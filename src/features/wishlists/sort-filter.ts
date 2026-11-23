@@ -20,11 +20,12 @@ type Filterable = Sortable & { state: { state: string } };
 
 const rank = (p: Priority) => PRIORITIES.indexOf(p);
 // Same tie-break as the server query (priority, sort_order, created_at), so a tied list looks identical to everyone.
-const byOwnerOrder = (a: Sortable, b: Sortable) =>
-  rank(a.priority) - rank(b.priority) || a.sortOrder - b.sortOrder || a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id);
+const ownerOrder = (ranked: boolean) => (a: Sortable, b: Sortable) =>
+  (ranked ? rank(a.priority) - rank(b.priority) : 0) || a.sortOrder - b.sortOrder || a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id);
 
-/** Returns a new array; the input (the owner's order) is never changed. Items with no price go last in both price sorts. */
-export function sortItems<T extends Sortable>(items: T[], sort: SortKey): T[] {
+/** Returns a new array; the input (the owner's order) is never changed. Items with no price go last in both price sorts. An unranked list has no priority, so its owner order is the list order alone. */
+export function sortItems<T extends Sortable>(items: T[], sort: SortKey, ranked = true): T[] {
+  const byOwnerOrder = ownerOrder(ranked);
   const copy = [...items];
   const price = (dir: 1 | -1) => (a: T, b: T) => {
     if (a.priceMinor === null || b.priceMinor === null) return a.priceMinor === b.priceMinor ? byOwnerOrder(a, b) : a.priceMinor === null ? 1 : -1;
@@ -53,10 +54,10 @@ export function filterItems<T extends Filterable>(items: T[], f: Filters): T[] {
 type Params = Record<string, string | string[] | undefined>;
 const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
 
-/** Reads the view from URL search params; anything invalid is ignored. */
-export function parseViewParams(params: Params): { sort: SortKey; filters: Filters } {
+/** Reads the view from URL search params; anything invalid is ignored. An unranked list has no priority filter, so one in the address is dropped. */
+export function parseViewParams(params: Params, ranked = true): { sort: SortKey; filters: Filters } {
   const sort = SORTS.find((s) => s === first(params.sort)) ?? "priority";
-  const priorities = (first(params.priority) ?? "").split(",").filter((p): p is Priority => (PRIORITIES as readonly string[]).includes(p));
+  const priorities = (ranked ? first(params.priority) ?? "" : "").split(",").filter((p): p is Priority => (PRIORITIES as readonly string[]).includes(p));
   const money = (v: string | string[] | undefined) => {
     const s = first(v);
     return s ? parsePoundsToMinor(s) : null;

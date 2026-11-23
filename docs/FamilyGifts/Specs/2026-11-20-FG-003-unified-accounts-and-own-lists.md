@@ -279,6 +279,7 @@ Shared acceptance for every package:
   - `src/features/family/queries.ts`
   - `tests/integration/own-lists.test.ts` (new)
   - `tests/integration/public-views.test.ts`
+  - every other `tests/integration/*.test.ts` that inserts a list (they now set `publishedAt`), `tests/e2e/helpers.ts` (`createList` publishes; new `listSlug`) and `src/db/seed.ts`
 - Acceptance criteria:
   1. `createOwnList` creates a list for the signed-in, approved member only (a waiting member has no owner session, so is `UNAUTHORIZED`); passing another member's id in the input has no effect; signed out or admin-only callers get `UNAUTHORIZED`.
   2. `draft: true` leaves `published_at` null; otherwise it is set. The admin `createList` still works and publishes, through the same `insertList`; the slug retry loop exists once.
@@ -302,6 +303,7 @@ Shared acceptance for every package:
   2. A draft shows a "Draft" pill on `/owner` and in the editor, with Publish and the "Only you can see this" note instead of the share card; after Publish the share card appears.
   3. A second browser as another member does not see the draft on `/`, and its `/l/{slug}` is not-found; after publishing it does see it.
   4. The member's home shows "Your drafts" only to them; the admin Lists page shows the Draft pill and no copy link.
+  5. The account menu marks the page you are on (`aria-current="page"` and the selected style) and has a "New list" entry; the old always-blue "Save access" background is gone so only the current page is highlighted.
 
 ### P10 · docs: decision record for R8c (R8c · FG-803, wave 9)
 - Lane: `app`
@@ -320,6 +322,10 @@ Shared acceptance for every package:
   - `src/features/wishlists/list-actions.ts`
   - `src/features/wishlists/reorder.ts`
   - `src/features/wishlists/reorder-actions.ts`
+  - `src/features/wishlists/insert-list.ts`
+  - `src/features/wishlists/owner-actions.ts`
+  - `src/features/imports/bulk-actions.ts`
+  - `tests/integration/public-views.test.ts`
   - `src/features/wishlists/sort-filter.ts`
   - `tests/unit/wishlists/schemas.test.ts`
   - `tests/unit/wishlists/sort-filter.test.ts`
@@ -341,6 +347,9 @@ Shared acceptance for every package:
   - `src/app/(owner)/owner/lists/[listId]/page.tsx`
   - `src/features/wishlists/components/GiftForm.tsx`
   - `src/features/imports/components/ImportWizard.tsx`
+  - `src/app/(owner)/owner/lists/[listId]/add/page.tsx`
+  - `src/app/(owner)/owner/lists/[listId]/gifts/[itemId]/page.tsx`
+  - `src/app/(owner)/owner/lists/[listId]/import/page.tsx`
   - `src/features/wishlists/components/NewListForm.tsx`
   - `src/features/wishlists/components/ListSettingsDialog.tsx` (new)
   - `tests/e2e/ordering.spec.ts`
@@ -356,6 +365,15 @@ Shared acceptance for every package:
   - `Docs/FamilyGifts/Decisions/0030-unordered-lists.md` (new)
 - Acceptance criteria:
   1. Status Agreed; covers D20 to D22 and says stored priorities are kept when a list is switched to unranked.
+
+## Added after approval
+
+Changes made at the owner's request once the packages were built. They are small and each is covered by a test.
+
+- **Sign-in link when the admin adds a member** (`src/features/family/components/SignInLinks.tsx` (new), `AddMemberForm.tsx`, `PinResetForm.tsx`, `src/features/authentication/prefill.ts`, `OwnerSignIn.tsx`, `src/app/(welcome)/owner/login/page.tsx`, `tests/e2e/pin-links.spec.ts`, `tests/unit/prefill.test.ts`). The PIN travels in the address fragment (`#pin=`), which the browser never sends to the server.
+- **Connection timeouts** (`src/db/client.ts`): a stalled serverless connection now reconnects instead of hanging.
+- **Shared database error helpers** (`src/lib/db-errors.ts` (new)): one `isUniqueViolation`, replacing four copies.
+- **Draft safety:** pressing Enter on the new-list form saves a draft; claims and interest are refused on an unpublished list (`src/features/reservations/claims.ts`); concurrent moves lock the list first (`src/features/wishlists/reorder.ts`).
 
 ## Follow-ups
 

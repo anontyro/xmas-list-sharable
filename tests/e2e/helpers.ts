@@ -33,11 +33,11 @@ export async function createMemberWithPin(householdId: string, displayName: stri
   return m.id;
 }
 
-export async function createList(memberId: string, title = "Christmas 2026", archived = false, year = 2026) {
+export async function createList(memberId: string, title = "Christmas 2026", archived = false, year = 2026, draft = false) {
   const slug = generateSlug();
   const [l] = await db
     .insert(schema.wishlist)
-    .values({ memberId, title, occasion: "Christmas", year, slug, archivedAt: archived ? new Date() : null })
+    .values({ memberId, title, occasion: "Christmas", year, slug, archivedAt: archived ? new Date() : null, publishedAt: draft ? null : new Date() })
     .returning();
   return { id: l.id, slug };
 }
@@ -120,4 +120,10 @@ export async function seedGuestActivity(householdId: string, itemId: string) {
 /** Waits for a page to finish streaming in: route `loading.tsx` screens show "One moment…" until the content arrives. */
 export async function settled(page: Page) {
   await expect(page.getByText("One moment…")).toHaveCount(0);
+}
+
+/** The share slug of a list by title, for checking what a draft's link does. */
+export async function listSlug(title: string) {
+  const [l] = await db.select({ slug: schema.wishlist.slug }).from(schema.wishlist).where(eq(schema.wishlist.title, title));
+  return l.slug;
 }

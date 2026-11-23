@@ -7,7 +7,7 @@ import { getListBySlug, getListForViewer } from "@/features/wishlists/public-que
 async function world() {
   const [h] = await db.insert(household).values({ name: "F" }).returning();
   const [m] = await db.insert(member).values({ householdId: h.id, displayName: "Alex" }).returning();
-  const [l] = await db.insert(wishlist).values({ memberId: m.id, title: "x", occasion: "Christmas", year: 2026, slug: "listslug001" }).returning();
+  const [l] = await db.insert(wishlist).values({ publishedAt: new Date(), memberId: m.id, title: "x", occasion: "Christmas", year: 2026, slug: "listslug001" }).returning();
   const items = await db.insert(wishlistItem).values(["free", "interest", "reserved", "bought"].map((title, i) => ({ wishlistId: l.id, title, sortOrder: i * 10 }))).returning();
   const [a, b] = await db.insert(guest).values([{ householdId: h.id, displayName: "Ann" }, { householdId: h.id, displayName: "Bob" }]).returning();
   const id = (t: string) => items.find((i) => i.title === t)!.id;

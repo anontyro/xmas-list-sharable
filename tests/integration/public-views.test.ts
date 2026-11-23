@@ -9,7 +9,7 @@ async function world() {
   const [alex] = await db.insert(member).values({ householdId: h.id, displayName: "Alex" }).returning();
   const [sarah] = await db.insert(member).values({ householdId: h.id, displayName: "Sarah" }).returning();
   const mk = async (memberId: string, slug: string, extra: Partial<typeof wishlist.$inferInsert> = {}) =>
-    (await db.insert(wishlist).values({ memberId, title: "Christmas 2026", occasion: "Christmas", year: 2026, slug, ...extra }).returning())[0];
+    (await db.insert(wishlist).values({ publishedAt: new Date(), memberId, title: "Christmas 2026", occasion: "Christmas", year: 2026, slug, ...extra }).returning())[0];
   return { alex, sarah, mk };
 }
 
@@ -52,7 +52,7 @@ describe("getListBySlug", () => {
     expect(Object.keys(view!.items[0]).sort()).toEqual(
       ["createdAt", "currency", "description", "id", "imageUrl", "priceMinor", "priority", "productUrl", "sortOrder", "title"],
     );
-    expect(Object.keys(view!).sort()).toEqual(["archived", "items", "memberName", "occasion", "slug", "title", "year"]);
+    expect(Object.keys(view!).sort()).toEqual(["archived", "items", "memberName", "occasion", "ranked", "slug", "title", "year"]);
   });
 });
 

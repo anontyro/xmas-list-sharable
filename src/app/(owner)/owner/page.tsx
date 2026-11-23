@@ -19,8 +19,9 @@ export default async function OwnerHome() {
     <>
       <Hero title="My lists" subtitle="Pick a list to edit" tint="mint" sticker={{ name: "heartlist", width: 70, rotate: 6 }} />
       <PageWrap>
+        <LinkButton href="/owner/lists/new" variant="contained" sx={{ alignSelf: "flex-start" }}>+ New list</LinkButton>
         {lists.length === 0 ? (
-          <StickerCard tint="cream" padded>You don&apos;t have a list yet. Ask the family admin to create one.</StickerCard>
+          <StickerCard tint="cream" padded>You don&apos;t have a list yet. Make one with New list.</StickerCard>
         ) : (
           <Box component="ul" sx={{ listStyle: "none", m: 0, p: 0, display: "grid", gap: "14px", gridTemplateColumns: { xs: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))", md: "repeat(3, minmax(0, 1fr))" } }}>
             {lists.map((l) => (
@@ -30,6 +31,7 @@ export default async function OwnerHome() {
                     <SectionTitle sx={{ overflowWrap: "anywhere" }}>{l.title}</SectionTitle>
                     <Box component="p" sx={{ m: 0, fontWeight: 800, fontSize: 14, color: "text.secondary" }}>{l.occasion} {l.year}</Box>
                     {l.archived && <Pill tone="mint">Archived · read-only</Pill>}
+                    {!l.published && <Pill tone="yellow">Draft · only you</Pill>}
                   </Box>
                   <LinkButton href={`/owner/lists/${l.id}`} size="small" variant="contained" aria-label={`Open ${l.title}`}>Open</LinkButton>
                 </StickerCard>

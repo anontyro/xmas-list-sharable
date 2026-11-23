@@ -19,6 +19,9 @@ describe("sortItems", () => {
   it("defaults to priority then owner order", () => {
     expect(titles(sortItems(items, "priority"))).toEqual(["most-mid", "love-pricey", "love-none", "nice-cheap"]);
   });
+  it("ignores priority on an unranked list: the owner's order alone, ties by created time", () => {
+    expect(titles(sortItems(items, "priority", false))).toEqual(["most-mid", "nice-cheap", "love-pricey", "love-none"]);
+  });
   it("puts unpriced items last in both price directions", () => {
     expect(titles(sortItems(items, "price_asc"))).toEqual(["nice-cheap", "most-mid", "love-pricey", "love-none"]);
     expect(titles(sortItems(items, "price_desc"))).toEqual(["love-pricey", "most-mid", "nice-cheap", "love-none"]);
@@ -61,6 +64,11 @@ describe("view params", () => {
     });
     expect(parseViewParams({ sort: "hack" })).toEqual({ sort: "priority", filters: NO_FILTERS });
     expect(parseViewParams({})).toEqual({ sort: "priority", filters: NO_FILTERS });
+  });
+  it("drops a priority filter from the address on an unranked list, and keeps the rest", () => {
+    expect(parseViewParams({ priority: "most_wanted", avail: "1", sort: "price_asc" }, false)).toEqual({
+      sort: "price_asc", filters: { ...NO_FILTERS, availableOnly: true },
+    });
   });
   it("round-trips, and keeps a default view's URL empty", () => {
     const view = { sort: "newest" as const, filters: { priorities: ["would_love" as const], minMinor: 1050, maxMinor: 9900, availableOnly: true } };

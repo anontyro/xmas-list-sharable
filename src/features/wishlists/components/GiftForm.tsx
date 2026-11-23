@@ -32,7 +32,7 @@ const initial = (item?: OwnerItem): Values => ({
 });
 
 /** Adds a gift to `listId`, or edits `item`. Every field is always usable: "Paste a link" only adds the Fetch button, so a failed lookup never blocks typing it in. */
-export default function GiftForm({ listId, item, initialMode, backHref }: { listId: string; item?: OwnerItem; initialMode: "link" | "manual"; backHref: string }) {
+export default function GiftForm({ listId, item, initialMode, backHref, ranked = true }: { listId: string; item?: OwnerItem; initialMode: "link" | "manual"; backHref: string; ranked?: boolean }) {
   const router = useRouter();
   const [mode, setMode] = useState(initialMode);
   const [values, setValues] = useState<Values>(initial(item));
@@ -110,6 +110,7 @@ export default function GiftForm({ listId, item, initialMode, backHref }: { list
           {field("price", "Price", { slotProps: { htmlInput: { inputMode: "decimal" } }, sx: { flex: 1 } })}
           <Box sx={{ mt: "7px" }}><Pill>GBP</Pill></Box>
         </Box>
+        {ranked && (
         <div role="group" aria-labelledby="gift-priority">
           <Box component="p" id="gift-priority" sx={{ m: 0, mb: "6px", fontWeight: 800, fontSize: 13 }}>How much do you want it?</Box>
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
@@ -118,6 +119,7 @@ export default function GiftForm({ listId, item, initialMode, backHref }: { list
             ))}
           </Box>
         </div>
+        )}
         {field("imageUrl", "Picture link", { type: "url" })}
         <div className="span2">{field("description", "Notes for the family (optional)", { multiline: true, minRows: 3, fullWidth: true, placeholder: "Size, colour or anything that helps" })}</div>
       </Box>

@@ -27,6 +27,7 @@ const ADMIN_LIST_COLUMNS = {
   year: wishlist.year,
   slug: wishlist.slug,
   archivedAt: wishlist.archivedAt,
+  publishedAt: wishlist.publishedAt,
 };
 const ADMIN_MEMBER_COLUMNS = { id: member.id, displayName: member.displayName, avatar: member.avatar, active: member.active, pinHash: member.pinHash, approvedAt: member.approvedAt };
 

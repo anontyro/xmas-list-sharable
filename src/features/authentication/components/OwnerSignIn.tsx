@@ -7,28 +7,32 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import { ownerLogin } from "@/features/authentication/owner-login";
-import { findMemberByName } from "@/features/authentication/prefill";
+import { findMemberByName, pinFromHash } from "@/features/authentication/prefill";
 import { shadows, tokens } from "@/theme/tokens";
 
-type Props = { members: { id: string; displayName: string }[]; initialName?: string; initialPin?: string };
+type Props = { members: { id: string; displayName: string }[]; initialName?: string };
 
 const ring = { outline: `3px solid ${tokens.ink}`, outlineOffset: 2 };
 
 /**
  * "Whose list?": each member is a radio button drawn as a sticker button (arrow keys move between them), then one PIN field.
- * `initialName` and `initialPin` come from a sign-in link the admin shared. They only fill the form; the person still presses the button.
+ * `initialName` (from `?name=`) and a PIN in the address fragment (`#pin=`) come from a sign-in link the admin shared. They only fill the form; the person still presses the button.
  */
-export default function OwnerSignIn({ members, initialName, initialPin }: Props) {
+export default function OwnerSignIn({ members, initialName }: Props) {
   const router = useRouter();
   const [memberId, setMemberId] = useState((findMemberByName(members, initialName) ?? members[0])?.id ?? "");
-  const [pin, setPin] = useState(initialPin ?? "");
+  const [pin, setPin] = useState("");
   const [error, setError] = useState<string>();
   const [pending, start] = useTransition();
 
-  // Take the PIN out of the address bar (history, bookmarks, screenshots) as soon as it has been used.
+  // The fragment can only be read in the browser (the server never sees it), so it is picked up here, once, after the page loads.
+  // Then the name and PIN are taken out of the address bar (history, bookmarks, screenshots).
   useEffect(() => {
-    if (initialName || initialPin) window.history.replaceState(null, "", "/owner/login");
-  }, [initialName, initialPin]);
+    const fromLink = pinFromHash(window.location.hash);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reading browser-only state (the URL fragment) on mount
+    if (fromLink) setPin(fromLink);
+    if (initialName || window.location.hash) window.history.replaceState(null, "", "/owner/login");
+  }, [initialName]);
 
   if (members.length === 0) return <Alert severity="info">No one has been added yet. Ask the family admin.</Alert>;
 

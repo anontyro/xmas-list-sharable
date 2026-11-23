@@ -50,7 +50,7 @@ export async function previewAmazonImport(listId: string, input: string) {
  */
 export async function commitBulkImport(listId: string, rows: OwnerItemInput[]) {
   return action(async () => {
-    const { error } = await ownList(listId);
+    const { error, list } = await ownList(listId);
     if (error) return error;
     if (!Array.isArray(rows) || rows.length > MAX_DRAFTS) return fail("INVALID", `Add up to ${MAX_DRAFTS} gifts at a time.`);
 
@@ -59,7 +59,7 @@ export async function commitBulkImport(listId: string, rows: OwnerItemInput[]) {
     const problems: string[] = [];
     for (const row of wanted) {
       const parsed = itemInput.safeParse(row);
-      if (parsed.success) values.push(parsed.data);
+      if (parsed.success) values.push(list.ranked ? parsed.data : { ...parsed.data, priority: "would_love" as const }); // unranked: no priorities (decision 0030)
       else problems.push(`"${String(row.title).slice(0, 40)}": ${parsed.error.issues[0].message}`);
     }
     if (problems.length) return fail("INVALID", `Nothing was added. Please fix: ${problems.join("; ")}`);
@@ -67,7 +67,7 @@ export async function commitBulkImport(listId: string, rows: OwnerItemInput[]) {
 
     // Each priority group continues from its own last item, so existing gifts keep their place.
     const next = new Map<Priority, number>();
-    for (const p of new Set(values.map((v) => v.priority))) next.set(p, await nextSortOrder(listId, p));
+    for (const p of new Set(values.map((v) => v.priority))) next.set(p, await nextSortOrder(listId, list.ranked ? p : null));
     await getDb()
       .insert(wishlistItem)
       .values(

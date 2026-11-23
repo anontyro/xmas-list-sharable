@@ -19,7 +19,7 @@ export default async function EditGiftPage({ params }: { params: Promise<{ listI
     <>
       <Hero title="Edit gift" subtitle="Change anything, then save" tint="yellow" back={{ label: "My list", href: back }} sticker={{ name: "presentgold", width: 80, rotate: 6 }} />
       <PageWrap>
-        <GiftForm key={item.id} listId={list.id} item={item} initialMode="manual" backHref={back} />
+        <GiftForm key={item.id} listId={list.id} item={item} initialMode="manual" backHref={back} ranked={list.ranked} />
       </PageWrap>
     </>
   );

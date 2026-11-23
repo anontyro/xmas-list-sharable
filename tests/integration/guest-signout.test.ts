@@ -22,7 +22,7 @@ beforeEach(() => {
 async function world() {
   const [h] = await db.insert(household).values({ name: "F" }).returning();
   const [owner] = await db.insert(member).values({ householdId: h.id, displayName: "Alex" }).returning();
-  const [list] = await db.insert(wishlist).values({ memberId: owner.id, title: "A", occasion: "Christmas", year: 2026, slug: "alexslug001" }).returning();
+  const [list] = await db.insert(wishlist).values({ publishedAt: new Date(), memberId: owner.id, title: "A", occasion: "Christmas", year: 2026, slug: "alexslug001" }).returning();
   const [item] = await db.insert(wishlistItem).values({ wishlistId: list.id, title: "Headphones" }).returning();
   const r = await createGuest("Sam");
   if (!r.ok) throw new Error("create failed");

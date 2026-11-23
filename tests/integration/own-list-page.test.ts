@@ -26,7 +26,7 @@ beforeEach(() => {
 async function world() {
   const [h] = await db.insert(household).values({ name: "F" }).returning();
   const [alex, sarah] = await db.insert(member).values([{ householdId: h.id, displayName: "Alex", approvedAt: new Date() }, { householdId: h.id, displayName: "Sarah", approvedAt: new Date() }]).returning();
-  const [list] = await db.insert(wishlist).values({ memberId: alex.id, title: "Xmas", occasion: "Christmas", year: 2026, slug: "alexslug001" }).returning();
+  const [list] = await db.insert(wishlist).values({ publishedAt: new Date(), memberId: alex.id, title: "Xmas", occasion: "Christmas", year: 2026, slug: "alexslug001" }).returning();
   const [g] = await db.insert(guest).values({ householdId: h.id, displayName: "Alex", memberId: alex.id }).returning();
   return { alex, sarah, list, g };
 }

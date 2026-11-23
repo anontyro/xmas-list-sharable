@@ -15,13 +15,13 @@ export default async function GuestShell({ children }: { children: React.ReactNo
   const { guest, owner } = await getViewer();
   const last = parseLastList((await cookies()).get(LAST_LIST_COOKIE)?.value);
   const items: NavItem[] = [{ label: "Family", href: "/", sticker: "tree", match: ["/", "/earlier"] }];
-  let member: { pending: boolean; canEdit: boolean; myListHref: string } | undefined;
+  let member: { pending: boolean; canEdit: boolean; myListHref: string | null } | undefined;
   if (guest) {
     const canEdit = guest.memberId !== null && owner?.memberId === guest.memberId;
     const primary = canEdit ? newestOpenList(await listOwnLists()) : null;
-    const myListHref = primary ? `/owner/lists/${primary.id}` : "/owner";
+    const myListHref = primary ? `/owner/lists/${primary.id}` : null; // null: no list yet, so "My list" opens the lists page
     if (guest.memberId) member = { pending: guest.pending, canEdit, myListHref };
-    if (canEdit) items.push({ label: "My list", href: myListHref, sticker: "heartlist", match: ["/owner"] });
+    if (canEdit) items.push({ label: "My list", href: myListHref ?? "/owner", sticker: "heartlist", match: ["/owner"] });
     items.push({ label: "Wishlist", href: last ? `/l/${last}` : "/", sticker: "heartlist", match: ["/l"] });
     items.push({ label: "My planner", tabLabel: "Planner", href: "/planner", sticker: "wallet", match: ["/planner"] });
   }

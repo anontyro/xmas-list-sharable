@@ -16,6 +16,9 @@ export const SORT_LABELS: Record<SortKey, string> = {
   newest: "Recently added",
 };
 
+/** The default sort is "priority" on a ranked list and just the owner's list order on an unranked one. */
+export const sortLabel = (k: SortKey, ranked: boolean) => (k === "priority" && !ranked ? "List order" : SORT_LABELS[k]);
+
 export const isFiltered = (sort: SortKey, filters: Filters) => sort !== "priority" || JSON.stringify(filters) !== JSON.stringify(NO_FILTERS);
 
 /** The view lives in the URL, so a copied link shows the same list; nothing is saved. `go` replaces it. */
@@ -33,7 +36,7 @@ const Label = ({ id, children }: { id: string; children: React.ReactNode }) => (
 );
 
 /** The sort and filter controls, used in the desktop sidebar and in the phone dialog. `maxPounds` is the dearest gift rounded up to £5 (0 = nothing is priced). */
-export default function ListFilters({ sort, filters, maxPounds }: { sort: SortKey; filters: Filters; maxPounds: number }) {
+export default function ListFilters({ sort, filters, maxPounds, ranked = true }: { sort: SortKey; filters: Filters; maxPounds: number; ranked?: boolean }) {
   const go = useViewNav();
   const pounds = filters.maxMinor === null ? maxPounds : Math.min(maxPounds, Math.round(filters.maxMinor / 100));
   // Follows the URL when it changes elsewhere (clear, a chip) while dragging or arrow keys keep their own value, so focus stays on the slider.
@@ -51,10 +54,11 @@ export default function ListFilters({ sort, filters, maxPounds }: { sort: SortKe
         <Label id="f-sort">Sort by</Label>
         <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "8px" }}>
           {(Object.keys(SORT_LABELS) as SortKey[]).map((k) => (
-            <Choice key={k} on={sort === k} onClick={() => go(k, filters)}>{SORT_LABELS[k]}</Choice>
+            <Choice key={k} on={sort === k} onClick={() => go(k, filters)}>{sortLabel(k, ranked)}</Choice>
           ))}
         </Box>
       </div>
+      {ranked && (
       <div role="group" aria-labelledby="f-priority">
         <Label id="f-priority">Priority</Label>
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
@@ -64,6 +68,7 @@ export default function ListFilters({ sort, filters, maxPounds }: { sort: SortKe
           ))}
         </Box>
       </div>
+      )}
       {maxPounds > 0 && (
         <div>
           <Label id="f-price">{value >= maxPounds ? "Any price" : `Up to £${value}`}</Label>

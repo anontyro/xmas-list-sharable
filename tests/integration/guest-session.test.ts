@@ -55,7 +55,7 @@ describe("guest identity", () => {
     const r = await createGuest("Sam");
     if (!r.ok) throw new Error();
     const [m] = await db.insert(member).values({ householdId: h.id, displayName: "Alex" }).returning();
-    const [l] = await db.insert(wishlist).values({ memberId: m.id, title: "x", occasion: "Christmas", year: 2026, slug: "aaaaaaaaaa" }).returning();
+    const [l] = await db.insert(wishlist).values({ publishedAt: new Date(), memberId: m.id, title: "x", occasion: "Christmas", year: 2026, slug: "aaaaaaaaaa" }).returning();
     const [item] = await db.insert(wishlistItem).values({ wishlistId: l.id, title: "Book" }).returning();
     await db.insert(itemClaim).values({ itemId: item.id, guestId: r.data.id, status: "reserved" });
     expect((await renameGuest("  Samantha ")).ok).toBe(true);

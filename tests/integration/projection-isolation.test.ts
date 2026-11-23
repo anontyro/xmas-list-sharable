@@ -28,8 +28,8 @@ describe("owner and admin responses never carry private data", () => {
   it("has no claim-like keys and none of the seeded secrets", async () => {
     const [h] = await db.insert(household).values({ name: "F" }).returning();
     const [alex] = await db.insert(member).values({ householdId: h.id, displayName: "Alex", pinHash: "$argon2id$x" }).returning();
-    const [l] = await db.insert(wishlist).values({ memberId: alex.id, title: "x", occasion: "Christmas", year: 2026, slug: "listslug001" }).returning();
-    await db.insert(wishlist).values({ memberId: alex.id, title: "old", occasion: "Christmas", year: 2025, slug: "oldslug0001", archivedAt: new Date() });
+    const [l] = await db.insert(wishlist).values({ publishedAt: new Date(), memberId: alex.id, title: "x", occasion: "Christmas", year: 2026, slug: "listslug001" }).returning();
+    await db.insert(wishlist).values({ publishedAt: new Date(), memberId: alex.id, title: "old", occasion: "Christmas", year: 2025, slug: "oldslug0001", archivedAt: new Date() });
     const [item] = await db.insert(wishlistItem).values({ wishlistId: l.id, title: "Book" }).returning();
     const [g] = await db.insert(guest).values({ householdId: h.id, displayName: "Zelda-Claimant" }).returning();
     await db.insert(itemInterest).values({ guestId: g.id, itemId: item.id });

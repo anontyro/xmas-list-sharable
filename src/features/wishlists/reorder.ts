@@ -1,11 +1,11 @@
 import { and, asc, eq, isNull } from "drizzle-orm";
 import { getDb } from "@/db/client";
-import { wishlistItem } from "@/db/schema";
+import { wishlist, wishlistItem } from "@/db/schema";
 
 const GAP = 10;
 
 /**
- * Swaps an item with its neighbour inside its priority group, then renumbers the group 10, 20, 30...
+ * Swaps an item with its neighbour inside its priority group (or across the whole list when it is unranked), then renumbers the group 10, 20, 30...
  * The group's rows are locked first, so parallel moves queue up instead of colliding, and the renumbering
  * also repairs ties (two near-simultaneous adds can leave two items with the same sort_order).
  * Returns false when the item is not found or already at that end.
@@ -13,15 +13,18 @@ const GAP = 10;
 export async function moveItem(itemId: string, direction: "up" | "down"): Promise<boolean> {
   return getDb().transaction(async (tx) => {
     const [item] = await tx
-      .select({ wishlistId: wishlistItem.wishlistId, priority: wishlistItem.priority })
+      .select({ wishlistId: wishlistItem.wishlistId, priority: wishlistItem.priority, ranked: wishlist.ranked })
       .from(wishlistItem)
+      .innerJoin(wishlist, eq(wishlist.id, wishlistItem.wishlistId))
       .where(and(eq(wishlistItem.id, itemId), isNull(wishlistItem.deletedAt)));
     if (!item) return false;
 
+    // Locking the list first makes parallel moves on it queue up here, before they hold any gift rows, so two moves can never wait on each other.
+    await tx.select({ id: wishlist.id }).from(wishlist).where(eq(wishlist.id, item.wishlistId)).for("update");
     const group = await tx
       .select({ id: wishlistItem.id, sortOrder: wishlistItem.sortOrder })
       .from(wishlistItem)
-      .where(and(eq(wishlistItem.wishlistId, item.wishlistId), eq(wishlistItem.priority, item.priority), isNull(wishlistItem.deletedAt)))
+      .where(and(eq(wishlistItem.wishlistId, item.wishlistId), item.ranked ? eq(wishlistItem.priority, item.priority) : undefined, isNull(wishlistItem.deletedAt)))
       .orderBy(asc(wishlistItem.sortOrder), asc(wishlistItem.createdAt), asc(wishlistItem.id))
       .for("update");
 
