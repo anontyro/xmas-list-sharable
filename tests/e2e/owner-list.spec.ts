@@ -105,7 +105,7 @@ test("a member makes a draft, only they see it, then publishes it", async ({ pag
   await page.getByRole("link", { name: "+ New list" }).click();
   await page.getByLabel("Title").fill("Birthday wishes");
   await page.getByLabel("Occasion").fill("Birthday");
-  await page.getByRole("button", { name: "Save as a draft" }).click();
+  await page.getByLabel("Title").press("Enter"); // Enter must never publish: it saves the draft
   await expect(page).toHaveURL(/\/owner\/lists\/[0-9a-f-]+$/);
   await expect(page.getByRole("region", { name: "Publish your list" })).toContainText("Only you can see this");
   await expect(page.getByRole("region", { name: "Share your list" })).toHaveCount(0);
@@ -122,6 +122,19 @@ test("a member makes a draft, only they see it, then publishes it", async ({ pag
   await expect(sarah.page.getByText("Birthday wishes")).toHaveCount(0);
   await sarah.page.goto(`/l/${slug}`);
   await expect(sarah.page.getByText("We couldn't find that list")).toBeVisible();
+
+  // The admin sees the draft marked, with no share link to copy.
+  const adminCtx = await browser.newContext();
+  const admin = await adminCtx.newPage();
+  await admin.goto("/admin/login");
+  await admin.getByLabel("Admin secret").fill(process.env.ADMIN_SECRET!);
+  await admin.getByRole("button", { name: "Sign in" }).click();
+  await expect(admin.getByRole("heading", { name: "Family admin" })).toBeVisible();
+  await admin.goto("/admin/lists");
+  const draftCard = admin.getByRole("article", { name: "Alex, Birthday wishes" });
+  await expect(draftCard.getByText("Draft", { exact: true })).toBeVisible();
+  await expect(draftCard.getByRole("button", { name: /Copy link/ })).toHaveCount(0);
+  await adminCtx.close();
 
   await page.getByRole("link", { name: "Open Birthday wishes" }).click();
   await page.getByRole("button", { name: "Publish" }).click();

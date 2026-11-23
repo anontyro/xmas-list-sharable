@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getDb } from "@/db/client";
 import { guest, member, wishlist } from "@/db/schema";
+import { isUniqueViolation } from "@/lib/db-errors";
 import { requireAdmin } from "@/lib/auth/require";
 import { revokeSessionsFor } from "@/lib/auth/session";
 import { action, fail, ok } from "@/lib/result";
@@ -13,11 +14,6 @@ import { avatarSchema, type AvatarSticker } from "./avatars";
 import { listInput, memberName, newMemberInput, pin, type ListInput, type NewMemberInput } from "./schemas";
 import { getHousehold } from "./queries";
 
-const pgCode = (e: unknown) => {
-  const err = e as { code?: string; cause?: { code?: string } };
-  return err?.cause?.code ?? err?.code;
-};
-const isUniqueViolation = (e: unknown) => pgCode(e) === "23505";
 const NOT_FOUND = fail("NOT_FOUND", "That member no longer exists");
 
 const NAME_TAKEN = fail("NAME_TAKEN", "Someone with that name already exists");

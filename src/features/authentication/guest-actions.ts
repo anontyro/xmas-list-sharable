@@ -7,6 +7,7 @@ import { guest, member } from "@/db/schema";
 import { endSession, setSessionCookie } from "@/lib/auth/cookies";
 import { currentGuest, requireGuest } from "@/lib/auth/require";
 import { createSession } from "@/lib/auth/session";
+import { isUniqueViolation } from "@/lib/db-errors";
 import { action, fail, ok } from "@/lib/result";
 import { clientIp } from "@/lib/security/client-ip";
 import { hashPin, isValidPin } from "@/lib/security/password";
@@ -16,10 +17,6 @@ import { guestName } from "./guest-session";
 
 const PIN_ERROR = "PIN must be 6 to 12 digits";
 const NAME_TAKEN = fail("NAME_TAKEN", "Someone with that name already exists. Pick another or sign in.");
-const isUniqueViolation = (e: unknown) => {
-  const err = e as { code?: string; cause?: { code?: string } };
-  return (err?.cause?.code ?? err?.code) === "23505";
-};
 
 /**
  * First visit: makes a new guest (names need not be unique) and signs this browser in as them.

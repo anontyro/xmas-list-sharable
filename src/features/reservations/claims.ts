@@ -1,20 +1,21 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import { getDb } from "@/db/client";
 import { itemClaim, member, wishlist, wishlistItem } from "@/db/schema";
+import { isUniqueViolation } from "@/lib/db-errors";
 import { ok, type Result } from "@/lib/result";
 import { claimError } from "./errors";
 import { getItemState, type GuestItemState } from "./guest-claim-view";
 
 type Outcome = Result<GuestItemState>;
 
-/** A gift can be claimed while it is not deleted, its list is not archived and its owner is active. */
+/** A gift can be claimed while it is not deleted, its list is published and not archived, and its owner is active. */
 export async function isClaimable(itemId: string): Promise<boolean> {
   const [row] = await getDb()
     .select({ id: wishlistItem.id })
     .from(wishlistItem)
     .innerJoin(wishlist, eq(wishlist.id, wishlistItem.wishlistId))
     .innerJoin(member, eq(member.id, wishlist.memberId))
-    .where(and(eq(wishlistItem.id, itemId), isNull(wishlistItem.deletedAt), isNull(wishlist.archivedAt), eq(member.active, true)));
+    .where(and(eq(wishlistItem.id, itemId), isNull(wishlistItem.deletedAt), isNull(wishlist.archivedAt), isNotNull(wishlist.publishedAt), eq(member.active, true)));
   return Boolean(row);
 }
 
@@ -26,8 +27,7 @@ export async function reserve(guestId: string, itemId: string): Promise<Outcome>
   try {
     await getDb().insert(itemClaim).values({ itemId, guestId, status: "reserved" });
   } catch (e) {
-    const err = e as { code?: string; cause?: { code?: string } };
-    if ((err.cause?.code ?? err.code) !== "23505") throw e;
+    if (!isUniqueViolation(e)) throw e;
     // Pressed twice (a double click or a second tab): if the winner is this same guest, that is success, not a conflict.
     const state = await getItemState(guestId, itemId);
     return state.state === "reserved_by_you" || state.state === "purchased_by_you" ? ok(state) : claimError("CLAIM_CONFLICT");

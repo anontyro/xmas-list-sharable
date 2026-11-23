@@ -366,6 +366,15 @@ Shared acceptance for every package:
 - Acceptance criteria:
   1. Status Agreed; covers D20 to D22 and says stored priorities are kept when a list is switched to unranked.
 
+## Added after approval
+
+Changes made at the owner's request once the packages were built. They are small and each is covered by a test.
+
+- **Sign-in link when the admin adds a member** (`src/features/family/components/SignInLinks.tsx` (new), `AddMemberForm.tsx`, `PinResetForm.tsx`, `src/features/authentication/prefill.ts`, `OwnerSignIn.tsx`, `src/app/(welcome)/owner/login/page.tsx`, `tests/e2e/pin-links.spec.ts`, `tests/unit/prefill.test.ts`). The PIN travels in the address fragment (`#pin=`), which the browser never sends to the server.
+- **Connection timeouts** (`src/db/client.ts`): a stalled serverless connection now reconnects instead of hanging.
+- **Shared database error helpers** (`src/lib/db-errors.ts` (new)): one `isUniqueViolation`, replacing four copies.
+- **Draft safety:** pressing Enter on the new-list form saves a draft; claims and interest are refused on an unpublished list (`src/features/reservations/claims.ts`); concurrent moves lock the list first (`src/features/wishlists/reorder.ts`).
+
 ## Follow-ups
 
 - "See my list as the family sees it" preview.

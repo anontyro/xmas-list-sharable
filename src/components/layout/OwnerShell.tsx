@@ -31,7 +31,7 @@ export default async function OwnerShell({ children }: { children: React.ReactNo
     <ShellFrame
       brandHref="/"
       items={items}
-      right={<AccountMenu id={owner.memberId} name={row?.displayName ?? "Owner"} member={{ pending: false, canEdit: true, myListHref: myList }} />}
+      right={<AccountMenu id={owner.memberId} name={row?.displayName ?? "Owner"} member={{ pending: false, canEdit: true, myListHref: primary ? myList : null }} />}
     >
       {children}
     </ShellFrame>

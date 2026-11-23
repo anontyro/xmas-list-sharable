@@ -119,6 +119,7 @@ In the admin page.
 ### 11. Create a list
 As Sarah press New list from `/owner` and from the menu; make one as a draft and one published.
 - The form needs a title and a year from 2000 to 2100.
+- Pressing Enter in the title saves a draft; only the "Create and publish" button publishes.
 - The new lists are Sarah's, whoever is signed in (try the admin page: they appear under Sarah).
 
 ### 12. Drafts and publish

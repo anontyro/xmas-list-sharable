@@ -36,7 +36,7 @@ export default function NewListForm({ year }: { year: number }) {
 
   return (
     <StickerCard component="section" aria-label="New list" padded>
-      <Box component="form" onSubmit={(e: React.FormEvent) => { e.preventDefault(); submit(false); }} sx={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+      <Box component="form" onSubmit={(e: React.FormEvent) => { e.preventDefault(); submit(true); }} sx={{ display: "flex", flexDirection: "column", gap: "12px" }}>
         <TextField label="Title" value={title} onChange={(e) => setTitle(e.target.value)} required slotProps={{ htmlInput: { maxLength: 80 } }} />
         <TextField label="Occasion" value={occasion} onChange={(e) => setOccasion(e.target.value)} required slotProps={{ htmlInput: { maxLength: 40 } }} />
         <TextField label="Year" value={listYear} onChange={(e) => setListYear(e.target.value)} required slotProps={{ htmlInput: { inputMode: "numeric" } }} />
@@ -48,8 +48,9 @@ export default function NewListForm({ year }: { year: number }) {
         </div>
         <Box component="p" sx={{ m: 0, fontSize: 13, fontWeight: 700 }}>A draft is only visible to you until you publish it. A published list is shared with the family.</Box>
         {error && <Alert severity="error">{error}</Alert>}
-        <Button type="submit" variant="contained" size="large" disabled={pending}>Create and publish</Button>
-        <Button type="button" variant="outlined" size="large" disabled={pending} onClick={() => submit(true)}>Save as a draft</Button>
+        {/* Enter in a field submits the form, so the form's own action is the safe one: a draft. Publishing is a deliberate click, and cannot be undone. */}
+        <Button type="button" variant="contained" size="large" disabled={pending} onClick={() => submit(false)}>Create and publish</Button>
+        <Button type="submit" variant="outlined" size="large" disabled={pending}>Save as a draft</Button>
       </Box>
     </StickerCard>
   );

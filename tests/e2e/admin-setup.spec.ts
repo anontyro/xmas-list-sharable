@@ -123,10 +123,10 @@ test("Reset PIN, Rename with a new picture, Archive then Restore and Deactivate 
   await page.getByLabel(/^New PIN/).fill("222222");
   await page.getByRole("button", { name: "Reset PIN", exact: true }).click();
   await expect(page.getByText("PIN saved")).toBeVisible();
-  await expect(page.getByText("/owner/login?name=Alex&pin=222222", { exact: true })).toBeVisible();
+  await expect(page.getByText("/owner/login?name=Alex#pin=222222", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Done" }).click();
   const guest = await (await browser.newContext()).newPage();
-  await guest.goto("/owner/login?name=Alex&pin=222222");
+  await guest.goto("/owner/login?name=Alex#pin=222222");
   await expect(guest.getByLabel("PIN")).toHaveValue("222222");
   await guest.getByRole("button", { name: "Open my list" }).click();
   await expect(guest).toHaveURL(/\/owner$/);

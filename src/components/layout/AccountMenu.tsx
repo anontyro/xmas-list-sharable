@@ -23,7 +23,7 @@ import ChangeNameDialog from "./ChangeNameDialog";
 import SetPinDialog from "./SetPinDialog";
 
 /** `member` is set for someone with a PIN: waiting for the admin, or able to edit (`canEdit`, which needs the editor session as well as approval). Plain guests leave it out. */
-type Member = { pending: boolean; canEdit: boolean; myListHref: string };
+type Member = { pending: boolean; canEdit: boolean; myListHref: string | null };
 type Props = { id: string; name: string; member?: Member };
 type Dialogs = "name" | "pin" | "confirm" | null;
 
@@ -73,7 +73,7 @@ export default function AccountMenu({ id, name, member }: Props) {
   };
 
   const initial = (Array.from(name.trim())[0] ?? "?").toUpperCase();
-  const hasList = member?.myListHref !== "/owner"; // with no list yet, "My list" just opens the lists page
+  const myList = member?.myListHref ?? null; // null: no list yet, so "My list" just opens the lists page
   const item = { onClick: close };
   // The page you are on is marked, for the eye (selected) and for screen readers (aria-current).
   const here = (match: string[], exclude?: string[]) => {
@@ -100,9 +100,9 @@ export default function AccountMenu({ id, name, member }: Props) {
           <Box component="p" sx={{ m: 0, color: tokens.muted, fontSize: 13, fontWeight: 700 }}>{!member ? "Shopping on this device" : member.pending ? "Waiting for admin approval" : "Member"}</Box>
         </li>
         <Divider component="li" sx={dashed} />
-        {member?.canEdit && <MenuItem component={NextLink} href={member.myListHref} {...item} {...here(hasList ? [member.myListHref] : [])}>My list</MenuItem>}
+        {member?.canEdit && <MenuItem component={NextLink} href={myList ?? "/owner"} {...item} {...here(myList ? [myList] : [])}>My list</MenuItem>}
         {member?.canEdit && <MenuItem component={NextLink} href="/owner/lists/new" {...item} {...here(["/owner/lists/new"])}>New list</MenuItem>}
-        {member?.canEdit && <MenuItem component={NextLink} href="/owner" {...item} {...here(["/owner"], [...(hasList ? [member.myListHref] : []), "/owner/lists/new", "/owner/pin", "/owner/login"])}>All my lists</MenuItem>}
+        {member?.canEdit && <MenuItem component={NextLink} href="/owner" {...item} {...here(["/owner"], [...(myList ? [myList] : []), "/owner/lists/new", "/owner/pin", "/owner/login"])}>All my lists</MenuItem>}
         {member && !member.pending && !member.canEdit && <MenuItem component={NextLink} href="/owner/login" {...item} {...here(["/owner/login"])}>Sign in to edit</MenuItem>}
         {member && <MenuItem component={NextLink} href="/" {...item} {...here(["/", "/l"])}>Browse family lists</MenuItem>}
         <MenuItem component={NextLink} href="/planner" {...item} {...here(["/planner"])}>My planner</MenuItem>

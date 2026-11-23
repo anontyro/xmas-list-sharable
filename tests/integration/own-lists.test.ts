@@ -6,6 +6,7 @@ import { household, member, wishlist, wishlistItem } from "@/db/schema";
 import { createList } from "@/features/family/actions";
 import { listAllListsForAdmin } from "@/features/family/queries";
 import { createOwnList, publishList, updateListSettings } from "@/features/wishlists/list-actions";
+import { isClaimable } from "@/features/reservations/claims";
 import { getOwnList, listOwnLists } from "@/features/wishlists/owner-queries";
 import { getEarlierYears, getFamilyDashboard, getListBySlug } from "@/features/wishlists/public-queries";
 import { COOKIE_NAMES } from "@/lib/auth/cookies";
@@ -95,6 +96,14 @@ describe("a draft", () => {
     const rows = await listAllListsForAdmin();
     expect(rows.find((r) => r.title === "Draft")!.publishedAt).toBeNull();
     expect(rows.find((r) => r.title === "Live")!.publishedAt).not.toBeNull();
+  });
+
+  it("cannot be reserved or shown interest in, even with a gift id, until it is published", async () => {
+    const { draft } = await withDraft();
+    const [gift] = await db.insert(wishlistItem).values({ wishlistId: draft.id, title: "Book" }).returning();
+    expect(await isClaimable(gift.id)).toBe(false);
+    await publishList(draft.id);
+    expect(await isClaimable(gift.id)).toBe(true);
   });
 
   it("is published by its owner, once: publishing again keeps the first time", async () => {

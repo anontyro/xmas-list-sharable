@@ -19,6 +19,8 @@ export async function moveItem(itemId: string, direction: "up" | "down"): Promis
       .where(and(eq(wishlistItem.id, itemId), isNull(wishlistItem.deletedAt)));
     if (!item) return false;
 
+    // Locking the list first makes parallel moves on it queue up here, before they hold any gift rows, so two moves can never wait on each other.
+    await tx.select({ id: wishlist.id }).from(wishlist).where(eq(wishlist.id, item.wishlistId)).for("update");
     const group = await tx
       .select({ id: wishlistItem.id, sortOrder: wishlistItem.sortOrder })
       .from(wishlistItem)
